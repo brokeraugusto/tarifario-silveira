@@ -1,13 +1,10 @@
-
 import React from 'react';
 import { Settings, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-
 const SettingsPage = () => {
-  return (
-    <div className="space-y-6 pb-10">
+  return <div className="space-y-6 pb-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-hotel-navy">Configurações</h1>
         <p className="text-muted-foreground mt-2">Gerencie as configurações do sistema.</p>
@@ -68,17 +65,15 @@ const SettingsPage = () => {
           
           <div>
             <Label className="text-base">Desenvolvido por</Label>
-            <p className="text-sm text-muted-foreground">Equipe AcomodaValor</p>
+            <p className="text-sm text-muted-foreground">Augusto Gonçalves</p>
           </div>
           
           <div>
             <Label className="text-base">Contato</Label>
-            <p className="text-sm text-muted-foreground">suporte@acomodavalor.com</p>
+            <p className="text-sm text-muted-foreground">+55 48 9 9904-3764</p>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default SettingsPage;
