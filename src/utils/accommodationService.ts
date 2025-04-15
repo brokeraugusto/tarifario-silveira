@@ -61,7 +61,8 @@ export const searchAccommodations = (params: SearchParams): SearchResult[] => {
       pricePerNight: priceEntry.pricePerNight,
       totalPrice,
       nights,
-      isMinStayViolation
+      isMinStayViolation,
+      minimumStay: period.minimumStay
     });
   }
 

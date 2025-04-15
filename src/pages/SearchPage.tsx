@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
@@ -167,7 +168,7 @@ const SearchPage = () => {
                     <CardFooter className="pt-0">
                       <Alert variant="destructive" className="w-full">
                         <AlertDescription>
-                          Esta acomodação requer estadia mínima de {result.accommodation.minimumStay} noites.
+                          Esta acomodação requer estadia mínima de {result.minimumStay} noites.
                         </AlertDescription>
                       </Alert>
                     </CardFooter>

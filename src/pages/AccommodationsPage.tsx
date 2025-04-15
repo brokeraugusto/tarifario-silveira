@@ -64,7 +64,6 @@ interface AccommodationFormData {
   capacity: number;
   description: string;
   imageUrl: string;
-  minimumStay?: number;
 }
 
 const initialFormData: AccommodationFormData = {
@@ -73,8 +72,7 @@ const initialFormData: AccommodationFormData = {
   category: 'Standard',
   capacity: 2,
   description: '',
-  imageUrl: '/placeholder.svg',
-  minimumStay: 1
+  imageUrl: '/placeholder.svg'
 };
 
 const AccommodationsPage = () => {
@@ -87,7 +85,7 @@ const AccommodationsPage = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'capacity' || name === 'minimumStay' ? parseInt(value) : value
+      [name]: name === 'capacity' ? parseInt(value) : value
     });
   };
 
@@ -111,8 +109,7 @@ const AccommodationsPage = () => {
         category: accommodation.category,
         capacity: accommodation.capacity,
         description: accommodation.description,
-        imageUrl: accommodation.imageUrl,
-        minimumStay: accommodation.minimumStay
+        imageUrl: accommodation.imageUrl
       });
       setEditId(accommodation.id);
     } else {
@@ -199,7 +196,6 @@ const AccommodationsPage = () => {
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead className="text-center">Capacidade</TableHead>
-                <TableHead className="text-center">Estadia Mín.</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -214,7 +210,6 @@ const AccommodationsPage = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">{accommodation.capacity} pessoas</TableCell>
-                  <TableCell className="text-center">{accommodation.minimumStay || 1} noites</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button 
@@ -328,28 +323,15 @@ const AccommodationsPage = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="minimumStay">Estadia Mínima (noites)</Label>
-                  <Input
-                    id="minimumStay"
-                    name="minimumStay"
-                    type="number"
-                    min={1}
-                    value={formData.minimumStay || ''}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">URL da Imagem</Label>
-                  <Input
-                    id="imageUrl"
-                    name="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={handleInputChange}
-                    placeholder="/placeholder.svg"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="imageUrl">URL da Imagem</Label>
+                <Input
+                  id="imageUrl"
+                  name="imageUrl"
+                  value={formData.imageUrl}
+                  onChange={handleInputChange}
+                  placeholder="/placeholder.svg"
+                />
               </div>
               
               <div className="space-y-2">

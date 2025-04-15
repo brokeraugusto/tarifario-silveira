@@ -40,4 +40,5 @@ export interface SearchResult {
   totalPrice: number | null;
   nights: number | null;
   isMinStayViolation: boolean;
+  minimumStay?: number; // Added for display purposes
 }
