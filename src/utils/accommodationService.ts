@@ -117,6 +117,19 @@ export const updateAccommodation = (id: string, updates: Partial<Accommodation>)
   return accommodations[index];
 };
 
+export const bulkUpdateAccommodations = (ids: string[], updates: Partial<Accommodation>): Accommodation[] => {
+  const updatedAccommodations: Accommodation[] = [];
+  
+  for (const id of ids) {
+    const updated = updateAccommodation(id, updates);
+    if (updated) {
+      updatedAccommodations.push(updated);
+    }
+  }
+  
+  return updatedAccommodations;
+};
+
 export const deleteAccommodation = (id: string): boolean => {
   const index = accommodations.findIndex(accommodation => accommodation.id === id);
   if (index === -1) return false;
