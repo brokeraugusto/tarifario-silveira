@@ -24,6 +24,8 @@ export function DatePickerWithRange({
   dateRange,
   onDateRangeChange,
 }: DatePickerWithRangeProps) {
+  // This is a functional component so we can use hooks directly
+  // The issue was likely related to how Popover was being used
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -51,7 +53,7 @@ export function DatePickerWithRange({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 z-50" align="start">
           <Calendar
             initialFocus
             mode="range"
@@ -59,7 +61,7 @@ export function DatePickerWithRange({
             selected={dateRange}
             onSelect={onDateRangeChange}
             numberOfMonths={2}
-            className={cn("p-3 pointer-events-auto")}
+            className="p-3 pointer-events-auto"
           />
         </PopoverContent>
       </Popover>

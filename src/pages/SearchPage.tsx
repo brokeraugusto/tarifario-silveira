@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -165,7 +165,7 @@ const SearchPage = () => {
                   
                   {result.isMinStayViolation && (
                     <CardFooter className="pt-0">
-                      <Alert variant="warning" className="w-full">
+                      <Alert variant="destructive" className="w-full">
                         <AlertDescription>
                           Esta acomodação requer estadia mínima de {result.accommodation.minimumStay} noites.
                         </AlertDescription>
