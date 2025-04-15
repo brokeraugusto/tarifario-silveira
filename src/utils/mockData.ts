@@ -1,4 +1,3 @@
-
 import { Accommodation, PricePeriod, PriceByPeople } from '../types';
 import { addDays, addMonths } from 'date-fns';
 
@@ -11,8 +10,7 @@ export const accommodations: Accommodation[] = [
     category: 'Standard',
     capacity: 2,
     description: 'Acomodação Standard com cama de casal, banheiro privativo e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 1
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '2',
@@ -21,8 +19,7 @@ export const accommodations: Accommodation[] = [
     category: 'Standard',
     capacity: 2,
     description: 'Acomodação Standard com cama de casal, banheiro privativo e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 1
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '3',
@@ -31,8 +28,7 @@ export const accommodations: Accommodation[] = [
     category: 'Luxo',
     capacity: 4,
     description: 'Acomodação Luxo com cama de casal, sofá-cama, banheiro privativo e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 2
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '4',
@@ -41,8 +37,7 @@ export const accommodations: Accommodation[] = [
     category: 'Luxo',
     capacity: 4,
     description: 'Acomodação Luxo com cama de casal, sofá-cama, banheiro privativo e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 2
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '5',
@@ -51,8 +46,7 @@ export const accommodations: Accommodation[] = [
     category: 'Luxo',
     capacity: 4,
     description: 'Acomodação Luxo com cama de casal, sofá-cama, banheiro privativo e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 2
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '6',
@@ -61,8 +55,7 @@ export const accommodations: Accommodation[] = [
     category: 'Super Luxo',
     capacity: 4,
     description: 'Acomodação Super Luxo com cama de casal, sofá-cama, banheiro privativo, jacuzzi e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 3
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '7',
@@ -71,8 +64,7 @@ export const accommodations: Accommodation[] = [
     category: 'Super Luxo',
     capacity: 4,
     description: 'Acomodação Super Luxo com cama de casal, sofá-cama, banheiro privativo, jacuzzi e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 3
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '8',
@@ -81,8 +73,7 @@ export const accommodations: Accommodation[] = [
     category: 'Super Luxo',
     capacity: 5,
     description: 'Acomodação Super Luxo espaçosa com cama de casal, sofá-cama duplo, banheiro privativo, jacuzzi e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 3
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '9',
@@ -91,8 +82,7 @@ export const accommodations: Accommodation[] = [
     category: 'Super Luxo',
     capacity: 5,
     description: 'Acomodação Super Luxo espaçosa com cama de casal, sofá-cama duplo, banheiro privativo, jacuzzi e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 3
+    imageUrl: '/placeholder.svg'
   },
   {
     id: '10',
@@ -101,8 +91,7 @@ export const accommodations: Accommodation[] = [
     category: 'Super Luxo',
     capacity: 5,
     description: 'Acomodação Super Luxo espaçosa com cama de casal, sofá-cama duplo, banheiro privativo, jacuzzi e café da manhã incluso.',
-    imageUrl: '/placeholder.svg',
-    minimumStay: 3
+    imageUrl: '/placeholder.svg'
   },
 ];
 
@@ -114,21 +103,24 @@ export const pricePeriods: PricePeriod[] = [
     name: 'Baixa Temporada',
     startDate: currentDate,
     endDate: addMonths(currentDate, 2),
-    isHoliday: false
+    isHoliday: false,
+    minimumStay: 1
   },
   {
     id: '2',
     name: 'Feriado Nacional',
     startDate: addDays(currentDate, 14),
     endDate: addDays(currentDate, 16),
-    isHoliday: true
+    isHoliday: true,
+    minimumStay: 3
   },
   {
     id: '3',
     name: 'Alta Temporada',
     startDate: addMonths(currentDate, 3),
     endDate: addMonths(currentDate, 5),
-    isHoliday: false
+    isHoliday: false,
+    minimumStay: 2
   }
 ];
 

@@ -50,11 +50,11 @@ export const searchAccommodations = (params: SearchParams): SearchResult[] => {
       totalPrice = nights * priceEntry.pricePerNight;
     }
 
-    // Verificar restrição de estadia mínima
+    // Verificar restrição de estadia mínima baseada no período
     const isMinStayViolation = checkOut && 
-      accommodation.minimumStay !== undefined && 
+      period.minimumStay !== undefined && 
       nights !== null && 
-      nights < accommodation.minimumStay;
+      nights < period.minimumStay;
 
     results.push({
       accommodation,

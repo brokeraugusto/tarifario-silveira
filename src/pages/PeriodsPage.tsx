@@ -77,6 +77,7 @@ interface PeriodFormData {
   name: string;
   dateRange: DateRange;
   isHoliday: boolean;
+  minimumStay: number;
 }
 
 interface PriceFormData {
@@ -92,7 +93,8 @@ const initialPeriodForm: PeriodFormData = {
     from: new Date(),
     to: new Date()
   },
-  isHoliday: false
+  isHoliday: false,
+  minimumStay: 1
 };
 
 const initialPriceForm: PriceFormData = {
@@ -130,7 +132,8 @@ const PeriodsPage = () => {
     const { name, value, type, checked } = e.target;
     setPeriodForm({
       ...periodForm,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : 
+              name === 'minimumStay' ? parseInt(value) : value
     });
   };
 
@@ -163,7 +166,8 @@ const PeriodsPage = () => {
           from: period.startDate,
           to: period.endDate
         },
-        isHoliday: period.isHoliday
+        isHoliday: period.isHoliday,
+        minimumStay: period.minimumStay
       });
       setEditPeriodId(period.id);
     } else {
@@ -190,7 +194,8 @@ const PeriodsPage = () => {
         name: periodForm.name,
         startDate: periodForm.dateRange.from,
         endDate: periodForm.dateRange.to,
-        isHoliday: periodForm.isHoliday
+        isHoliday: periodForm.isHoliday,
+        minimumStay: periodForm.minimumStay
       };
       
       if (editPeriodId) {
@@ -354,6 +359,7 @@ const PeriodsPage = () => {
                     <TableHead>Data Início</TableHead>
                     <TableHead>Data Fim</TableHead>
                     <TableHead className="text-center">Tipo</TableHead>
+                    <TableHead className="text-center">Diárias Mínimas</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -368,6 +374,7 @@ const PeriodsPage = () => {
                           {period.isHoliday ? 'Feriado' : 'Normal'}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-center">{period.minimumStay}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button 
@@ -560,6 +567,19 @@ const PeriodsPage = () => {
                 <DatePickerWithRange 
                   dateRange={periodForm.dateRange} 
                   onDateRangeChange={handleDateRangeChange} 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="minimumStay">Diárias Mínimas</Label>
+                <Input
+                  id="minimumStay"
+                  name="minimumStay"
+                  type="number"
+                  min={1}
+                  value={periodForm.minimumStay}
+                  onChange={handlePeriodInputChange}
+                  required
                 />
               </div>
               

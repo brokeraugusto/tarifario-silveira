@@ -9,7 +9,6 @@ export interface Accommodation {
   capacity: number;
   description: string;
   imageUrl: string;
-  minimumStay?: number;
 }
 
 export interface PricePeriod {
@@ -18,6 +17,7 @@ export interface PricePeriod {
   startDate: Date;
   endDate: Date;
   isHoliday: boolean;
+  minimumStay: number;
 }
 
 export interface PriceByPeople {
