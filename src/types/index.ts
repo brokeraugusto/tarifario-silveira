@@ -1,6 +1,8 @@
 
 export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo';
 
+export type BlockReasonType = 'Reforma' | 'Manutenção' | 'Locação Mensal' | 'Locação Anual' | 'Outro';
+
 export interface Accommodation {
   id: string;
   name: string;
@@ -9,6 +11,10 @@ export interface Accommodation {
   capacity: number;
   description: string;
   imageUrl: string;
+  images: string[];  // New field for multiple images
+  isBlocked: boolean;
+  blockReason?: BlockReasonType;
+  blockNote?: string;
 }
 
 export interface PricePeriod {
@@ -26,6 +32,7 @@ export interface PriceByPeople {
   periodId: string;
   people: number;
   pricePerNight: number;
+  includesBreakfast: boolean;  // New field for breakfast option
 }
 
 export interface SearchParams {
@@ -41,4 +48,10 @@ export interface SearchResult {
   nights: number | null;
   isMinStayViolation: boolean;
   minimumStay?: number; // Added for display purposes
+}
+
+export interface PriceOption {
+  people: number;
+  withBreakfast: number;
+  withoutBreakfast: number;
 }

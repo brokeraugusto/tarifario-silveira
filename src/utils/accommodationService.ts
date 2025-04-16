@@ -1,21 +1,22 @@
-
 import { accommodations, pricePeriods, pricesByPeople } from './mockData';
 import { 
   Accommodation, 
   PricePeriod, 
   PriceByPeople, 
   SearchParams, 
-  SearchResult 
+  SearchResult,
+  BlockReasonType,
+  CategoryType
 } from '../types';
-import { differenceInDays, isWithinInterval, parseISO } from 'date-fns';
+import { differenceInDays, isWithinInterval } from 'date-fns';
 
 // Função para buscar acomodações com base nos critérios
 export const searchAccommodations = (params: SearchParams): SearchResult[] => {
   const { checkIn, checkOut, guests } = params;
 
-  // Filtrar acomodações que comportam o número de pessoas
+  // Filtrar acomodações que comportam o número de pessoas e não estão bloqueadas
   const filteredAccommodations = accommodations.filter(
-    accommodation => accommodation.capacity >= guests
+    accommodation => accommodation.capacity >= guests && !accommodation.isBlocked
   );
 
   const results: SearchResult[] = [];
@@ -103,7 +104,9 @@ export const getAccommodationById = (id: string): Accommodation | undefined => {
 export const createAccommodation = (accommodation: Omit<Accommodation, 'id'>): Accommodation => {
   const newAccommodation = {
     ...accommodation,
-    id: String(nextAccommodationId++)
+    id: String(nextAccommodationId++),
+    isBlocked: accommodation.isBlocked || false,
+    images: accommodation.images || []
   };
   accommodations.push(newAccommodation);
   return newAccommodation;
@@ -136,6 +139,15 @@ export const deleteAccommodation = (id: string): boolean => {
   
   accommodations.splice(index, 1);
   return true;
+};
+
+// Block/Unblock accommodation
+export const blockAccommodation = (id: string, reason: BlockReasonType, note?: string): Accommodation | undefined => {
+  return updateAccommodation(id, { isBlocked: true, blockReason: reason, blockNote: note });
+};
+
+export const unblockAccommodation = (id: string): Accommodation | undefined => {
+  return updateAccommodation(id, { isBlocked: false, blockReason: undefined, blockNote: undefined });
 };
 
 // CRUD para períodos de preços
@@ -200,4 +212,68 @@ export const deletePrice = (id: string): boolean => {
   
   pricesByPeople.splice(index, 1);
   return true;
+};
+
+// Funções para preços por categoria
+export const updatePricesByCategory = (
+  category: CategoryType, 
+  periodId: string, 
+  priceOptions: { people: number, withBreakfast: number, withoutBreakfast: number }[],
+  excludedAccommodationIds: string[] = []
+): void => {
+  // Obter todas as acomodações da categoria que não estão na lista de exceções
+  const categoryAccommodations = accommodations.filter(
+    acc => acc.category === category && !excludedAccommodationIds.includes(acc.id)
+  );
+  
+  // Para cada acomodação, atualizar os preços
+  for (const accommodation of categoryAccommodations) {
+    // Para cada opção de preço
+    for (const option of priceOptions) {
+      // Verificar se já existe um preço com essas características
+      const existingPriceWithBreakfast = pricesByPeople.find(
+        p => p.accommodationId === accommodation.id && 
+             p.periodId === periodId && 
+             p.people === option.people &&
+             p.includesBreakfast === true
+      );
+      
+      const existingPriceWithoutBreakfast = pricesByPeople.find(
+        p => p.accommodationId === accommodation.id && 
+             p.periodId === periodId && 
+             p.people === option.people &&
+             p.includesBreakfast === false
+      );
+      
+      // Atualizar ou criar preço com café da manhã
+      if (existingPriceWithBreakfast) {
+        updatePrice(existingPriceWithBreakfast.id, { pricePerNight: option.withBreakfast });
+      } else {
+        createPrice({
+          accommodationId: accommodation.id,
+          periodId,
+          people: option.people,
+          pricePerNight: option.withBreakfast,
+          includesBreakfast: true
+        });
+      }
+      
+      // Atualizar ou criar preço sem café da manhã
+      if (existingPriceWithoutBreakfast) {
+        updatePrice(existingPriceWithoutBreakfast.id, { pricePerNight: option.withoutBreakfast });
+      } else {
+        createPrice({
+          accommodationId: accommodation.id,
+          periodId,
+          people: option.people,
+          pricePerNight: option.withoutBreakfast,
+          includesBreakfast: false
+        });
+      }
+    }
+  }
+};
+
+export const getAccommodationsByCategory = (category: CategoryType): Accommodation[] => {
+  return accommodations.filter(acc => acc.category === category);
 };
