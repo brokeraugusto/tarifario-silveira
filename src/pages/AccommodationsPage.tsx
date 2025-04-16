@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Pencil, Trash2, Users, Layers, Images, DollarSign, Lock, Unlock } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Users, Images, Lock, Unlock } from 'lucide-react';
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -9,7 +9,6 @@ import {
   DialogFooter, 
   DialogHeader, 
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { 
   Table, 
@@ -35,6 +34,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -51,23 +51,18 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Accommodation, CategoryType } from '@/types';
 import { 
   getAllAccommodations, 
   createAccommodation, 
   updateAccommodation, 
   deleteAccommodation,
-  bulkUpdateAccommodations 
-} from '@/utils/accommodationService';
+} from '@/integrations/supabase/accommodationService';
 import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
 import CategoryPriceDialog from '@/components/CategoryPriceDialog';
 import AccommodationDetails from '@/components/AccommodationDetails';
+import ImageUploader from '@/components/ImageUploader';
+import { uploadImage } from '@/integrations/supabase/storageService';
 
 interface AccommodationFormData {
   name: string;
@@ -77,13 +72,6 @@ interface AccommodationFormData {
   description: string;
   imageUrl: string;
   images: string[];
-}
-
-interface BulkEditFormData {
-  category: CategoryType | '';
-  capacity: number | '';
-  description: string;
-  imageUrl: string;
 }
 
 const initialFormData: AccommodationFormData = {
@@ -96,29 +84,38 @@ const initialFormData: AccommodationFormData = {
   images: []
 };
 
-const initialBulkEditData: BulkEditFormData = {
-  category: '',
-  capacity: '',
-  description: '',
-  imageUrl: '',
-};
-
 const AccommodationsPage = () => {
-  const [accommodations, setAccommodations] = useState<Accommodation[]>(getAllAccommodations());
+  const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
   const [formData, setFormData] = useState<AccommodationFormData>({...initialFormData});
-  const [bulkEditData, setBulkEditData] = useState<BulkEditFormData>({...initialBulkEditData});
   const [editId, setEditId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
   const [selectedAccommodations, setSelectedAccommodations] = useState<string[]>([]);
   const [selectedAll, setSelectedAll] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType | ''>('');
   const [imageInputs, setImageInputs] = useState<string[]>(['']);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [categoryPriceDialogOpen, setCategoryPriceDialogOpen] = useState(false);
   const [selectedCategoryForPrices, setSelectedCategoryForPrices] = useState<CategoryType>('Standard');
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch accommodations when component mounts
+  useEffect(() => {
+    fetchAccommodations();
+  }, []);
+
+  const fetchAccommodations = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllAccommodations();
+      setAccommodations(data);
+    } catch (error) {
+      console.error("Error fetching accommodations:", error);
+      toast.error("Erro ao carregar acomodações");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenDetailsDialog = (accommodation: Accommodation) => {
     setSelectedAccommodation(accommodation);
@@ -164,24 +161,9 @@ const AccommodationsPage = () => {
     });
   };
 
-  const handleBulkEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setBulkEditData({
-      ...bulkEditData,
-      [name]: name === 'capacity' ? (value ? parseInt(value) : '') : value
-    });
-  };
-
   const handleSelectChange = (name: string, value: string) => {
     setFormData({
       ...formData,
-      [name]: value
-    });
-  };
-
-  const handleBulkEditSelectChange = (name: string, value: string) => {
-    setBulkEditData({
-      ...bulkEditData,
       [name]: value
     });
   };
@@ -192,10 +174,11 @@ const AccommodationsPage = () => {
     setImageInputs(['']);
   };
 
-  const resetBulkEditForm = () => {
-    setBulkEditData({...initialBulkEditData});
-    setSelectedAccommodations([]);
-    setSelectedAll(false);
+  const handleImageUploaded = (imageUrl: string) => {
+    setFormData({
+      ...formData,
+      imageUrl
+    });
   };
 
   const handleOpenDialog = (accommodation?: Accommodation) => {
@@ -227,78 +210,59 @@ const AccommodationsPage = () => {
     setIsDialogOpen(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
     try {
       if (editId) {
         // Atualizar acomodação existente
-        const updated = updateAccommodation(editId, formData);
+        const updated = await updateAccommodation(editId, formData);
         if (updated) {
           toast.success("Acomodação atualizada com sucesso");
-          setAccommodations(getAllAccommodations());
+          await fetchAccommodations();
+        } else {
+          toast.error("Erro ao atualizar acomodação");
         }
       } else {
         // Criar nova acomodação
-        const created = createAccommodation({
+        const created = await createAccommodation({
           ...formData,
           isBlocked: false
         });
-        toast.success("Acomodação criada com sucesso");
-        setAccommodations(getAllAccommodations());
+        
+        if (created) {
+          toast.success("Acomodação criada com sucesso");
+          await fetchAccommodations();
+        } else {
+          toast.error("Erro ao criar acomodação");
+        }
       }
       
       handleCloseDialog();
     } catch (error) {
       toast.error("Erro ao salvar acomodação");
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleBulkEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Filtra apenas os campos preenchidos
-    const updatesFields: Partial<Accommodation> = {};
-    if (bulkEditData.capacity !== '') updatesFields.capacity = bulkEditData.capacity as number;
-    if (bulkEditData.description) updatesFields.description = bulkEditData.description;
-    if (bulkEditData.imageUrl) updatesFields.imageUrl = bulkEditData.imageUrl;
-    
+  const handleDelete = async (id: string) => {
+    setLoading(true);
     try {
-      let ids: string[];
-      if (selectedCategory && selectedAll) {
-        // Edita todas as acomodações da categoria selecionada
-        ids = accommodations
-          .filter(acc => acc.category === selectedCategory)
-          .map(acc => acc.id);
+      const deleted = await deleteAccommodation(id);
+      if (deleted) {
+        toast.success("Acomodação excluída com sucesso");
+        await fetchAccommodations();
       } else {
-        // Edita apenas as acomodações selecionadas
-        ids = selectedAccommodations;
+        toast.error("Erro ao excluir acomodação");
       }
-      
-      if (ids.length === 0) {
-        toast.error("Nenhuma acomodação selecionada");
-        return;
-      }
-
-      bulkUpdateAccommodations(ids, updatesFields);
-      toast.success(`${ids.length} acomodações atualizadas com sucesso`);
-      setAccommodations(getAllAccommodations());
-      setIsBulkEditDialogOpen(false);
-      resetBulkEditForm();
     } catch (error) {
-      toast.error("Erro ao atualizar acomodações");
-      console.error(error);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    const deleted = deleteAccommodation(id);
-    if (deleted) {
-      toast.success("Acomodação excluída com sucesso");
-      setAccommodations(getAllAccommodations());
-    } else {
       toast.error("Erro ao excluir acomodação");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -321,52 +285,6 @@ const AccommodationsPage = () => {
     }
     setSelectedAll(!selectedAll);
   };
-
-  const openBulkEditDialog = (category?: CategoryType) => {
-    if (category) {
-      setSelectedCategory(category);
-      setSelectedAll(true);
-      
-      // Se uma categoria específica foi escolhida, selecione todas as acomodações dessa categoria
-      const categoryAccommodations = accommodations
-        .filter(acc => acc.category === category)
-        .map(acc => acc.id);
-      
-      setSelectedAccommodations(categoryAccommodations);
-      
-      // Encontre valores comuns para pré-preencher o formulário
-      const categoryItems = accommodations.filter(acc => acc.category === category);
-      if (categoryItems.length > 0) {
-        const firstItem = categoryItems[0];
-        const commonCapacity = categoryItems.every(acc => acc.capacity === firstItem.capacity) 
-          ? firstItem.capacity 
-          : '';
-        const commonDescription = categoryItems.every(acc => acc.description === firstItem.description)
-          ? firstItem.description
-          : '';
-        const commonImageUrl = categoryItems.every(acc => acc.imageUrl === firstItem.imageUrl)
-          ? firstItem.imageUrl
-          : '';
-          
-        setBulkEditData({
-          category,
-          capacity: commonCapacity,
-          description: commonDescription,
-          imageUrl: commonImageUrl
-        });
-      }
-    } else {
-      // Caso seja seleção manual, apenas abra o diálogo sem pré-selecionar
-      setBulkEditData({...initialBulkEditData});
-    }
-    
-    setIsBulkEditDialogOpen(true);
-  };
-  
-  const handleCloseBulkEditDialog = () => {
-    setIsBulkEditDialogOpen(false);
-    resetBulkEditForm();
-  };
   
   const handleOpenBlockDialog = (accommodation: Accommodation) => {
     setSelectedAccommodation(accommodation);
@@ -378,8 +296,8 @@ const AccommodationsPage = () => {
     setCategoryPriceDialogOpen(true);
   };
 
-  const handleAccommodationUpdate = (updated: Accommodation) => {
-    setAccommodations(getAllAccommodations());
+  const handleAccommodationUpdate = () => {
+    fetchAccommodations();
   };
 
   const getCategoryColor = (category: string) => {
@@ -390,6 +308,8 @@ const AccommodationsPage = () => {
         return 'bg-purple-100 text-purple-800';
       case 'Super Luxo':
         return 'bg-amber-100 text-amber-800';
+      case 'De Luxe':
+        return 'bg-emerald-100 text-emerald-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -407,57 +327,6 @@ const AccommodationsPage = () => {
           <p className="text-muted-foreground mt-2">Cadastre e edite as acomodações disponíveis.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Layers className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Edição em Massa</span>
-                <span className="sm:hidden">Massa</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openBulkEditDialog('Standard')}>
-                <Badge className={`mr-2 ${getCategoryColor('Standard')}`}>Standard</Badge>
-                <span>({countByCategory('Standard')})</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openBulkEditDialog('Luxo')}>
-                <Badge className={`mr-2 ${getCategoryColor('Luxo')}`}>Luxo</Badge>
-                <span>({countByCategory('Luxo')})</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openBulkEditDialog('Super Luxo')}>
-                <Badge className={`mr-2 ${getCategoryColor('Super Luxo')}`}>Super Luxo</Badge>
-                <span>({countByCategory('Super Luxo')})</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openBulkEditDialog()}>
-                Seleção Manual
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <DollarSign className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Preços por Categoria</span>
-                <span className="sm:hidden">Preços</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openCategoryPriceDialog('Standard')}>
-                <Badge className={`mr-2 ${getCategoryColor('Standard')}`}>Standard</Badge>
-                <span>({countByCategory('Standard')})</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openCategoryPriceDialog('Luxo')}>
-                <Badge className={`mr-2 ${getCategoryColor('Luxo')}`}>Luxo</Badge>
-                <span>({countByCategory('Luxo')})</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openCategoryPriceDialog('Super Luxo')}>
-                <Badge className={`mr-2 ${getCategoryColor('Super Luxo')}`}>Super Luxo</Badge>
-                <span>({countByCategory('Super Luxo')})</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
           <Button onClick={() => handleOpenDialog()}>
             <PlusCircle className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Nova Acomodação</span>
@@ -472,16 +341,6 @@ const AccommodationsPage = () => {
           {selectedAccommodations.length > 0 && (
             <CardDescription>
               {selectedAccommodations.length} acomodações selecionadas
-              {selectedAccommodations.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-2" 
-                  onClick={() => openBulkEditDialog()}
-                >
-                  Editar Selecionados
-                </Button>
-              )}
             </CardDescription>
           )}
         </CardHeader>
@@ -601,6 +460,13 @@ const AccommodationsPage = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {accommodations.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      {loading ? "Carregando acomodações..." : "Nenhuma acomodação encontrada"}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
@@ -609,7 +475,7 @@ const AccommodationsPage = () => {
 
       {/* Dialog para adicionar/editar uma acomodação individual */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editId ? 'Editar Acomodação' : 'Nova Acomodação'}</DialogTitle>
             <DialogDescription>
@@ -659,6 +525,7 @@ const AccommodationsPage = () => {
                         <SelectItem value="Standard">Standard</SelectItem>
                         <SelectItem value="Luxo">Luxo</SelectItem>
                         <SelectItem value="Super Luxo">Super Luxo</SelectItem>
+                        <SelectItem value="De Luxe">De Luxe</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -679,20 +546,34 @@ const AccommodationsPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">URL da Imagem Principal</Label>
-                <Input
-                  id="imageUrl"
-                  name="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={handleInputChange}
-                  placeholder="/placeholder.svg"
-                />
+                <Label htmlFor="imageUrl">Imagem Principal (Upload)</Label>
+                <div className="grid gap-2">
+                  <ImageUploader onImageUploaded={handleImageUploaded} />
+                  {formData.imageUrl && formData.imageUrl !== '/placeholder.svg' && (
+                    <div className="mt-2 relative">
+                      <img 
+                        src={formData.imageUrl} 
+                        alt="Imagem principal" 
+                        className="w-full h-32 object-cover rounded-md" 
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        type="button"
+                        onClick={() => setFormData({...formData, imageUrl: '/placeholder.svg'})}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Images className="h-4 w-4" />
-                  Imagens Adicionais
+                  Links para Imagens Adicionais
                 </Label>
                 <div className="space-y-2">
                   {imageInputs.map((url, index) => (
@@ -717,86 +598,29 @@ const AccommodationsPage = () => {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Adicione URLs de imagens adicionais para a galeria. Uma nova linha aparecerá automaticamente.
+                  Adicione URLs de imagens para compartilhar com clientes via WhatsApp. Uma nova linha aparecerá automaticamente.
                 </p>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="description">Descrição</Label>
-                <Input
+                <Textarea
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
                   required
+                  className="min-h-[120px]"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" type="button" onClick={handleCloseDialog}>
+              <Button variant="outline" type="button" onClick={handleCloseDialog} disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit">Salvar</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para edição em massa */}
-      <Dialog open={isBulkEditDialogOpen} onOpenChange={setIsBulkEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edição em Massa</DialogTitle>
-            <DialogDescription>
-              {selectedCategory ? 
-                `Editar todas as acomodações da categoria ${selectedCategory} (${selectedAccommodations.length} unidades)` : 
-                `Editar ${selectedAccommodations.length} acomodações selecionadas`
-              }
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleBulkEditSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="capacity">Capacidade (pessoas)</Label>
-                <Input
-                  id="capacity"
-                  name="capacity"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={bulkEditData.capacity === '' ? '' : bulkEditData.capacity}
-                  onChange={handleBulkEditInputChange}
-                  placeholder="Manter valores atuais"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl">URL da Imagem</Label>
-                <Input
-                  id="imageUrl"
-                  name="imageUrl"
-                  value={bulkEditData.imageUrl}
-                  onChange={handleBulkEditInputChange}
-                  placeholder="Manter valores atuais"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
-                <Input
-                  id="description"
-                  name="description"
-                  value={bulkEditData.description}
-                  onChange={handleBulkEditInputChange}
-                  placeholder="Manter valores atuais"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={handleCloseBulkEditDialog}>
-                Cancelar
+              <Button type="submit" disabled={loading}>
+                {loading ? "Processando..." : "Salvar"}
               </Button>
-              <Button type="submit">Atualizar Acomodações</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -829,10 +653,7 @@ const AccommodationsPage = () => {
         category={selectedCategoryForPrices}
         isOpen={categoryPriceDialogOpen}
         onOpenChange={setCategoryPriceDialogOpen}
-        onUpdate={() => {
-          // Refresh data if needed
-          setAccommodations(getAllAccommodations());
-        }}
+        onUpdate={handleAccommodationUpdate}
       />
     </div>
   );

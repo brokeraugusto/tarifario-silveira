@@ -9,7 +9,135 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      accommodations: {
+        Row: {
+          block_note: string | null
+          block_reason: string | null
+          capacity: number
+          category: string
+          created_at: string | null
+          description: string
+          id: string
+          image_url: string | null
+          images: string[] | null
+          is_blocked: boolean | null
+          name: string
+          room_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          block_note?: string | null
+          block_reason?: string | null
+          capacity: number
+          category: string
+          created_at?: string | null
+          description: string
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          is_blocked?: boolean | null
+          name: string
+          room_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          block_note?: string | null
+          block_reason?: string | null
+          capacity?: number
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          is_blocked?: boolean | null
+          name?: string
+          room_number?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      price_periods: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          id: string
+          is_holiday: boolean | null
+          minimum_stay: number | null
+          name: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          id?: string
+          is_holiday?: boolean | null
+          minimum_stay?: number | null
+          name: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          is_holiday?: boolean | null
+          minimum_stay?: number | null
+          name?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      prices_by_people: {
+        Row: {
+          accommodation_id: string | null
+          created_at: string | null
+          id: string
+          includes_breakfast: boolean | null
+          people: number
+          period_id: string | null
+          price_per_night: number
+          updated_at: string | null
+        }
+        Insert: {
+          accommodation_id?: string | null
+          created_at?: string | null
+          id?: string
+          includes_breakfast?: boolean | null
+          people: number
+          period_id?: string | null
+          price_per_night: number
+          updated_at?: string | null
+        }
+        Update: {
+          accommodation_id?: string | null
+          created_at?: string | null
+          id?: string
+          includes_breakfast?: boolean | null
+          people?: number
+          period_id?: string | null
+          price_per_night?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prices_by_people_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prices_by_people_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "price_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

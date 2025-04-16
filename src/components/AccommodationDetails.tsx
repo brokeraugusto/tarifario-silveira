@@ -16,9 +16,11 @@ const AccommodationDetails: React.FC<AccommodationDetailsProps> = ({ accommodati
 
   const generateWhatsAppText = () => {
     const text = `*${accommodation.category}*\n\n` +
-      `*Apto ${accommodation.roomNumber}*\n\n` +
+      `*${accommodation.roomNumber}*\n\n` +
       `${accommodation.description}\n\n` +
-      `*Conheça por dentro:* ${accommodation.imageUrl}\n\n` +
+      (accommodation.images && accommodation.images.length > 0 
+        ? accommodation.images.map(url => `${url}`).join('\n') + '\n\n'
+        : '') +
       `*Capacidade:* Até ${accommodation.capacity} pessoas`;
     
     return text;
@@ -50,6 +52,8 @@ const AccommodationDetails: React.FC<AccommodationDetailsProps> = ({ accommodati
         return 'bg-purple-100 text-purple-800';
       case 'Super Luxo':
         return 'bg-amber-100 text-amber-800';
+      case 'De Luxe':
+        return 'bg-emerald-100 text-emerald-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -62,7 +66,7 @@ const AccommodationDetails: React.FC<AccommodationDetailsProps> = ({ accommodati
           <Badge className={getCategoryColor(accommodation.category)}>
             {accommodation.category}
           </Badge>
-          <span className="text-sm font-medium">Apto {accommodation.roomNumber}</span>
+          <span className="text-sm font-medium">{accommodation.roomNumber}</span>
         </div>
         <CardTitle>{accommodation.name}</CardTitle>
         <CardDescription>Capacidade para até {accommodation.capacity} pessoas</CardDescription>
