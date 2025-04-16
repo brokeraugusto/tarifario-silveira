@@ -62,6 +62,7 @@ import CategoryPriceDialog from '@/components/CategoryPriceDialog';
 import AccommodationDetails from '@/components/AccommodationDetails';
 import ImageUploader from '@/components/ImageUploader';
 import { uploadImage } from '@/integrations/supabase/storageService';
+import WhatsAppFormatter from '@/components/WhatsAppFormatter';
 
 interface AccommodationFormData {
   name: string;

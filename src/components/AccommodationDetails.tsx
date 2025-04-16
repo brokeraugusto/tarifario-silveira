@@ -1,48 +1,22 @@
 
-import React from 'react';
-import { Copy, Check, Send, Image, Images } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Copy, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { 
+  Card, 
+  CardContent
+} from '@/components/ui/card';
 import { Accommodation } from '@/types';
+import WhatsAppFormatter from './WhatsAppFormatter';
 
-interface AccommodationDetailsProps {
+interface Props {
   accommodation: Accommodation;
 }
 
-const AccommodationDetails: React.FC<AccommodationDetailsProps> = ({ accommodation }) => {
-  const [copied, setCopied] = React.useState(false);
-
-  const generateWhatsAppText = () => {
-    const text = `*${accommodation.category}*\n\n` +
-      `*${accommodation.roomNumber}*\n\n` +
-      `${accommodation.description}\n\n` +
-      (accommodation.images && accommodation.images.length > 0 
-        ? accommodation.images.map(url => `${url}`).join('\n') + '\n\n'
-        : '') +
-      `*Capacidade:* Até ${accommodation.capacity} pessoas`;
-    
-    return text;
-  };
-
-  const copyToClipboard = () => {
-    const text = generateWhatsAppText();
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        setCopied(true);
-        toast.success('Texto copiado para a área de transferência');
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => {
-        toast.error('Falha ao copiar texto');
-      });
-  };
-
-  const shareOnWhatsApp = () => {
-    const text = encodeURIComponent(generateWhatsAppText());
-    window.open(`https://wa.me/?text=${text}`, '_blank');
-  };
+const AccommodationDetails: React.FC<Props> = ({ accommodation }) => {
+  const [copied, setCopied] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(accommodation.imageUrl);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -59,65 +33,133 @@ const AccommodationDetails: React.FC<AccommodationDetailsProps> = ({ accommodati
     }
   };
 
+  const copyToClipboard = () => {
+    const description = `
+*${accommodation.name} (${accommodation.roomNumber})*
+_Categoria: ${accommodation.category}_
+Capacidade: ${accommodation.capacity} pessoas
+
+${accommodation.description}
+
+${accommodation.images && accommodation.images.length > 0 ? 
+  '\n' + accommodation.images.join('\n') : ''}
+    `.trim();
+    
+    navigator.clipboard.writeText(description);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const hasAdditionalImages = accommodation.images && accommodation.images.length > 0;
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <Badge className={getCategoryColor(accommodation.category)}>
-            {accommodation.category}
-          </Badge>
-          <span className="text-sm font-medium">{accommodation.roomNumber}</span>
+    <div className="space-y-6">
+      {/* Imagem principal com galeria de miniaturas */}
+      <div className="space-y-3">
+        <div className="relative w-full h-64 overflow-hidden rounded-lg bg-gray-100">
+          {selectedImage ? (
+            <img 
+              src={selectedImage} 
+              alt={accommodation.name} 
+              className="w-full h-full object-cover" 
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              Sem imagem
+            </div>
+          )}
         </div>
-        <CardTitle>{accommodation.name}</CardTitle>
-        <CardDescription>Capacidade para até {accommodation.capacity} pessoas</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-600 mb-4">{accommodation.description}</p>
         
-        {accommodation.images && accommodation.images.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {accommodation.images.slice(0, 4).map((img, index) => (
-              <div key={index} className="aspect-video bg-gray-100 rounded overflow-hidden">
+        {/* Miniaturas de imagens */}
+        {hasAdditionalImages && (
+          <div className="flex overflow-x-auto gap-2 pb-2">
+            {/* Mostrar imagem principal como primeira miniatura */}
+            <button 
+              onClick={() => setSelectedImage(accommodation.imageUrl)}
+              className={`flex-shrink-0 w-16 h-16 overflow-hidden rounded border-2 ${selectedImage === accommodation.imageUrl ? 'border-primary' : 'border-transparent'}`}
+            >
+              <img 
+                src={accommodation.imageUrl} 
+                alt="Principal" 
+                className="w-full h-full object-cover"
+              />
+            </button>
+            
+            {/* Mostrar imagens adicionais como miniaturas */}
+            {accommodation.images.map((img, idx) => (
+              <button 
+                key={idx} 
+                onClick={() => setSelectedImage(img)}
+                className={`flex-shrink-0 w-16 h-16 overflow-hidden rounded border-2 ${selectedImage === img ? 'border-primary' : 'border-transparent'}`}
+              >
                 <img 
                   src={img} 
-                  alt={`Imagem ${index + 1} de ${accommodation.name}`} 
-                  className="w-full h-full object-cover"
+                  alt={`Imagem ${idx + 1}`} 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
                 />
-              </div>
+              </button>
             ))}
-            {accommodation.images.length > 4 && (
-              <div className="col-span-2 text-center text-sm text-muted-foreground">
-                + {accommodation.images.length - 4} imagens adicionais
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-32 bg-gray-100 rounded mb-4">
-            <Images className="h-10 w-10 text-gray-400" />
           </div>
         )}
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-2"
-          onClick={copyToClipboard}
-        >
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          {copied ? 'Copiado' : 'Copiar Detalhes'}
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-2 bg-green-50 text-green-600 hover:bg-green-100 border-green-200"
-          onClick={shareOnWhatsApp}
-        >
-          <Send className="h-4 w-4" />
-          Compartilhar
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+      
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge className={getCategoryColor(accommodation.category)}>
+              {accommodation.category}
+            </Badge>
+            <Badge variant="outline" className="flex gap-1 items-center">
+              <Users className="h-3 w-3" />
+              {accommodation.capacity}
+            </Badge>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={copyToClipboard}
+            className="flex items-center gap-1"
+          >
+            {copied ? (
+              <>
+                <Check className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Copiado</span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" />
+                <span>Copiar Descrição</span>
+              </>
+            )}
+          </Button>
+        </div>
+        
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">{accommodation.name}</h3>
+          <p className="text-muted-foreground text-sm">Número: {accommodation.roomNumber}</p>
+          
+          {accommodation.isBlocked && (
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="p-3">
+                <p className="text-red-700 font-medium">
+                  Bloqueado: {accommodation.blockReason}
+                </p>
+                {accommodation.blockNote && (
+                  <p className="text-red-600 text-sm mt-1">{accommodation.blockNote}</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          
+          <div className="p-4 rounded-lg bg-gray-50 border">
+            <WhatsAppFormatter text={accommodation.description} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
