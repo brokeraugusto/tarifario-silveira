@@ -631,7 +631,12 @@ const AccommodationsPage = () => {
       <AccommodationBlockDialog
         accommodation={selectedAccommodation}
         isOpen={blockDialogOpen}
-        onOpenChange={setBlockDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAccommodation(null);
+          }
+          setBlockDialogOpen(open);
+        }}
         onUpdate={handleAccommodationUpdate}
       />
       

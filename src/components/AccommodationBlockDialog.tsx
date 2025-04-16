@@ -11,7 +11,7 @@ import { Accommodation, BlockReasonType } from '@/types';
 import { blockAccommodation, unblockAccommodation } from '@/utils/accommodationService';
 
 interface BlockDialogProps {
-  accommodation: Accommodation;
+  accommodation: Accommodation | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdate: (accommodation: Accommodation) => void;
@@ -22,6 +22,27 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
 }) => {
   const [reason, setReason] = useState<BlockReasonType>('Manutenção');
   const [note, setNote] = useState('');
+  
+  // If accommodation is null, don't render the dialog content
+  if (!accommodation) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Erro</DialogTitle>
+            <DialogDescription>
+              Não foi possível carregar os detalhes da acomodação.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
   
   const handleBlock = () => {
     try {
