@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, Pencil, Trash2, Calendar, DollarSign } from 'lucide-react';
 import { toast } from "sonner";
@@ -85,6 +84,7 @@ interface PriceFormData {
   periodId: string;
   people: number;
   pricePerNight: number;
+  includesBreakfast: boolean;
 }
 
 const initialPeriodForm: PeriodFormData = {
@@ -101,7 +101,8 @@ const initialPriceForm: PriceFormData = {
   accommodationId: '',
   periodId: '',
   people: 1,
-  pricePerNight: 0
+  pricePerNight: 0,
+  includesBreakfast: true
 };
 
 const PeriodsPage = () => {
@@ -264,7 +265,8 @@ const PeriodsPage = () => {
         accommodationId: price.accommodationId,
         periodId: price.periodId,
         people: price.people,
-        pricePerNight: price.pricePerNight
+        pricePerNight: price.pricePerNight,
+        includesBreakfast: price.includesBreakfast
       });
       setEditPriceId(price.id);
     } else {
@@ -663,6 +665,15 @@ const PeriodsPage = () => {
                   value={priceForm.pricePerNight}
                   onChange={handlePriceInputChange}
                   required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="includesBreakfast">Inclui Almoço</Label>
+                <Switch 
+                  id="includesBreakfast" 
+                  checked={priceForm.includesBreakfast} 
+                  onCheckedChange={(checked) => handlePriceSelectChange('includesBreakfast', checked.toString())}
                 />
               </div>
             </div>
