@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Pencil, Trash2, Users, Images, Lock, Unlock } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Users, Images, Lock, Unlock, X } from 'lucide-react';
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -99,7 +98,6 @@ const AccommodationsPage = () => {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fetch accommodations when component mounts
   useEffect(() => {
     fetchAccommodations();
   }, []);
@@ -134,14 +132,12 @@ const AccommodationsPage = () => {
     const updatedInputs = [...imageInputs];
     updatedInputs[index] = value;
     
-    // If the last input is filled, add a new empty input
     if (index === updatedInputs.length - 1 && value) {
       updatedInputs.push('');
     }
     
     setImageInputs(updatedInputs);
     
-    // Update formData with non-empty image URLs
     const nonEmptyUrls = updatedInputs.filter(url => url.trim() !== '');
     setFormData({
       ...formData,
@@ -153,7 +149,6 @@ const AccommodationsPage = () => {
     const updatedInputs = imageInputs.filter((_, i) => i !== index);
     setImageInputs(updatedInputs);
     
-    // Update formData with non-empty image URLs
     const nonEmptyUrls = updatedInputs.filter(url => url.trim() !== '');
     setFormData({
       ...formData,
@@ -194,7 +189,6 @@ const AccommodationsPage = () => {
       });
       setEditId(accommodation.id);
       
-      // Set image inputs based on existing images
       const inputs = accommodation.images && accommodation.images.length > 0 
         ? [...accommodation.images, ''] 
         : [''];
@@ -216,7 +210,6 @@ const AccommodationsPage = () => {
     
     try {
       if (editId) {
-        // Atualizar acomodação existente
         const updated = await updateAccommodation(editId, formData);
         if (updated) {
           toast.success("Acomodação atualizada com sucesso");
@@ -225,7 +218,6 @@ const AccommodationsPage = () => {
           toast.error("Erro ao atualizar acomodação");
         }
       } else {
-        // Criar nova acomodação
         const created = await createAccommodation({
           ...formData,
           isBlocked: false
@@ -473,7 +465,6 @@ const AccommodationsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog para adicionar/editar uma acomodação individual */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -626,7 +617,6 @@ const AccommodationsPage = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Dialog para detalhes da acomodação com botão de compartilhamento */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -638,17 +628,13 @@ const AccommodationsPage = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Dialog para bloquear/desbloquear acomodação */}
-      {selectedAccommodation && (
-        <AccommodationBlockDialog
-          accommodation={selectedAccommodation}
-          isOpen={blockDialogOpen}
-          onOpenChange={setBlockDialogOpen}
-          onUpdate={handleAccommodationUpdate}
-        />
-      )}
+      <AccommodationBlockDialog
+        accommodation={selectedAccommodation}
+        isOpen={blockDialogOpen}
+        onOpenChange={setBlockDialogOpen}
+        onUpdate={handleAccommodationUpdate}
+      />
       
-      {/* Dialog para gerenciar preços por categoria */}
       <CategoryPriceDialog
         category={selectedCategoryForPrices}
         isOpen={categoryPriceDialogOpen}
