@@ -1,3 +1,4 @@
+
 import { accommodations, pricePeriods, pricesByPeople } from './mockData';
 import { 
   Accommodation, 
@@ -63,7 +64,8 @@ export const searchAccommodations = (params: SearchParams): SearchResult[] => {
       totalPrice,
       nights,
       isMinStayViolation,
-      minimumStay: period.minimumStay
+      minimumStay: period.minimumStay,
+      includesBreakfast: priceEntry.includesBreakfast
     });
   }
 
@@ -228,8 +230,11 @@ export const updatePricesByCategory = (
   
   // Para cada acomodação, atualizar os preços
   for (const accommodation of categoryAccommodations) {
-    // Para cada opção de preço
-    for (const option of priceOptions) {
+    // Verificar capacidade da acomodação para determinar quais opções de preço aplicar
+    const maxPeopleForAccommodation = accommodation.capacity;
+    
+    // Para cada opção de preço que não excede a capacidade da acomodação
+    for (const option of priceOptions.filter(opt => opt.people <= maxPeopleForAccommodation)) {
       // Verificar se já existe um preço com essas características
       const existingPriceWithBreakfast = pricesByPeople.find(
         p => p.accommodationId === accommodation.id && 

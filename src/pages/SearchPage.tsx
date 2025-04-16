@@ -46,6 +46,21 @@ const SearchPage = () => {
 
     if (searchResults.length === 0) {
       toast.info("Nenhuma acomodação encontrada com os critérios selecionados");
+    } else {
+      // Verificar se existe alguma violação de estadia mínima
+      const hasMinStayViolations = searchResults.some(result => result.isMinStayViolation);
+      
+      if (hasMinStayViolations && dateRange.to) {
+        // Encontrar o maior período mínimo requerido
+        const maxMinStay = Math.max(...searchResults.filter(r => r.minimumStay).map(r => r.minimumStay || 0));
+        
+        toast.warning(
+          `Alguns períodos requerem estadia mínima de ${maxMinStay} ${maxMinStay === 1 ? 'diária' : 'diárias'}`,
+          {
+            duration: 5000,
+          }
+        );
+      }
     }
   };
 
@@ -155,7 +170,7 @@ const SearchPage = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <p className="text-sm">{result.accommodation.description}</p>
+                    <p className="text-sm line-clamp-2 mb-2">{result.accommodation.description}</p>
                     
                     <Separator className="my-4" />
                     
@@ -163,6 +178,11 @@ const SearchPage = () => {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Diária:</span>
                         <span className="font-medium">R$ {result.pricePerNight.toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Café da manhã:</span>
+                        <span>{result.includesBreakfast ? 'Incluso' : 'Não incluso'}</span>
                       </div>
                       
                       {result.nights !== null && (
@@ -183,9 +203,9 @@ const SearchPage = () => {
                   
                   {result.isMinStayViolation && (
                     <CardFooter className="pt-0">
-                      <Alert variant="destructive" className="w-full">
+                      <Alert variant="warning" className="w-full">
                         <AlertDescription>
-                          Esta acomodação requer estadia mínima de {result.minimumStay} noites.
+                          Requer estadia mínima de {result.minimumStay} {result.minimumStay === 1 ? 'diária' : 'diárias'}.
                         </AlertDescription>
                       </Alert>
                     </CardFooter>
