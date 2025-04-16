@@ -1,4 +1,3 @@
-
 import { Accommodation, PricePeriod, PriceByPeople } from '../types';
 import { addDays, addMonths } from 'date-fns';
 
@@ -114,6 +113,21 @@ export const accommodations: Accommodation[] = [
     images: [],
     isBlocked: false
   },
+  {
+    id: '11',
+    name: 'Suíte Cubo',
+    roomNumber: '301',
+    category: 'De Luxe',
+    capacity: 2,
+    description: 'Suíte Cubo exclusiva com design moderno, cama king size, área de estar, banheiro privativo com banheira de hidromassagem e café da manhã gourmet incluso.',
+    imageUrl: '/placeholder.svg',
+    images: [
+      'https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1170&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=1074&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1560185007-c5ca9d2c014d?q=80&w=1170&auto=format&fit=crop'
+    ],
+    isBlocked: false
+  },
 ];
 
 // Mock de períodos de preços
@@ -198,4 +212,22 @@ export const pricesByPeople: PriceByPeople[] = [
   { id: '38', accommodationId: '3', periodId: '3', people: 2, pricePerNight: 480, includesBreakfast: true },
   { id: '39', accommodationId: '6', periodId: '3', people: 2, pricePerNight: 750, includesBreakfast: true },
   { id: '40', accommodationId: '8', periodId: '3', people: 5, pricePerNight: 950, includesBreakfast: true },
+  
+  // Preços para Suíte Cubo - Baixa Temporada
+  { id: '41', accommodationId: '11', periodId: '1', people: 1, pricePerNight: 800, includesBreakfast: true },
+  { id: '42', accommodationId: '11', periodId: '1', people: 2, pricePerNight: 950, includesBreakfast: true },
+  { id: '43', accommodationId: '11', periodId: '1', people: 1, pricePerNight: 700, includesBreakfast: false },
+  { id: '44', accommodationId: '11', periodId: '1', people: 2, pricePerNight: 850, includesBreakfast: false },
+  
+  // Preços para Suíte Cubo - Feriado Nacional
+  { id: '45', accommodationId: '11', periodId: '2', people: 1, pricePerNight: 1200, includesBreakfast: true },
+  { id: '46', accommodationId: '11', periodId: '2', people: 2, pricePerNight: 1350, includesBreakfast: true },
+  { id: '47', accommodationId: '11', periodId: '2', people: 1, pricePerNight: 1100, includesBreakfast: false },
+  { id: '48', accommodationId: '11', periodId: '2', people: 2, pricePerNight: 1250, includesBreakfast: false },
+  
+  // Preços para Suíte Cubo - Alta Temporada
+  { id: '49', accommodationId: '11', periodId: '3', people: 1, pricePerNight: 1000, includesBreakfast: true },
+  { id: '50', accommodationId: '11', periodId: '3', people: 2, pricePerNight: 1150, includesBreakfast: true },
+  { id: '51', accommodationId: '11', periodId: '3', people: 1, pricePerNight: 900, includesBreakfast: false },
+  { id: '52', accommodationId: '11', periodId: '3', people: 2, pricePerNight: 1050, includesBreakfast: false },
 ];

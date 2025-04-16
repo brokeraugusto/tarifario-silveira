@@ -1,5 +1,4 @@
-
-export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo';
+export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'De Luxe';
 
 export type BlockReasonType = 'Reforma' | 'Manutenção' | 'Locação Mensal' | 'Locação Anual' | 'Outro';
 

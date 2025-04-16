@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { SearchParams, SearchResult } from '@/types';
 import { searchAccommodations } from '@/utils/accommodationService';
 import { format } from 'date-fns';
+import AccommodationDialog from '@/components/AccommodationDialog';
 
 const SearchPage = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -24,6 +25,8 @@ const SearchPage = () => {
   const [guests, setGuests] = useState<number>(1);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearched, setIsSearched] = useState(false);
+  const [selectedResult, setSelectedResult] = useState<SearchResult | undefined>();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleSearch = () => {
     if (!dateRange || !dateRange.from) {
@@ -46,6 +49,11 @@ const SearchPage = () => {
     }
   };
 
+  const handleAccommodationClick = (result: SearchResult) => {
+    setSelectedResult(result);
+    setIsDialogOpen(true);
+  };
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Standard':
@@ -54,6 +62,8 @@ const SearchPage = () => {
         return 'bg-purple-100 text-purple-800';
       case 'Super Luxo':
         return 'bg-amber-100 text-amber-800';
+      case 'De Luxe':
+        return 'bg-emerald-100 text-emerald-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -120,7 +130,14 @@ const SearchPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {results.map((result) => (
-                <Card key={result.accommodation.id} className={result.isMinStayViolation ? 'border-amber-400' : ''}>
+                <Card 
+                  key={result.accommodation.id} 
+                  className={cn(
+                    result.isMinStayViolation ? 'border-amber-400' : '',
+                    'hover:shadow-lg transition-shadow cursor-pointer'
+                  )}
+                  onClick={() => handleAccommodationClick(result)}
+                >
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg">{result.accommodation.name}</CardTitle>
@@ -179,6 +196,12 @@ const SearchPage = () => {
           )}
         </div>
       )}
+
+      <AccommodationDialog 
+        result={selectedResult}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
     </div>
   );
 };
