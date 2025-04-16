@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Copy, Check, WhatsApp, Image, Images } from 'lucide-react';
+import { Copy, Check, Send, Image, Images } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -109,7 +109,7 @@ const AccommodationDetails: React.FC<AccommodationDetailsProps> = ({ accommodati
           className="flex items-center gap-2 bg-green-50 text-green-600 hover:bg-green-100 border-green-200"
           onClick={shareOnWhatsApp}
         >
-          <WhatsApp className="h-4 w-4" />
+          <Send className="h-4 w-4" />
           Compartilhar
         </Button>
       </CardFooter>
