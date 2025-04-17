@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, Coffee } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -43,26 +43,30 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
   const [isMinStayDialogOpen, setIsMinStayDialogOpen] = useState<boolean>(false);
   const [proceedWithBooking, setProceedWithBooking] = useState<boolean>(false);
 
+  // Reset on dialog close
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveTab('info');
+      setProceedWithBooking(false);
+    }
+  }, [isOpen]);
+  
+  // If no result is provided, don't render anything
   if (!result) return null;
 
   const { accommodation, pricePerNight, totalPrice, nights, isMinStayViolation, minimumStay, includesBreakfast } = result;
+  
+  // Prepare the images array, fallback to the main image if no images array provided
   const images = accommodation.images && accommodation.images.length > 0 
     ? accommodation.images 
     : [accommodation.imageUrl];
 
-  // Verificar se violação de estadia mínima e não foi aprovado ainda
-  React.useEffect(() => {
+  // Check if there's a minimum stay violation and user hasn't approved yet
+  useEffect(() => {
     if (isMinStayViolation && !proceedWithBooking && isOpen) {
       setIsMinStayDialogOpen(true);
     }
   }, [isMinStayViolation, proceedWithBooking, isOpen]);
-
-  // Reset do estado quando o diálogo é fechado
-  React.useEffect(() => {
-    if (!isOpen) {
-      setProceedWithBooking(false);
-    }
-  }, [isOpen]);
 
   const handleProceed = () => {
     setProceedWithBooking(true);

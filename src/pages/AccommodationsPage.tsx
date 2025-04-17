@@ -1,72 +1,23 @@
-
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Pencil, Trash2, Users, Images, Lock, Unlock, X, Tags } from 'lucide-react';
-import { toast } from "sonner";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Plus, Filter, RotateCcw, Trash, MoreHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
-import { Accommodation, CategoryType } from '@/types';
-import { 
-  getAllAccommodations, 
-  createAccommodation, 
-  updateAccommodation, 
-  deleteAccommodation,
-  getAccommodationsByCategory,
-} from '@/integrations/supabase/accommodationService';
-import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
-import CategoryPriceDialog from '@/components/CategoryPriceDialog';
-import CategoryManagementDialog from '@/components/CategoryManagementDialog';
-import AccommodationDetails from '@/components/AccommodationDetails';
-import ImageUploader from '@/components/ImageUploader';
-import { uploadImage } from '@/integrations/supabase/storageService';
-import WhatsAppFormatter from '@/components/WhatsAppFormatter';
+import { MultiSelectTable, Column } from '@/components/ui/multi-select-table';
+import { ItemActions } from '@/components/ui/multi-select-actions';
+import { Accommodation } from '@/types';
+import { getAllAccommodations } from '@/utils/accommodationService';
 
 interface AccommodationFormData {
   name: string;
@@ -113,7 +64,6 @@ const AccommodationsPage = () => {
   useEffect(() => {
     fetchAccommodations();
 
-    // Event listener for opening category price dialog from other components
     const handleOpenCategoryPrice = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail && customEvent.detail.category) {
@@ -135,7 +85,6 @@ const AccommodationsPage = () => {
       const data = await getAllAccommodations();
       setAccommodations(data);
       
-      // Calculate category counts
       const counts: Record<CategoryType, number> = {
         'Standard': 0,
         'Luxo': 0,
@@ -351,27 +300,47 @@ const AccommodationsPage = () => {
   };
 
   return (
-    <div className="space-y-6 pb-10">
-      <div className="flex justify-between items-center flex-wrap gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-hotel-navy">Gerenciar Acomodações</h1>
-          <p className="text-muted-foreground mt-2">Cadastre e edite as acomodações disponíveis.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Gerenciar Acomodações</h1>
+          <p className="text-muted-foreground mt-2">
+            Cadastre e gerencie as acomodações disponíveis no sistema.
+          </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={() => setCategoryManagementDialogOpen(true)}>
-            <Tags className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Gerenciar Categorias</span>
-            <span className="sm:hidden">Categorias</span>
+        
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon">
+            <Filter className="h-4 w-4" />
           </Button>
-          <Button onClick={() => handleOpenDialog()}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Nova Acomodação</span>
-            <span className="sm:hidden">Nova</span>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                <span>Atualizar Lista</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                <Trash className="mr-2 h-4 w-4" />
+                <span>Excluir Selecionados</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Nova Acomodação
           </Button>
         </div>
       </div>
-
-      {/* Cards de categorias */}
+      
+      <Separator />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(categoryCounts).map(([category, count]) => (
           <Card key={category} className="relative group">
@@ -396,7 +365,7 @@ const AccommodationsPage = () => {
           </Card>
         ))}
       </div>
-
+      
       <Card>
         <CardHeader>
           <CardTitle>Lista de Acomodações</CardTitle>
@@ -534,7 +503,7 @@ const AccommodationsPage = () => {
           </div>
         </CardContent>
       </Card>
-
+      
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
