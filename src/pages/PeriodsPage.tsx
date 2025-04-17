@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Plus, Calendar, FileSpreadsheet } from 'lucide-react';
+import { Plus, Calendar, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ const PeriodsPage: React.FC = () => {
   const [periods, setPeriods] = useState<PricePeriod[]>([]);
   const [isPeriodDialogOpen, setIsPeriodDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isPermanentDeleteDialogOpen, setIsPermanentDeleteDialogOpen] = useState(false);
   const [selectedPeriodIds, setSelectedPeriodIds] = useState<string[]>([]);
   const [editingPeriodId, setEditingPeriodId] = useState<string | null>(null);
   const [currentCategory, setCurrentCategory] = useState<CategoryType | null>(null);
@@ -69,6 +71,11 @@ const PeriodsPage: React.FC = () => {
     setSelectedPeriodIds(ids);
     setIsDeleteDialogOpen(true);
   };
+
+  const handlePermanentDeletePeriods = (ids: string[]) => {
+    setSelectedPeriodIds(ids);
+    setIsPermanentDeleteDialogOpen(true);
+  };
   
   const confirmDelete = async () => {
     setLoading(true);
@@ -84,6 +91,28 @@ const PeriodsPage: React.FC = () => {
     } finally {
       setLoading(false);
       setIsDeleteDialogOpen(false);
+      setSelectedPeriodIds([]);
+    }
+  };
+  
+  const confirmPermanentDelete = async () => {
+    setLoading(true);
+    try {
+      // Perform a hard delete or permanent deletion
+      for (const id of selectedPeriodIds) {
+        await deletePricePeriod(id);
+        
+        // You might want to also clean up related records in other tables
+        // that reference this period id, depending on your data model
+      }
+      toast.success(`${selectedPeriodIds.length} período(s) excluído(s) permanentemente`);
+      fetchPeriods();
+    } catch (error) {
+      console.error("Error permanently deleting periods:", error);
+      toast.error("Erro ao excluir permanentemente períodos");
+    } finally {
+      setLoading(false);
+      setIsPermanentDeleteDialogOpen(false);
       setSelectedPeriodIds([]);
     }
   };
@@ -160,7 +189,15 @@ const PeriodsPage: React.FC = () => {
         </TabsList>
         
         <TabsContent value="periods" className="space-y-4 mt-4">
-          <div className="flex justify-end">
+          <div className="flex justify-between">
+            <Button 
+              variant="destructive" 
+              onClick={() => handlePermanentDeletePeriods(selectedPeriodIds)}
+              disabled={selectedPeriodIds.length === 0}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Exclusão Permanente
+            </Button>
+            
             <Button onClick={handleAddPeriod}>
               <Plus className="mr-2 h-4 w-4" /> Novo Período
             </Button>
@@ -172,6 +209,7 @@ const PeriodsPage: React.FC = () => {
             getRowId={(row) => row.id}
             onEdit={handleEditPeriods}
             onDelete={handleDeletePeriods}
+            onSelectionChange={setSelectedPeriodIds}
           />
         </TabsContent>
         
@@ -222,6 +260,34 @@ const PeriodsPage: React.FC = () => {
             <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} disabled={loading}>
               {loading ? "Processando..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Dialog for permanent deletion */}
+      <AlertDialog open={isPermanentDeleteDialogOpen} onOpenChange={setIsPermanentDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão Permanente</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong className="text-red-600">ATENÇÃO:</strong> Você está prestes a excluir permanentemente {selectedPeriodIds.length} período(s). 
+              Esta ação não poderá ser revertida e pode afetar dados relacionados.
+              
+              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                Os períodos excluídos permanentemente não poderão ser recuperados e todos 
+                os preços e configurações associados também serão excluídos.
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmPermanentDelete} 
+              disabled={loading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {loading ? "Excluindo..." : "Excluir Permanentemente"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

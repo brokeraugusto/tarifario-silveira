@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, Coffee } from 'lucide-react';
+import { X, Calendar, User, Coffee, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -31,17 +31,27 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SearchResult } from '@/types';
 import WhatsAppFormatter from './WhatsAppFormatter';
+import { toast } from 'sonner';
+import { deleteAccommodation } from '@/utils/accommodationService';
 
 interface AccommodationDialogProps {
   result?: SearchResult;
   isOpen: boolean;
   onClose: () => void;
+  onReload?: () => void; // New prop for reloading data after deletion
 }
 
-const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpen, onClose }) => {
+const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ 
+  result, 
+  isOpen, 
+  onClose,
+  onReload
+}) => {
   const [activeTab, setActiveTab] = useState<string>('info');
   const [isMinStayDialogOpen, setIsMinStayDialogOpen] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [proceedWithBooking, setProceedWithBooking] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   
   // Reset on dialog close
   useEffect(() => {
@@ -71,6 +81,35 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
   const handleCancel = () => {
     setIsMinStayDialogOpen(false);
     onClose();
+  };
+
+  // Handle permanent deletion
+  const handleDeleteClick = () => {
+    if (result?.accommodation) {
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!result?.accommodation) return;
+    
+    setIsDeleting(true);
+    try {
+      const success = await deleteAccommodation(result.accommodation.id);
+      if (success) {
+        toast.success("Acomodação excluída com sucesso");
+        setIsDeleteDialogOpen(false);
+        if (onReload) onReload();
+        onClose();
+      } else {
+        toast.error("Erro ao excluir acomodação");
+      }
+    } catch (error) {
+      console.error("Error deleting accommodation:", error);
+      toast.error("Erro ao excluir acomodação");
+    } finally {
+      setIsDeleting(false);
+    }
   };
   
   // If no result is provided, render dialog with empty content
@@ -217,9 +256,19 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
             </div>
           )}
           
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={onClose}>Fechar</Button>
-            {hasResult && <Button>Reservar</Button>}
+          <DialogFooter className="mt-4 flex flex-row justify-between">
+            <div className="flex gap-2">
+              {hasResult && accommodation && (
+                <Button variant="destructive" onClick={handleDeleteClick} size="sm">
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Excluir
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose}>Fechar</Button>
+              {hasResult && <Button>Reservar</Button>}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -238,6 +287,29 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancel}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleProceed}>Prosseguir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de confirmação para exclusão */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir permanentemente esta acomodação?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete} 
+              disabled={isDeleting} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Excluindo..." : "Excluir Permanentemente"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
