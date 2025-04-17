@@ -42,7 +42,7 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
   const [activeTab, setActiveTab] = useState<string>('info');
   const [isMinStayDialogOpen, setIsMinStayDialogOpen] = useState<boolean>(false);
   const [proceedWithBooking, setProceedWithBooking] = useState<boolean>(false);
-
+  
   // Reset on dialog close
   useEffect(() => {
     if (!isOpen) {
@@ -51,17 +51,12 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
     }
   }, [isOpen]);
   
-  // If no result is provided, don't render anything
-  if (!result) return null;
-
-  const { accommodation, pricePerNight, totalPrice, nights, isMinStayViolation, minimumStay, includesBreakfast } = result;
+  // Always define these values, preventing conditional hooks
+  const isMinStayViolation = result?.isMinStayViolation || false;
+  const minimumStay = result?.minimumStay || 0;
+  const nights = result?.nights || 0;
   
-  // Prepare the images array, fallback to the main image if no images array provided
-  const images = accommodation.images && accommodation.images.length > 0 
-    ? accommodation.images 
-    : [accommodation.imageUrl];
-
-  // Check if there's a minimum stay violation and user hasn't approved yet
+  // Use an unconditional useEffect
   useEffect(() => {
     if (isMinStayViolation && !proceedWithBooking && isOpen) {
       setIsMinStayDialogOpen(true);
@@ -77,6 +72,18 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
     setIsMinStayDialogOpen(false);
     onClose();
   };
+  
+  // If no result is provided, render dialog with empty content
+  const hasResult = !!result;
+  const accommodation = result?.accommodation;
+  const pricePerNight = result?.pricePerNight || 0;
+  const totalPrice = result?.totalPrice || 0;
+  const includesBreakfast = result?.includesBreakfast || false;
+  
+  // Prepare the images array safely
+  const images = hasResult && accommodation?.images && accommodation.images.length > 0 
+    ? accommodation.images 
+    : hasResult && accommodation ? [accommodation.imageUrl] : [];
 
   return (
     <>
@@ -85,10 +92,12 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {accommodation.name}
-                <Badge variant="outline" className="ml-2">
-                  {accommodation.category}
-                </Badge>
+                {hasResult ? accommodation?.name : 'Acomodação'}
+                {hasResult && accommodation && (
+                  <Badge variant="outline" className="ml-2">
+                    {accommodation.category}
+                  </Badge>
+                )}
               </div>
               <Button variant="outline" size="icon" onClick={onClose}>
                 <X className="h-4 w-4" />
@@ -96,107 +105,121 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
             </DialogTitle>
           </DialogHeader>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2">
-              <TabsTrigger value="info">Informações</TabsTrigger>
-              <TabsTrigger value="photos">Fotos</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="info" className="space-y-4 mt-4">
-              <div className="aspect-video bg-muted rounded-md overflow-hidden">
-                <img 
-                  src={accommodation.imageUrl} 
-                  alt={accommodation.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+          {hasResult ? (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid grid-cols-2">
+                <TabsTrigger value="info">Informações</TabsTrigger>
+                <TabsTrigger value="photos">Fotos</TabsTrigger>
+              </TabsList>
               
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Detalhes</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>Capacidade: {accommodation.capacity} pessoas</span>
-                  </div>
-                  
-                  {nights !== null && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center gap-2">
-                    <Coffee className="h-4 w-4 text-muted-foreground" />
-                    <span>{includesBreakfast ? 'Café da manhã incluso' : 'Café da manhã não incluso'}</span>
-                  </div>
-                  
-                  {minimumStay && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>Mínimo de {minimumStay} {minimumStay === 1 ? 'diária' : 'diárias'}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Descrição</h3>
-                <div className="text-sm text-muted-foreground">
-                  <WhatsAppFormatter text={accommodation.description} />
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Preços</h3>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Diária:</span>
-                    <span>R$ {pricePerNight.toFixed(2)}</span>
-                  </div>
-                  
-                  {nights !== null && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Período:</span>
-                        <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
-                      </div>
-                      
-                      {totalPrice !== null && (
-                        <div className="flex justify-between text-lg font-semibold">
-                          <span>Total:</span>
-                          <span>R$ {totalPrice.toFixed(2)}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="photos" className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="aspect-video bg-muted rounded-md overflow-hidden">
+              <TabsContent value="info" className="space-y-4 mt-4">
+                <div className="aspect-video bg-muted rounded-md overflow-hidden">
+                  {accommodation && (
                     <img 
-                      src={image} 
-                      alt={`${accommodation.name} - Imagem ${index + 1}`}
+                      src={accommodation.imageUrl} 
+                      alt={accommodation.name}
                       className="w-full h-full object-cover"
                     />
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Detalhes</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {accommodation && (
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span>Capacidade: {accommodation.capacity} pessoas</span>
+                      </div>
+                    )}
+                    
+                    {nights !== null && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2">
+                      <Coffee className="h-4 w-4 text-muted-foreground" />
+                      <span>{includesBreakfast ? 'Café da manhã incluso' : 'Café da manhã não incluso'}</span>
+                    </div>
+                    
+                    {minimumStay > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>Mínimo de {minimumStay} {minimumStay === 1 ? 'diária' : 'diárias'}</span>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+                </div>
+                
+                {accommodation && (
+                  <>
+                    <Separator />
+                    
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">Descrição</h3>
+                      <div className="text-sm text-muted-foreground">
+                        <WhatsAppFormatter text={accommodation.description} />
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                <Separator />
+                
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Preços</h3>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Diária:</span>
+                      <span>R$ {pricePerNight.toFixed(2)}</span>
+                    </div>
+                    
+                    {nights !== null && nights > 0 && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Período:</span>
+                          <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
+                        </div>
+                        
+                        {totalPrice !== null && (
+                          <div className="flex justify-between text-lg font-semibold">
+                            <span>Total:</span>
+                            <span>R$ {totalPrice.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="photos" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="aspect-video bg-muted rounded-md overflow-hidden">
+                      <img 
+                        src={image} 
+                        alt={`${accommodation?.name || 'Acomodação'} - Imagem ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              Nenhuma acomodação selecionada
+            </div>
+          )}
           
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={onClose}>Fechar</Button>
-            <Button>Reservar</Button>
+            {hasResult && <Button>Reservar</Button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>
