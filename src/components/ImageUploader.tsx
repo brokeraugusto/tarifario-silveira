@@ -7,10 +7,11 @@ import { uploadImage } from '@/integrations/supabase/storageService';
 
 interface ImageUploaderProps {
   onImageUploaded: (imageUrl: string) => void;
+  initialImages?: string[];
   className?: string;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded, className }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded, initialImages = [], className }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   
@@ -111,6 +112,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded, classNam
           disabled={isUploading}
         />
       </label>
+
+      {/* Display initial images if provided */}
+      {initialImages && initialImages.length > 0 && (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {initialImages.map((img, index) => (
+            <div key={index} className="relative h-24 w-full overflow-hidden rounded-md">
+              <img src={img} alt={`Uploaded ${index}`} className="h-full w-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

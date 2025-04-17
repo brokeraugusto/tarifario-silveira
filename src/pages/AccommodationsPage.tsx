@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import MultiSelectTable, { Column } from '@/components/ui/multi-select-table';
+import MultiSelectTable from '@/components/ui/multi-select-table';
 import { ItemActions } from '@/components/ui/multi-select-actions';
 import { Accommodation, CategoryType } from '@/types';
 import { 
@@ -79,6 +80,7 @@ interface AccommodationFormData {
   description: string;
   imageUrl: string;
   images: string[];
+  isBlocked?: boolean; // Make this optional since we'll provide a default
 }
 
 const initialFormData: AccommodationFormData = {
@@ -210,7 +212,8 @@ const AccommodationsPage: React.FC = () => {
     try {
       const accommodationData = {
         ...formData,
-        capacity: Number(formData.capacity)
+        capacity: Number(formData.capacity),
+        isBlocked: false // Add the missing isBlocked property
       };
       
       if (editingAccommodationId) {
@@ -230,32 +233,32 @@ const AccommodationsPage: React.FC = () => {
     }
   };
   
-  const accommodationColumns: Column<Accommodation>[] = [
+  const accommodationColumns = [
     {
       id: "name",
       header: "Nome",
-      cell: (row) => (
+      cell: (row: Accommodation) => (
         <div className="font-medium">{row.name}</div>
       ),
     },
     {
       id: "roomNumber",
       header: "Número",
-      cell: (row) => (
+      cell: (row: Accommodation) => (
         <div>{row.roomNumber}</div>
       ),
     },
     {
       id: "category",
       header: "Categoria",
-      cell: (row) => (
+      cell: (row: Accommodation) => (
         <div>{row.category}</div>
       ),
     },
     {
       id: "capacity",
       header: "Capacidade",
-      cell: (row) => (
+      cell: (row: Accommodation) => (
         <div>{row.capacity}</div>
       ),
     },
@@ -370,8 +373,7 @@ const AccommodationsPage: React.FC = () => {
               <div>
                 <Label>Imagens</Label>
                 <ImageUploader 
-                  onImageUpload={handleImageUpload} 
-                  onImagesUpload={handleImagesUpload}
+                  onImageUploaded={handleImageUpload} 
                   initialImages={formData.images}
                 />
               </div>
@@ -462,8 +464,7 @@ const AccommodationsPage: React.FC = () => {
             <div className="grid gap-2">
               <Label>Imagem</Label>
               <ImageUploader 
-                onImageUpload={handleImageUpload}
-                onImagesUpload={handleImagesUpload}
+                onImageUploaded={handleImageUpload}
                 initialImages={formData.images}
               />
             </div>
@@ -477,8 +478,9 @@ const AccommodationsPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
+      {/* Update prop name to match what AccommodationDetails expects */}
       <AccommodationDetails 
-        isOpen={isDetailsOpen}
+        open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         accommodation={detailsAccommodation}
         onEdit={() => {
@@ -501,23 +503,21 @@ const AccommodationsPage: React.FC = () => {
         }}
       />
       
+      {/* Update prop to match what AccommodationBlockDialog expects */}
       <AccommodationBlockDialog
-        isOpen={isBlockDialogOpen}
+        open={isBlockDialogOpen}
         onOpenChange={setIsBlockDialogOpen}
-        accommodationIds={selectedAccommodationIds}
+        accommodation={selectedAccommodationIds[0]}
         onSuccess={() => {
           setIsBlockDialogOpen(false);
           fetchAccommodations();
         }}
       />
       
+      {/* Remove onSuccess prop if not expected by CategoryManagementDialog */}
       <CategoryManagementDialog
-        isOpen={isCategoryDialogOpen}
+        open={isCategoryDialogOpen}
         onOpenChange={setIsCategoryDialogOpen}
-        onSuccess={() => {
-          setIsCategoryDialogOpen(false);
-          fetchAccommodations();
-        }}
       />
       
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
