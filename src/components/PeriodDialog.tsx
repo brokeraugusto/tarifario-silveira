@@ -41,6 +41,7 @@ interface PeriodDialogProps {
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   editPeriod?: PricePeriod;
+  periodId?: string;  // Added this prop to match how it's being used in PeriodsPage
 }
 
 const formSchema = z.object({
@@ -57,7 +58,8 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
   isOpen,
   onOpenChange,
   onSuccess,
-  editPeriod
+  editPeriod,
+  periodId
 }) => {
   const [loading, setLoading] = useState(false);
 
