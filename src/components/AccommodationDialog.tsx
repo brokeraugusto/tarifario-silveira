@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Calendar, User, Coffee, CoffeeOff } from 'lucide-react';
+import { X, Calendar, User, Coffee } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -123,17 +123,10 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ result, isOpe
                     </div>
                   )}
                   
-                  {includesBreakfast ? (
-                    <div className="flex items-center gap-2">
-                      <Coffee className="h-4 w-4 text-muted-foreground" />
-                      <span>Café da manhã incluso</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <CoffeeOff className="h-4 w-4 text-muted-foreground" />
-                      <span>Café da manhã não incluso</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Coffee className="h-4 w-4 text-muted-foreground" />
+                    <span>{includesBreakfast ? 'Café da manhã incluso' : 'Café da manhã não incluso'}</span>
+                  </div>
                   
                   {minimumStay && (
                     <div className="flex items-center gap-2">
