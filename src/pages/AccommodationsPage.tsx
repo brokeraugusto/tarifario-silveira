@@ -68,7 +68,6 @@ import {
 import { Label } from '@/components/ui/label';
 import AccommodationDetails from '@/components/AccommodationDetails';
 import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
-import CategoryPriceDialog from '@/components/CategoryPriceDialog';
 import CategoryManagementDialog from '@/components/CategoryManagementDialog';
 import ImageUploader from '@/components/ImageUploader';
 
@@ -106,6 +105,8 @@ const AccommodationsPage: React.FC = () => {
   const [formData, setFormData] = useState<AccommodationFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState("list");
   const [loading, setLoading] = useState(false);
+  // State to track the selected accommodation for block dialog
+  const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   
   useEffect(() => {
     fetchAccommodations();
@@ -158,13 +159,18 @@ const AccommodationsPage: React.FC = () => {
   
   const handleViewDetails = (id: string) => {
     const accommodationDetails = accommodations.find(acc => acc.id === id);
-    setDetailsAccommodation(accommodationDetails);
-    setIsDetailsOpen(true);
+    if (accommodationDetails) {
+      setDetailsAccommodation(accommodationDetails);
+      setIsDetailsOpen(true);
+    }
   };
   
   const handleOpenBlockDialog = (id: string) => {
-    setSelectedAccommodationIds([id]);
-    setIsBlockDialogOpen(true);
+    const accommodationToBlock = accommodations.find(acc => acc.id === id);
+    if (accommodationToBlock) {
+      setSelectedAccommodation(accommodationToBlock);
+      setIsBlockDialogOpen(true);
+    }
   };
   
   const confirmDelete = async () => {
@@ -478,9 +484,9 @@ const AccommodationsPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Update prop name to match what AccommodationDetails expects */}
+      {/* Update props to match what AccommodationDetails expects */}
       <AccommodationDetails 
-        open={isDetailsOpen}
+        isOpen={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         accommodation={detailsAccommodation}
         onEdit={() => {
@@ -503,21 +509,22 @@ const AccommodationsPage: React.FC = () => {
         }}
       />
       
-      {/* Update prop to match what AccommodationBlockDialog expects */}
+      {/* Pass the full Accommodation object to the component */}
       <AccommodationBlockDialog
-        open={isBlockDialogOpen}
+        isOpen={isBlockDialogOpen}
         onOpenChange={setIsBlockDialogOpen}
-        accommodation={selectedAccommodationIds[0]}
-        onSuccess={() => {
+        accommodation={selectedAccommodation}
+        onUpdate={() => {
           setIsBlockDialogOpen(false);
           fetchAccommodations();
         }}
       />
       
-      {/* Remove onSuccess prop if not expected by CategoryManagementDialog */}
+      {/* Update CategoryManagementDialog props */}
       <CategoryManagementDialog
-        open={isCategoryDialogOpen}
+        isOpen={isCategoryDialogOpen}
         onOpenChange={setIsCategoryDialogOpen}
+        onUpdate={() => fetchAccommodations()}
       />
       
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
