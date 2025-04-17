@@ -1,7 +1,6 @@
 
 export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'De Luxe';
-
-export type BlockReasonType = 'Reforma' | 'Manutenção' | 'Locação Mensal' | 'Locação Anual' | 'Outro';
+export type BlockReasonType = 'maintenance' | 'reserved' | 'unavailable' | 'other';
 
 export interface Accommodation {
   id: string;
@@ -11,7 +10,8 @@ export interface Accommodation {
   capacity: number;
   description: string;
   imageUrl: string;
-  images: string[];  // New field for multiple images
+  images?: string[];
+  albumUrl?: string; // External album URL
   isBlocked: boolean;
   blockReason?: BlockReasonType;
   blockNote?: string;
@@ -22,8 +22,8 @@ export interface PricePeriod {
   name: string;
   startDate: Date;
   endDate: Date;
-  isHoliday: boolean;
-  minimumStay: number;
+  minimumStay?: number;
+  isHoliday?: boolean;
 }
 
 export interface PriceByPeople {
@@ -32,12 +32,12 @@ export interface PriceByPeople {
   periodId: string;
   people: number;
   pricePerNight: number;
-  includesBreakfast: boolean;  // New field for breakfast option
+  includesBreakfast: boolean;
 }
 
 export interface SearchParams {
   checkIn: Date;
-  checkOut?: Date | null;
+  checkOut: Date | null;
   guests: number;
 }
 
@@ -46,20 +46,7 @@ export interface SearchResult {
   pricePerNight: number;
   totalPrice: number | null;
   nights: number | null;
-  isMinStayViolation: boolean;
+  isMinStayViolation?: boolean;
   minimumStay?: number;
   includesBreakfast: boolean;
-}
-
-export interface PriceOption {
-  people: number;
-  withBreakfast: number;
-  withoutBreakfast: number;
-}
-
-export interface CategorySettings {
-  id: string;
-  name: CategoryType;
-  description?: string;
-  customPricingRooms?: string[]; // Room numbers that use custom pricing
 }

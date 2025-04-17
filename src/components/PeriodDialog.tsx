@@ -33,7 +33,7 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createPricePeriod } from '@/integrations/supabase/accommodationService';
+import { createPricePeriod, updatePricePeriod } from '@/utils/accommodationService';
 import { PricePeriod } from '@/types';
 
 interface PeriodDialogProps {
@@ -41,7 +41,7 @@ interface PeriodDialogProps {
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   editPeriod?: PricePeriod;
-  periodId?: string;  // Added this prop to match how it's being used in PeriodsPage
+  periodId?: string;
 }
 
 const formSchema = z.object({
@@ -67,8 +67,8 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: editPeriod?.name || '',
-      startDate: editPeriod?.startDate || new Date(),
-      endDate: editPeriod?.endDate || new Date(),
+      startDate: editPeriod?.startDate ? new Date(editPeriod.startDate) : new Date(),
+      endDate: editPeriod?.endDate ? new Date(editPeriod.endDate) : new Date(),
       minimumStay: editPeriod?.minimumStay || 1,
       isHoliday: editPeriod?.isHoliday || false,
     },
@@ -86,20 +86,33 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
 
     setLoading(true);
     try {
-      await createPricePeriod({
-        name: values.name,
-        startDate: values.startDate,
-        endDate: values.endDate,
-        minimumStay: values.minimumStay,
-        isHoliday: values.isHoliday
-      });
+      if (editPeriod || periodId) {
+        // Update existing period
+        await updatePricePeriod(periodId || editPeriod?.id || '', {
+          name: values.name,
+          startDate: values.startDate,
+          endDate: values.endDate,
+          minimumStay: values.minimumStay,
+          isHoliday: values.isHoliday
+        });
+        toast.success("Período atualizado com sucesso");
+      } else {
+        // Create new period
+        await createPricePeriod({
+          name: values.name,
+          startDate: values.startDate,
+          endDate: values.endDate,
+          minimumStay: values.minimumStay,
+          isHoliday: values.isHoliday
+        });
+        toast.success("Período criado com sucesso");
+      }
       
-      toast.success("Período criado com sucesso");
       form.reset();
       onSuccess();
     } catch (error) {
-      console.error("Error creating period:", error);
-      toast.error("Erro ao criar período");
+      console.error("Error saving period:", error);
+      toast.error("Erro ao salvar período");
     } finally {
       setLoading(false);
     }
@@ -170,6 +183,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
+                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
@@ -210,6 +224,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
+                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
@@ -272,7 +287,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                 Cancelar
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Processando..." : "Salvar Período"}
+                {loading ? "Processando..." : editPeriod ? "Atualizar Período" : "Salvar Período"}
               </Button>
             </DialogFooter>
           </form>

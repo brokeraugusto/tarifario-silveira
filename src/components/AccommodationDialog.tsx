@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, Coffee, Trash2 } from 'lucide-react';
+import { X, Calendar, User, Coffee, Trash2, ExternalLink, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -38,7 +38,7 @@ interface AccommodationDialogProps {
   result?: SearchResult;
   isOpen: boolean;
   onClose: () => void;
-  onReload?: () => void; // New prop for reloading data after deletion
+  onReload?: () => void;
 }
 
 const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ 
@@ -62,6 +62,7 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   }, [isOpen]);
   
   // Always define these values, preventing conditional hooks
+  const accommodation = result?.accommodation;
   const isMinStayViolation = result?.isMinStayViolation || false;
   const minimumStay = result?.minimumStay || 0;
   const nights = result?.nights || 0;
@@ -111,10 +112,40 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
       setIsDeleting(false);
     }
   };
+
+  // Function to copy accommodation info to clipboard
+  const handleCopyToClipboard = () => {
+    if (!accommodation) return;
+    
+    const text = `*${accommodation.name}*\n\n` +
+      `*Categoria:* ${accommodation.category}\n` +
+      `*Capacidade:* ${accommodation.capacity} pessoas\n\n` +
+      `${accommodation.description}\n\n` +
+      `${accommodation.albumUrl ? `*Veja mais fotos:* ${accommodation.albumUrl}\n` : ''}`;
+    
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success("Informações copiadas para o clipboard"))
+      .catch(() => toast.error("Erro ao copiar informações"));
+  };
+
+  // Function to share on WhatsApp
+  const handleShareWhatsApp = () => {
+    if (!accommodation) return;
+    
+    const text = encodeURIComponent(`*${accommodation.name}*\n\n` +
+      `*Categoria:* ${accommodation.category}\n` +
+      `*Capacidade:* ${accommodation.capacity} pessoas\n\n` +
+      `${accommodation.description}\n\n` +
+      `${accommodation.albumUrl ? `*Veja mais fotos:* ${accommodation.albumUrl}\n` : ''}`);
+    
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+  
+  // Check if accommodation has album URL
+  const hasAlbumUrl = accommodation?.albumUrl && accommodation.albumUrl.trim() !== '';
   
   // If no result is provided, render dialog with empty content
   const hasResult = !!result;
-  const accommodation = result?.accommodation;
   const pricePerNight = result?.pricePerNight || 0;
   const totalPrice = result?.totalPrice || 0;
   const includesBreakfast = result?.includesBreakfast || false;
@@ -162,6 +193,43 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
                   )}
                 </div>
                 
+                <div className="flex justify-end space-x-2">
+                  {hasResult && accommodation && (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleCopyToClipboard}
+                        title="Copiar informações"
+                      >
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copiar
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleShareWhatsApp}
+                        title="Compartilhar via WhatsApp"
+                      >
+                        Compartilhar
+                      </Button>
+                      
+                      {hasAlbumUrl && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => window.open(accommodation.albumUrl, '_blank')}
+                          title="Ver álbum completo"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          Álbum
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+                
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold">Detalhes</h3>
                   
@@ -189,6 +257,20 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>Mínimo de {minimumStay} {minimumStay === 1 ? 'diária' : 'diárias'}</span>
+                      </div>
+                    )}
+
+                    {hasAlbumUrl && (
+                      <div className="flex items-center gap-2 col-span-2">
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                        <a 
+                          href={accommodation?.albumUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline truncate"
+                        >
+                          Ver álbum completo
+                        </a>
                       </div>
                     )}
                   </div>

@@ -78,6 +78,10 @@ const SearchPage = () => {
     setIsDialogOpen(true);
   };
 
+  const handleReload = () => {
+    handleSearch();
+  };
+
   return (
     <div className="space-y-6 pb-10">
       <div>
@@ -92,6 +96,7 @@ const SearchPage = () => {
         setGuests={setGuests}
         onSearch={handleSearch}
         loading={loading}
+        disablePastDates={false}
       />
 
       {isSearched && (
@@ -124,6 +129,7 @@ const SearchPage = () => {
         result={selectedResult}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+        onReload={handleReload}
       />
 
       <MinStayDialog 

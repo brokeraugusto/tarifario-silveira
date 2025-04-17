@@ -17,15 +17,15 @@ interface DatePickerWithRangeProps {
   className?: string
   dateRange: DateRange | undefined
   onDateRangeChange: (range: DateRange | undefined) => void
+  disablePastDates?: boolean
 }
 
 export function DatePickerWithRange({
   className,
   dateRange,
   onDateRangeChange,
+  disablePastDates = false,
 }: DatePickerWithRangeProps) {
-  // This is a functional component so we can use hooks directly
-  // The issue was likely related to how Popover was being used
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -62,6 +62,7 @@ export function DatePickerWithRange({
             onSelect={onDateRangeChange}
             numberOfMonths={2}
             className="p-3 pointer-events-auto"
+            disabled={disablePastDates ? { before: new Date() } : undefined}
           />
         </PopoverContent>
       </Popover>

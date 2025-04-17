@@ -108,7 +108,8 @@ export const createAccommodation = (accommodation: Omit<Accommodation, 'id'>): A
     ...accommodation,
     id: String(nextAccommodationId++),
     isBlocked: accommodation.isBlocked || false,
-    images: accommodation.images || []
+    images: accommodation.images || [],
+    albumUrl: accommodation.albumUrl || ''
   };
   accommodations.push(newAccommodation);
   return newAccommodation;
@@ -180,6 +181,13 @@ export const deletePricePeriod = (id: string): boolean => {
   const index = pricePeriods.findIndex(period => period.id === id);
   if (index === -1) return false;
   
+  // Also delete associated prices when a period is deleted
+  const relatedPrices = pricesByPeople.filter(price => price.periodId === id);
+  relatedPrices.forEach(price => {
+    deletePrice(price.id);
+  });
+  
+  // Now delete the period
   pricePeriods.splice(index, 1);
   return true;
 };

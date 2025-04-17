@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
-  Users, Lock, Unlock, Pencil, Images, X
+  Users, Lock, Unlock, Pencil, Images, X, ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -78,7 +78,8 @@ interface AccommodationFormData {
   description: string;
   imageUrl: string;
   images: string[];
-  isBlocked?: boolean; // Make this optional since we'll provide a default
+  albumUrl?: string;
+  isBlocked?: boolean;
 }
 
 const initialFormData: AccommodationFormData = {
@@ -88,7 +89,8 @@ const initialFormData: AccommodationFormData = {
   capacity: 2,
   description: '',
   imageUrl: '/placeholder.svg',
-  images: []
+  images: [],
+  albumUrl: ''
 };
 
 const AccommodationsPage: React.FC = () => {
@@ -104,7 +106,6 @@ const AccommodationsPage: React.FC = () => {
   const [formData, setFormData] = useState<AccommodationFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState("list");
   const [loading, setLoading] = useState(false);
-  // State to track the selected accommodation for block dialog
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   
   useEffect(() => {
@@ -142,6 +143,7 @@ const AccommodationsPage: React.FC = () => {
           description: accommodationToEdit.description,
           imageUrl: accommodationToEdit.imageUrl || '/placeholder.svg',
           images: accommodationToEdit.images || [],
+          albumUrl: accommodationToEdit.albumUrl || '',
         });
         setEditingAccommodationId(ids[0]);
         setIsDialogOpen(true);
@@ -218,7 +220,7 @@ const AccommodationsPage: React.FC = () => {
       const accommodationData = {
         ...formData,
         capacity: Number(formData.capacity),
-        isBlocked: false // Add the missing isBlocked property
+        isBlocked: false
       };
       
       if (editingAccommodationId) {
@@ -265,6 +267,28 @@ const AccommodationsPage: React.FC = () => {
       header: "Capacidade",
       cell: (row: Accommodation) => (
         <div>{row.capacity}</div>
+      ),
+    },
+    {
+      id: "albumLink",
+      header: "Álbum",
+      cell: (row: Accommodation) => (
+        <div>
+          {row.albumUrl ? (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(row.albumUrl, '_blank');
+              }}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
+        </div>
       ),
     },
   ];
@@ -366,6 +390,18 @@ const AccommodationsPage: React.FC = () => {
               </div>
               
               <div>
+                <Label htmlFor="albumUrl">Link para Álbum Externo</Label>
+                <Input 
+                  type="url" 
+                  id="albumUrl" 
+                  name="albumUrl" 
+                  placeholder="https://exemplo.com/album" 
+                  value={formData.albumUrl || ''} 
+                  onChange={handleInputChange} 
+                />
+              </div>
+              
+              <div>
                 <Label htmlFor="description">Descrição</Label>
                 <Textarea 
                   id="description" 
@@ -457,6 +493,18 @@ const AccommodationsPage: React.FC = () => {
             </div>
             
             <div className="grid gap-2">
+              <Label htmlFor="albumUrl">Link para Álbum Externo</Label>
+              <Input 
+                type="url" 
+                id="albumUrl" 
+                name="albumUrl" 
+                placeholder="https://exemplo.com/album" 
+                value={formData.albumUrl || ''} 
+                onChange={handleInputChange} 
+              />
+            </div>
+            
+            <div className="grid gap-2">
               <Label htmlFor="description">Descrição</Label>
               <Textarea 
                 id="description" 
@@ -483,7 +531,6 @@ const AccommodationsPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Update props to match what AccommodationDetails expects */}
       <AccommodationDetails 
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
@@ -508,7 +555,6 @@ const AccommodationsPage: React.FC = () => {
         }}
       />
       
-      {/* Pass the full Accommodation object to the component */}
       <AccommodationBlockDialog
         isOpen={isBlockDialogOpen}
         onOpenChange={setIsBlockDialogOpen}
@@ -519,7 +565,6 @@ const AccommodationsPage: React.FC = () => {
         }}
       />
       
-      {/* Update CategoryManagementDialog props */}
       <CategoryManagementDialog
         isOpen={isCategoryDialogOpen}
         onOpenChange={setIsCategoryDialogOpen}
