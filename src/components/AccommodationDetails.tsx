@@ -7,16 +7,48 @@ import {
   Card, 
   CardContent
 } from '@/components/ui/card';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter
+} from "@/components/ui/sheet";
 import { Accommodation } from '@/types';
 import WhatsAppFormatter from './WhatsAppFormatter';
 
 interface Props {
-  accommodation: Accommodation;
+  accommodation: Accommodation | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onEdit?: () => void;
+  onBlock?: () => void;
+  onDelete?: () => void;
 }
 
-const AccommodationDetails: React.FC<Props> = ({ accommodation }) => {
+const AccommodationDetails: React.FC<Props> = ({ 
+  accommodation, 
+  open, 
+  onOpenChange,
+  onEdit,
+  onBlock,
+  onDelete
+}) => {
   const [copied, setCopied] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(accommodation.imageUrl);
+  const [selectedImage, setSelectedImage] = useState<string | null>(
+    accommodation ? accommodation.imageUrl : null
+  );
+
+  // If accommodation changes, update the selected image
+  React.useEffect(() => {
+    if (accommodation) {
+      setSelectedImage(accommodation.imageUrl);
+    }
+  }, [accommodation]);
+
+  // If there's no accommodation, don't render anything
+  if (!accommodation) return null;
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -52,7 +84,7 @@ ${accommodation.images && accommodation.images.length > 0 ?
 
   const hasAdditionalImages = accommodation.images && accommodation.images.length > 0;
 
-  return (
+  const accommodationContent = (
     <div className="space-y-6">
       {/* Imagem principal com galeria de miniaturas */}
       <div className="space-y-3">
@@ -158,8 +190,51 @@ ${accommodation.images && accommodation.images.length > 0 ?
             <WhatsAppFormatter text={accommodation.description} />
           </div>
         </div>
+
+        {/* Action buttons for edit, block, delete */}
+        {(onEdit || onBlock || onDelete) && (
+          <div className="flex items-center justify-end gap-2 pt-4">
+            {onEdit && (
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                Editar
+              </Button>
+            )}
+            {onBlock && (
+              <Button variant="outline" size="sm" onClick={onBlock}>
+                {accommodation.isBlocked ? 'Desbloquear' : 'Bloquear'}
+              </Button>
+            )}
+            {onDelete && (
+              <Button variant="destructive" size="sm" onClick={onDelete}>
+                Excluir
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
+  );
+
+  // Return the component as a Sheet component
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="overflow-y-auto w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Detalhes da Acomodação</SheetTitle>
+          <SheetDescription>
+            Informações detalhadas sobre a acomodação
+          </SheetDescription>
+        </SheetHeader>
+        
+        {accommodationContent}
+        
+        <SheetFooter className="pt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Fechar
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 };
 
