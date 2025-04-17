@@ -34,6 +34,7 @@ interface MultiSelectTableProps<T> {
   onEdit?: (ids: string[]) => void;
   onDelete?: (ids: string[]) => void;
   onRowClick?: (row: T) => void;
+  onSelectionChange?: (selectedIds: string[]) => void; // Added this prop
 }
 
 function MultiSelectTable<T>({
@@ -42,7 +43,8 @@ function MultiSelectTable<T>({
   getRowId,
   onEdit,
   onDelete,
-  onRowClick
+  onRowClick,
+  onSelectionChange
 }: MultiSelectTableProps<T>) {
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(columns.map(col => col.id));
@@ -55,23 +57,37 @@ function MultiSelectTable<T>({
 
   const handleSelectRow = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    setSelectedRowIds(prev => 
-      prev.includes(id)
+    setSelectedRowIds(prev => {
+      const newSelection = prev.includes(id)
         ? prev.filter(rowId => rowId !== id)
-        : [...prev, id]
-    );
+        : [...prev, id];
+      
+      // Call the onSelectionChange callback if provided
+      if (onSelectionChange) {
+        onSelectionChange(newSelection);
+      }
+      
+      return newSelection;
+    });
   };
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedRowIds(data.map(row => getRowId(row)));
-    } else {
-      setSelectedRowIds([]);
+    const newSelection = checked ? data.map(row => getRowId(row)) : [];
+    setSelectedRowIds(newSelection);
+    
+    // Call the onSelectionChange callback if provided
+    if (onSelectionChange) {
+      onSelectionChange(newSelection);
     }
   };
 
   const handleClearSelection = () => {
     setSelectedRowIds([]);
+    
+    // Call the onSelectionChange callback with empty array
+    if (onSelectionChange) {
+      onSelectionChange([]);
+    }
   };
 
   const handleEdit = () => {
@@ -105,6 +121,21 @@ function MultiSelectTable<T>({
         : prev.filter(id => id !== columnId)
     );
   };
+
+  // Update selected rows when data changes to prevent stale selections
+  React.useEffect(() => {
+    const validIds = data.map(row => getRowId(row));
+    const validSelections = selectedRowIds.filter(id => validIds.includes(id));
+    
+    if (validSelections.length !== selectedRowIds.length) {
+      setSelectedRowIds(validSelections);
+      
+      // Call onSelectionChange with the valid selections
+      if (onSelectionChange) {
+        onSelectionChange(validSelections);
+      }
+    }
+  }, [data, getRowId]);
 
   const visibleColumnsData = columns.filter(col => visibleColumns.includes(col.id));
   const allSelected = data.length > 0 && selectedRowIds.length === data.length;
