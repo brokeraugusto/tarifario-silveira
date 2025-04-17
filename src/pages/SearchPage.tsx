@@ -261,7 +261,7 @@ const SearchPage = () => {
                   
                   {result.isMinStayViolation && (
                     <CardFooter className="pt-0">
-                      <Alert variant="warning" className="w-full bg-amber-50 text-amber-800 border-amber-200">
+                      <Alert className="w-full bg-amber-50 text-amber-800 border-amber-200">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
                           Requer estadia mínima de {result.minimumStay} {result.minimumStay === 1 ? 'diária' : 'diárias'}.
@@ -292,7 +292,7 @@ const SearchPage = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="my-4">
-            <Alert variant="warning" className="bg-amber-50 text-amber-800 border-amber-200">
+            <Alert className="bg-amber-50 text-amber-800 border-amber-200">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Atenção</AlertTitle>
               <AlertDescription>
