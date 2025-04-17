@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Filter, RotateCcw, Trash, MoreHorizontal } from 'lucide-react';
+import { 
+  Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
+  Users, Lock, Unlock, Pencil, Images
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -14,10 +17,59 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MultiSelectTable, Column } from '@/components/ui/multi-select-table';
+import MultiSelectTable, { Column } from '@/components/ui/multi-select-table';
 import { ItemActions } from '@/components/ui/multi-select-actions';
-import { Accommodation } from '@/types';
-import { getAllAccommodations } from '@/utils/accommodationService';
+import { Accommodation, CategoryType } from '@/types';
+import { 
+  getAllAccommodations, 
+  updateAccommodation,
+  createAccommodation,
+  deleteAccommodation
+} from '@/utils/accommodationService';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Label } from '@/components/ui/label';
+import AccommodationDetails from '@/components/AccommodationDetails';
+import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
+import CategoryPriceDialog from '@/components/CategoryPriceDialog';
+import CategoryManagementDialog from '@/components/CategoryManagementDialog';
+import ImageUploader from '@/components/ImageUploader';
 
 interface AccommodationFormData {
   name: string;
@@ -327,7 +379,7 @@ const AccommodationsPage = () => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive">
-                <Trash className="mr-2 h-4 w-4" />
+                <Trash2 className="mr-2 h-4 w-4" />
                 <span>Excluir Selecionados</span>
               </DropdownMenuItem>
             </DropdownMenuContent>

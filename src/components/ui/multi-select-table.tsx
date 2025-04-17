@@ -86,15 +86,13 @@ function MultiSelectTable<T>({
     }
   };
 
-  const handleEditSingle = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  const handleEditSingle = (id: string) => {
     if (onEdit) {
       onEdit([id]);
     }
   };
 
-  const handleDeleteSingle = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  const handleDeleteSingle = (id: string) => {
     if (onDelete) {
       onDelete([id]);
     }
@@ -154,7 +152,8 @@ function MultiSelectTable<T>({
                 <TableHead className="w-12">
                   <Checkbox
                     checked={allSelected}
-                    indeterminate={someSelected}
+                    // We need to remove the indeterminate property since it's not supported by our Checkbox component
+                    data-state={someSelected ? "indeterminate" : undefined}
                     onCheckedChange={handleSelectAll}
                     aria-label="Selecionar todos"
                   />
@@ -225,8 +224,8 @@ function MultiSelectTable<T>({
                     {(onEdit || onDelete) && (
                       <TableCell className="w-10 p-0 pr-2 text-right">
                         <ItemActions
-                          onEdit={(e) => handleEditSingle(e, id)}
-                          onDelete={(e) => handleDeleteSingle(e, id)}
+                          onEdit={() => handleEditSingle(id)}
+                          onDelete={() => handleDeleteSingle(id)}
                           className="justify-end"
                         />
                       </TableCell>
