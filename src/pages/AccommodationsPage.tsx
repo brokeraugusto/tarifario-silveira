@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
@@ -486,7 +485,7 @@ const AccommodationsPage: React.FC = () => {
       
       {/* Update props to match what AccommodationDetails expects */}
       <AccommodationDetails 
-        isOpen={isDetailsOpen}
+        open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         accommodation={detailsAccommodation}
         onEdit={() => {
