@@ -53,8 +53,8 @@ const Layout = ({
                         <NavLink to="/" className={({
                       isActive
                     }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-gold text-hotel-navy font-medium" : "hover:bg-hotel-navy/80")} end onClick={handleNavigation}>
-                          <Home className="w-5 h-5 mr-2" />
-                          <span>Início</span>
+                          
+                          <span className="text-slate-50">Início</span>
                         </NavLink>
                       </li>
                       <li>
