@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, AlertCircle } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -12,9 +13,17 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { SearchParams, SearchResult } from '@/types';
-import { searchAccommodations } from '@/utils/accommodationService';
-import { format } from 'date-fns';
+import { searchAccommodations } from '@/integrations/supabase/accommodationService';
+import { format, differenceInDays } from 'date-fns';
 import AccommodationDialog from '@/components/AccommodationDialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const SearchPage = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -26,8 +35,14 @@ const SearchPage = () => {
   const [isSearched, setIsSearched] = useState(false);
   const [selectedResult, setSelectedResult] = useState<SearchResult | undefined>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMinStayDialogOpen, setIsMinStayDialogOpen] = useState(false);
+  const [maxMinStay, setMaxMinStay] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = () => {
+  const handleSearch = async (forceSearch = false) => {
+    setError(null);
+    
     if (!dateRange || !dateRange.from) {
       toast.error("Selecione pelo menos uma data de check-in");
       return;
@@ -39,28 +54,67 @@ const SearchPage = () => {
       guests: guests
     };
 
-    const searchResults = searchAccommodations(searchParams);
-    setResults(searchResults);
-    setIsSearched(true);
-
-    if (searchResults.length === 0) {
-      toast.info("Nenhuma acomodação encontrada com os critérios selecionados");
-    } else {
-      // Verificar se existe alguma violação de estadia mínima
-      const hasMinStayViolations = searchResults.some(result => result.isMinStayViolation);
+    // Verificar se há estadia mínima violada antes de buscar
+    if (dateRange.to && !forceSearch) {
+      const days = differenceInDays(dateRange.to, dateRange.from);
       
-      if (hasMinStayViolations && dateRange.to) {
-        // Encontrar o maior período mínimo requerido
-        const maxMinStay = Math.max(...searchResults.filter(r => r.minimumStay).map(r => r.minimumStay || 0));
+      // Apenas para exibir o pop-up uma vez quando necessário
+      try {
+        setLoading(true);
+        // Faz a busca para verificar requisitos de estadia mínima
+        const preliminaryResults = await searchAccommodations(searchParams);
         
-        toast.warning(
-          `Alguns períodos requerem estadia mínima de ${maxMinStay} ${maxMinStay === 1 ? 'diária' : 'diárias'}`,
-          {
-            duration: 5000,
-          }
-        );
+        // Verificar se existe alguma violação de estadia mínima
+        const hasMinStayViolations = preliminaryResults.some(result => result.isMinStayViolation);
+        
+        if (hasMinStayViolations) {
+          // Encontrar o maior período mínimo requerido
+          const maxMinStayValue = Math.max(...preliminaryResults
+            .filter(r => r.minimumStay)
+            .map(r => r.minimumStay || 0)
+          );
+          setMaxMinStay(maxMinStayValue);
+          setIsMinStayDialogOpen(true);
+          return; // Não mostrar resultados ainda
+        }
+        
+        // Se não há violações, mostrar os resultados normalmente
+        setResults(preliminaryResults);
+        setIsSearched(true);
+        
+        if (preliminaryResults.length === 0) {
+          setError("Nenhuma acomodação encontrada com os critérios selecionados");
+        }
+      } catch (err) {
+        console.error("Erro ao buscar acomodações:", err);
+        setError("Ocorreu um erro ao buscar acomodações. Por favor, tente novamente.");
+      } finally {
+        setLoading(false);
       }
+      return;
     }
+
+    // Realizar busca final (com forceSearch ou sem estadia mínima violada)
+    try {
+      setLoading(true);
+      const searchResults = await searchAccommodations(searchParams);
+      setResults(searchResults);
+      setIsSearched(true);
+
+      if (searchResults.length === 0) {
+        setError("Nenhuma acomodação encontrada com os critérios selecionados");
+      }
+    } catch (err) {
+      console.error("Erro ao buscar acomodações:", err);
+      setError("Ocorreu um erro ao buscar acomodações. Por favor, tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleContinueWithMinStayViolation = () => {
+    setIsMinStayDialogOpen(false);
+    handleSearch(true); // Força a busca mesmo com violação
   };
 
   const handleAccommodationClick = (result: SearchResult) => {
@@ -118,9 +172,13 @@ const SearchPage = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSearch} className="w-full md:w-auto">
+          <Button 
+            onClick={() => handleSearch(false)} 
+            className="w-full md:w-auto"
+            disabled={loading}
+          >
             <Search className="mr-2 h-4 w-4" />
-            Buscar Acomodações
+            {loading ? "Buscando..." : "Buscar Acomodações"}
           </Button>
         </CardFooter>
       </Card>
@@ -134,11 +192,12 @@ const SearchPage = () => {
             </Badge>
           </div>
           
-          {results.length === 0 ? (
-            <Alert>
-              <AlertTitle>Nenhum resultado encontrado</AlertTitle>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Atenção</AlertTitle>
               <AlertDescription>
-                Nenhuma acomodação disponível com os critérios selecionados. Tente modificar sua busca.
+                {error}
               </AlertDescription>
             </Alert>
           ) : (
@@ -202,7 +261,8 @@ const SearchPage = () => {
                   
                   {result.isMinStayViolation && (
                     <CardFooter className="pt-0">
-                      <Alert className="w-full">
+                      <Alert variant="warning" className="w-full bg-amber-50 text-amber-800 border-amber-200">
+                        <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
                           Requer estadia mínima de {result.minimumStay} {result.minimumStay === 1 ? 'diária' : 'diárias'}.
                         </AlertDescription>
@@ -221,6 +281,36 @@ const SearchPage = () => {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
       />
+
+      {/* Dialog de aviso de estadia mínima */}
+      <Dialog open={isMinStayDialogOpen} onOpenChange={setIsMinStayDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Estadia Mínima Requerida</DialogTitle>
+            <DialogDescription>
+              O período selecionado requer uma estadia mínima de {maxMinStay} {maxMinStay === 1 ? 'diária' : 'diárias'}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-4">
+            <Alert variant="warning" className="bg-amber-50 text-amber-800 border-amber-200">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Atenção</AlertTitle>
+              <AlertDescription>
+                O período que você selecionou tem uma duração menor que o mínimo exigido.
+                Algumas acomodações estarão disponíveis somente para um período maior.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsMinStayDialogOpen(false)}>
+              Ajustar Datas
+            </Button>
+            <Button onClick={handleContinueWithMinStayViolation}>
+              Continuar Mesmo Assim
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

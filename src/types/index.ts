@@ -56,3 +56,10 @@ export interface PriceOption {
   withBreakfast: number;
   withoutBreakfast: number;
 }
+
+export interface CategorySettings {
+  id: string;
+  name: CategoryType;
+  description?: string;
+  customPricingRooms?: string[]; // Room numbers that use custom pricing
+}

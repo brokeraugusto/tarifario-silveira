@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Pencil, Trash2, Users, Images, Lock, Unlock, X } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Users, Images, Lock, Unlock, X, Tags } from 'lucide-react';
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -49,6 +50,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import { Accommodation, CategoryType } from '@/types';
 import { 
@@ -56,9 +58,11 @@ import {
   createAccommodation, 
   updateAccommodation, 
   deleteAccommodation,
+  getAccommodationsByCategory,
 } from '@/integrations/supabase/accommodationService';
 import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
 import CategoryPriceDialog from '@/components/CategoryPriceDialog';
+import CategoryManagementDialog from '@/components/CategoryManagementDialog';
 import AccommodationDetails from '@/components/AccommodationDetails';
 import ImageUploader from '@/components/ImageUploader';
 import { uploadImage } from '@/integrations/supabase/storageService';
@@ -94,13 +98,35 @@ const AccommodationsPage = () => {
   const [imageInputs, setImageInputs] = useState<string[]>(['']);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [categoryPriceDialogOpen, setCategoryPriceDialogOpen] = useState(false);
+  const [categoryManagementDialogOpen, setCategoryManagementDialogOpen] = useState(false);
   const [selectedCategoryForPrices, setSelectedCategoryForPrices] = useState<CategoryType>('Standard');
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [categoryCounts, setCategoryCounts] = useState<Record<CategoryType, number>>({
+    'Standard': 0,
+    'Luxo': 0,
+    'Super Luxo': 0,
+    'De Luxe': 0
+  });
 
   useEffect(() => {
     fetchAccommodations();
+
+    // Event listener for opening category price dialog from other components
+    const handleOpenCategoryPrice = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && customEvent.detail.category) {
+        setSelectedCategoryForPrices(customEvent.detail.category);
+        setCategoryPriceDialogOpen(true);
+      }
+    };
+    
+    document.addEventListener('open-category-price', handleOpenCategoryPrice);
+    
+    return () => {
+      document.removeEventListener('open-category-price', handleOpenCategoryPrice);
+    };
   }, []);
 
   const fetchAccommodations = async () => {
@@ -108,6 +134,22 @@ const AccommodationsPage = () => {
     try {
       const data = await getAllAccommodations();
       setAccommodations(data);
+      
+      // Calculate category counts
+      const counts: Record<CategoryType, number> = {
+        'Standard': 0,
+        'Luxo': 0,
+        'Super Luxo': 0,
+        'De Luxe': 0
+      };
+      
+      data.forEach(acc => {
+        if (counts[acc.category] !== undefined) {
+          counts[acc.category]++;
+        }
+      });
+      
+      setCategoryCounts(counts);
     } catch (error) {
       console.error("Error fetching accommodations:", error);
       toast.error("Erro ao carregar acomodações");
@@ -308,10 +350,6 @@ const AccommodationsPage = () => {
     }
   };
 
-  const countByCategory = (category: CategoryType) => {
-    return accommodations.filter(acc => acc.category === category).length;
-  };
-
   return (
     <div className="space-y-6 pb-10">
       <div className="flex justify-between items-center flex-wrap gap-4">
@@ -320,12 +358,43 @@ const AccommodationsPage = () => {
           <p className="text-muted-foreground mt-2">Cadastre e edite as acomodações disponíveis.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setCategoryManagementDialogOpen(true)}>
+            <Tags className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Gerenciar Categorias</span>
+            <span className="sm:hidden">Categorias</span>
+          </Button>
           <Button onClick={() => handleOpenDialog()}>
             <PlusCircle className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Nova Acomodação</span>
             <span className="sm:hidden">Nova</span>
           </Button>
         </div>
+      </div>
+
+      {/* Cards de categorias */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Object.entries(categoryCounts).map(([category, count]) => (
+          <Card key={category} className="relative group">
+            <CardHeader className={`pb-2 ${getCategoryColor(category)} bg-opacity-20`}>
+              <CardTitle className="text-lg flex justify-between items-center">
+                <span>{category}</span>
+                <Badge variant="outline" className="bg-white">
+                  {count} unidades
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardFooter className="pt-2 pb-2">
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => openCategoryPriceDialog(category as CategoryType)}
+                size="sm"
+              >
+                Configurar Preços
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
       </div>
 
       <Card>
@@ -645,6 +714,12 @@ const AccommodationsPage = () => {
         category={selectedCategoryForPrices}
         isOpen={categoryPriceDialogOpen}
         onOpenChange={setCategoryPriceDialogOpen}
+        onUpdate={handleAccommodationUpdate}
+      />
+
+      <CategoryManagementDialog
+        isOpen={categoryManagementDialogOpen}
+        onOpenChange={setCategoryManagementDialogOpen}
         onUpdate={handleAccommodationUpdate}
       />
     </div>

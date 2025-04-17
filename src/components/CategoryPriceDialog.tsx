@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Plus, DollarSign } from 'lucide-react';
+import { X, Plus, DollarSign, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { CategoryType, Accommodation, PriceOption } from '@/types';
-import { getAllAccommodations, getAccommodationsByCategory, updatePricesByCategory } from '@/utils/accommodationService';
+import { CategoryType, Accommodation, PriceOption, PricePeriod } from '@/types';
+import { getAllAccommodations, getAccommodationsByCategory, updatePricesByCategory, getAllPricePeriods } from '@/integrations/supabase/accommodationService';
+import PeriodDialog from './PeriodDialog';
 
 interface CategoryPriceDialogProps {
   category: CategoryType;
@@ -27,30 +28,61 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
   const [priceOptions, setPriceOptions] = useState<PriceOption[]>([
     { people: 2, withBreakfast: 0, withoutBreakfast: 0 }
   ]);
+  const [periods, setPeriods] = useState<PricePeriod[]>([]);
+  const [isPeriodDialogOpen, setIsPeriodDialogOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     if (isOpen) {
-      const categoryAccommodations = getAccommodationsByCategory(category);
+      fetchData();
+    }
+  }, [isOpen, category]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch periods
+      const periodData = await getAllPricePeriods();
+      setPeriods(periodData);
+      
+      // Set default period if there is at least one
+      if (periodData.length > 0 && !periodId) {
+        setPeriodId(periodData[0].id);
+      }
+
+      // Fetch accommodations by category
+      const categoryAccommodations = await getAccommodationsByCategory(category);
       setAccommodations(categoryAccommodations);
       setExcludedAccommodations([]);
       
       // Reset price options based on category
+      let defaultOptions: PriceOption[] = [];
+      
       if (category === 'Standard') {
-        setPriceOptions([{ people: 2, withBreakfast: 0, withoutBreakfast: 0 }]);
+        defaultOptions = [{ people: 2, withBreakfast: 0, withoutBreakfast: 0 }];
       } else if (category === 'Luxo') {
-        setPriceOptions([
+        defaultOptions = [
           { people: 2, withBreakfast: 0, withoutBreakfast: 0 },
           { people: 4, withBreakfast: 0, withoutBreakfast: 0 }
-        ]);
+        ];
       } else if (category === 'Super Luxo') {
-        setPriceOptions([
+        defaultOptions = [
           { people: 2, withBreakfast: 0, withoutBreakfast: 0 },
           { people: 4, withBreakfast: 0, withoutBreakfast: 0 },
           { people: 5, withBreakfast: 0, withoutBreakfast: 0 }
-        ]);
+        ];
+      } else {
+        defaultOptions = [{ people: 2, withBreakfast: 0, withoutBreakfast: 0 }];
       }
+      
+      setPriceOptions(defaultOptions);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Erro ao carregar dados");
+    } finally {
+      setLoading(false);
     }
-  }, [isOpen, category]);
+  };
   
   const handleToggleAccommodation = (id: string) => {
     setExcludedAccommodations(prev => 
@@ -78,16 +110,29 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
     setPriceOptions(prev => prev.filter((_, i) => i !== index));
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!periodId) {
+      toast.error("Selecione um período");
+      return;
+    }
+    
+    setLoading(true);
     try {
-      updatePricesByCategory(category, periodId, priceOptions, excludedAccommodations);
+      await updatePricesByCategory(category, periodId, priceOptions, excludedAccommodations);
       toast.success(`Preços atualizados para categoria ${category}`);
       onUpdate();
       onOpenChange(false);
     } catch (error) {
       toast.error("Erro ao atualizar preços");
       console.error(error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handlePeriodCreated = () => {
+    fetchData();
+    setIsPeriodDialogOpen(false);
   };
   
   const getCategoryColor = (cat: string) => {
@@ -104,162 +149,194 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span className={`px-2 py-1 rounded-md text-sm ${getCategoryColor(category)}`}>
-              {category}
-            </span>
-            <span>Definir Preços por Categoria</span>
-          </DialogTitle>
-          <DialogDescription>
-            Configure os preços padrão para todos os apartamentos desta categoria.
-            Desmarque os apartamentos que terão valores diferentes.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-6 py-4">
-          <div className="space-y-2">
-            <Label>Período</Label>
-            <Select value={periodId} onValueChange={setPeriodId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Baixa Temporada</SelectItem>
-                <SelectItem value="2">Alta Temporada</SelectItem>
-                <SelectItem value="3">Natal e Ano Novo</SelectItem>
-                <SelectItem value="4">Carnaval</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className={`px-2 py-1 rounded-md text-sm ${getCategoryColor(category)}`}>
+                {category}
+              </span>
+              <span>Definir Preços por Categoria</span>
+            </DialogTitle>
+            <DialogDescription>
+              Configure os preços padrão para todos os apartamentos desta categoria.
+              Desmarque os apartamentos que terão valores diferentes.
+            </DialogDescription>
+          </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <Label>Preços por Ocupação</Label>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm" 
-                onClick={addPriceOption}
-                className="flex items-center gap-1"
-                disabled={priceOptions.length >= 10}
-              >
-                <Plus className="h-4 w-4" /> Adicionar
-              </Button>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label>Período</Label>
+              <div className="flex gap-2">
+                <Select value={periodId} onValueChange={setPeriodId} disabled={loading}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Selecione o período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {periods.length > 0 ? (
+                      periods.map(period => (
+                        <SelectItem key={period.id} value={period.id}>
+                          {period.name} ({period.minimumStay} diária{period.minimumStay !== 1 ? 's' : ''} mín.)
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>Nenhum período cadastrado</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsPeriodDialogOpen(true)}
+                  title="Adicionar novo período"
+                >
+                  <Calendar className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             
-            {priceOptions.map((option, index) => (
-              <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-center border p-3 rounded-md">
-                <div className="space-y-1">
-                  <Label htmlFor={`people-${index}`} className="text-xs text-muted-foreground">
-                    Pessoas
-                  </Label>
-                  <Select 
-                    value={String(option.people)} 
-                    onValueChange={(value) => handlePriceChange(index, 'people', parseInt(value))}
-                  >
-                    <SelectTrigger id={`people-${index}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[...Array(10)].map((_, i) => (
-                        <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor={`with-breakfast-${index}`} className="text-xs text-muted-foreground">
-                    Com Café da Manhã
-                  </Label>
-                  <div className="flex items-center">
-                    <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
-                    <Input
-                      id={`with-breakfast-${index}`}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={option.withBreakfast}
-                      onChange={(e) => handlePriceChange(index, 'withBreakfast', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor={`without-breakfast-${index}`} className="text-xs text-muted-foreground">
-                    Sem Café da Manhã
-                  </Label>
-                  <div className="flex items-center">
-                    <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
-                    <Input
-                      id={`without-breakfast-${index}`}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={option.withoutBreakfast}
-                      onChange={(e) => handlePriceChange(index, 'withoutBreakfast', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-end items-center">
-                  {priceOptions.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removePriceOption(index)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Preços por Ocupação</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={addPriceOption}
+                  className="flex items-center gap-1"
+                  disabled={priceOptions.length >= 10 || loading}
+                >
+                  <Plus className="h-4 w-4" /> Adicionar
+                </Button>
               </div>
-            ))}
+              
+              {priceOptions.map((option, index) => (
+                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-center border p-3 rounded-md">
+                  <div className="space-y-1">
+                    <Label htmlFor={`people-${index}`} className="text-xs text-muted-foreground">
+                      Pessoas
+                    </Label>
+                    <Select 
+                      value={String(option.people)} 
+                      onValueChange={(value) => handlePriceChange(index, 'people', parseInt(value))}
+                      disabled={loading}
+                    >
+                      <SelectTrigger id={`people-${index}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[...Array(10)].map((_, i) => (
+                          <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor={`with-breakfast-${index}`} className="text-xs text-muted-foreground">
+                      Com Café da Manhã
+                    </Label>
+                    <div className="flex items-center">
+                      <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
+                      <Input
+                        id={`with-breakfast-${index}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={option.withBreakfast}
+                        onChange={(e) => handlePriceChange(index, 'withBreakfast', Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor={`without-breakfast-${index}`} className="text-xs text-muted-foreground">
+                      Sem Café da Manhã
+                    </Label>
+                    <div className="flex items-center">
+                      <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
+                      <Input
+                        id={`without-breakfast-${index}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={option.withoutBreakfast}
+                        onChange={(e) => handlePriceChange(index, 'withoutBreakfast', Number(e.target.value))}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end items-center">
+                    {priceOptions.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removePriceOption(index)}
+                        className="h-8 w-8 p-0"
+                        disabled={loading}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {accommodations.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Apartamentos ({accommodations.length})
+                </Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Desmarque os apartamentos que terão preços diferentes do padrão da categoria.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[200px] overflow-y-auto border rounded-md p-2">
+                  {accommodations.map((acc) => (
+                    <div key={acc.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`acc-${acc.id}`} 
+                        checked={!excludedAccommodations.includes(acc.id)}
+                        onCheckedChange={() => handleToggleAccommodation(acc.id)}
+                        disabled={loading}
+                      />
+                      <Label 
+                        htmlFor={`acc-${acc.id}`} 
+                        className="text-sm cursor-pointer"
+                      >
+                        {acc.roomNumber} - {acc.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {excludedAccommodations.length} apartamentos excluídos da atualização em massa
+                </p>
+              </div>
+            )}
           </div>
           
-          {accommodations.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Apartamentos ({accommodations.length})
-              </Label>
-              <p className="text-sm text-muted-foreground mb-2">
-                Desmarque os apartamentos que terão preços diferentes do padrão da categoria.
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[200px] overflow-y-auto border rounded-md p-2">
-                {accommodations.map((acc) => (
-                  <div key={acc.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`acc-${acc.id}`} 
-                      checked={!excludedAccommodations.includes(acc.id)}
-                      onCheckedChange={() => handleToggleAccommodation(acc.id)}
-                    />
-                    <Label 
-                      htmlFor={`acc-${acc.id}`} 
-                      className="text-sm cursor-pointer"
-                    >
-                      {acc.roomNumber} - {acc.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {excludedAccommodations.length} apartamentos excluídos da atualização em massa
-              </p>
-            </div>
-          )}
-        </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave}>Salvar Alterações</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading ? "Processando..." : "Salvar Alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <PeriodDialog 
+        isOpen={isPeriodDialogOpen}
+        onOpenChange={setIsPeriodDialogOpen}
+        onSuccess={handlePeriodCreated}
+      />
+    </>
   );
 };
 
