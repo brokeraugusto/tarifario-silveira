@@ -1,7 +1,6 @@
 
 import { supabase } from '../client';
 import { PricePeriod } from '@/types';
-import { isWithinInterval } from 'date-fns';
 
 export const getAllPricePeriods = async (): Promise<PricePeriod[]> => {
   try {
@@ -100,6 +99,18 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
 
 export const deletePricePeriod = async (id: string): Promise<boolean> => {
   try {
+    // First delete all related prices to prevent foreign key constraint issues
+    const { error: pricesError } = await supabase
+      .from('prices_by_people')
+      .delete()
+      .eq('period_id', id);
+
+    if (pricesError) {
+      console.error('Error deleting related prices:', pricesError);
+      return false;
+    }
+
+    // Then delete the period
     const { error } = await supabase
       .from('price_periods')
       .delete()

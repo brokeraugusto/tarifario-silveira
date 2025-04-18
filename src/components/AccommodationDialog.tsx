@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, Coffee, Trash2, ExternalLink, Copy } from 'lucide-react';
 import { format } from 'date-fns';
@@ -32,7 +31,7 @@ import {
 import { SearchResult } from '@/types';
 import WhatsAppFormatter from './WhatsAppFormatter';
 import { toast } from 'sonner';
-import { deleteAccommodation } from '@/utils/accommodationService';
+import { deleteAccommodation } from '@/integrations/supabase/services/accommodationService';
 
 interface AccommodationDialogProps {
   result?: SearchResult;
@@ -53,7 +52,6 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   const [proceedWithBooking, setProceedWithBooking] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   
-  // Reset on dialog close
   useEffect(() => {
     if (!isOpen) {
       setActiveTab('info');
@@ -61,13 +59,11 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     }
   }, [isOpen]);
   
-  // Always define these values, preventing conditional hooks
   const accommodation = result?.accommodation;
   const isMinStayViolation = result?.isMinStayViolation || false;
   const minimumStay = result?.minimumStay || 0;
   const nights = result?.nights || 0;
   
-  // Use an unconditional useEffect
   useEffect(() => {
     if (isMinStayViolation && !proceedWithBooking && isOpen) {
       setIsMinStayDialogOpen(true);
@@ -84,7 +80,6 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     onClose();
   };
 
-  // Handle permanent deletion
   const handleDeleteClick = () => {
     if (result?.accommodation) {
       setIsDeleteDialogOpen(true);
@@ -113,7 +108,6 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     }
   };
 
-  // Function to copy accommodation info to clipboard
   const handleCopyToClipboard = () => {
     if (!accommodation) return;
     
@@ -128,7 +122,6 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
       .catch(() => toast.error("Erro ao copiar informações"));
   };
 
-  // Function to share on WhatsApp
   const handleShareWhatsApp = () => {
     if (!accommodation) return;
     
@@ -140,17 +133,14 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
-  
-  // Check if accommodation has album URL
+
   const hasAlbumUrl = accommodation?.albumUrl && accommodation.albumUrl.trim() !== '';
   
-  // If no result is provided, render dialog with empty content
   const hasResult = !!result;
   const pricePerNight = result?.pricePerNight || 0;
   const totalPrice = result?.totalPrice || 0;
   const includesBreakfast = result?.includesBreakfast || false;
   
-  // Prepare the images array safely
   const images = hasResult && accommodation?.images && accommodation.images.length > 0 
     ? accommodation.images 
     : hasResult && accommodation ? [accommodation.imageUrl] : [];
@@ -355,7 +345,6 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de alerta para estadia mínima */}
       <AlertDialog open={isMinStayDialogOpen} onOpenChange={setIsMinStayDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -373,7 +362,6 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Diálogo de confirmação para exclusão */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

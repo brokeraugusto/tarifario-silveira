@@ -135,17 +135,34 @@ export const updateAccommodation = async (id: string, updates: Partial<Accommoda
 };
 
 export const deleteAccommodation = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from('accommodations')
-    .delete()
-    .eq('id', id);
+  try {
+    // First delete all related prices to prevent foreign key constraint issues
+    const { error: pricesError } = await supabase
+      .from('prices_by_people')
+      .delete()
+      .eq('accommodation_id', id);
 
-  if (error) {
-    console.error('Error deleting accommodation:', error);
+    if (pricesError) {
+      console.error('Error deleting related prices:', pricesError);
+      return false;
+    }
+    
+    // Then delete the accommodation
+    const { error } = await supabase
+      .from('accommodations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting accommodation:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in deleteAccommodation:', error);
     return false;
   }
-
-  return true;
 };
 
 export const blockAccommodation = async (id: string, reason: BlockReasonType, note?: string): Promise<Accommodation | null> => {
