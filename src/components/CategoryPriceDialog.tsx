@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { CategoryType, PriceOption, PricePeriod } from '@/types';
+import { CategoryType, PriceOption, PricePeriod, Accommodation } from '@/types';
 import { getAllAccommodations, getAccommodationsByCategory, updatePricesByCategory, getAllPricePeriods } from '@/integrations/supabase/accommodationService';
 import PeriodDialog from './PeriodDialog';
 import PriceOptionForm from './prices/PriceOptionForm';
