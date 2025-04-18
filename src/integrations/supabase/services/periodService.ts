@@ -188,3 +188,35 @@ export const findPeriodForDate = async (date: Date): Promise<PricePeriod | null>
     return null;
   }
 };
+
+// New function to delete all price periods
+export const deleteAllPricePeriods = async (): Promise<boolean> => {
+  try {
+    // First delete all related prices
+    const { error: pricesError } = await supabase
+      .from('prices_by_people')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+    if (pricesError) {
+      console.error('Error deleting all prices:', pricesError);
+      return false;
+    }
+
+    // Then delete all periods
+    const { error } = await supabase
+      .from('price_periods')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+    if (error) {
+      console.error('Error deleting all price periods:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in deleteAllPricePeriods:', error);
+    return false;
+  }
+};

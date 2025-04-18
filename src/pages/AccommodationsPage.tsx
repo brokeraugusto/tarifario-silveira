@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
-  Users, Lock, Unlock, Pencil, Images, X, ExternalLink
+  Users, Lock, Unlock, Pencil, Images, X, ExternalLink, Database
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -69,6 +69,7 @@ import AccommodationDetails from '@/components/AccommodationDetails';
 import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
 import CategoryManagementDialog from '@/components/CategoryManagementDialog';
 import ImageUploader from '@/components/ImageUploader';
+import DatabaseCleanupDialog from '@/components/DatabaseCleanupDialog';
 
 interface AccommodationFormData {
   name: string;
@@ -107,6 +108,7 @@ const AccommodationsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("list");
   const [loading, setLoading] = useState(false);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
+  const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
   
   useEffect(() => {
     fetchAccommodations();
@@ -295,11 +297,22 @@ const AccommodationsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Acomodações</h1>
-        <p className="text-muted-foreground mt-2">
-          Gerencie as acomodações disponíveis para reserva.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Acomodações</h1>
+          <p className="text-muted-foreground mt-2">
+            Gerencie as acomodações disponíveis para reserva.
+          </p>
+        </div>
+        
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => setIsCleanupDialogOpen(true)}
+        >
+          <Database className="h-4 w-4" />
+          Limpar Banco de Dados
+        </Button>
       </div>
       
       <Separator />
@@ -569,6 +582,12 @@ const AccommodationsPage: React.FC = () => {
         isOpen={isCategoryDialogOpen}
         onOpenChange={setIsCategoryDialogOpen}
         onUpdate={() => fetchAccommodations()}
+      />
+      
+      <DatabaseCleanupDialog
+        isOpen={isCleanupDialogOpen}
+        onOpenChange={setIsCleanupDialogOpen}
+        onCleanupComplete={fetchAccommodations}
       />
       
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

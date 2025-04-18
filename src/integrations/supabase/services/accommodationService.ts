@@ -219,3 +219,35 @@ export const getAccommodationsByCategory = async (category: CategoryType): Promi
     blockNote: item.block_note
   }));
 };
+
+// New function to delete all accommodations
+export const deleteAllAccommodations = async (): Promise<boolean> => {
+  try {
+    // First delete all related prices
+    const { error: pricesError } = await supabase
+      .from('prices_by_people')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+    if (pricesError) {
+      console.error('Error deleting all prices:', pricesError);
+      return false;
+    }
+
+    // Then delete all accommodations
+    const { error } = await supabase
+      .from('accommodations')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+    if (error) {
+      console.error('Error deleting all accommodations:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in deleteAllAccommodations:', error);
+    return false;
+  }
+};

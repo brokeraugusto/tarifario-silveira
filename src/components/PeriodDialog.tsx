@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -27,13 +26,12 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createPricePeriod, updatePricePeriod } from '@/utils/accommodationService';
+import { createPricePeriod, updatePricePeriod } from '@/integrations/supabase/services/periodService';
 import { PricePeriod } from '@/types';
 
 interface PeriodDialogProps {
@@ -75,7 +73,6 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
   });
 
   const onSubmit = async (values: FormValues) => {
-    // Validate end date is after start date
     if (values.endDate < values.startDate) {
       form.setError('endDate', { 
         type: 'manual', 
@@ -87,7 +84,6 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
     setLoading(true);
     try {
       if (editPeriod || periodId) {
-        // Update existing period
         await updatePricePeriod(periodId || editPeriod?.id || '', {
           name: values.name,
           startDate: values.startDate,
@@ -97,7 +93,6 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
         });
         toast.success("Período atualizado com sucesso");
       } else {
-        // Create new period
         await createPricePeriod({
           name: values.name,
           startDate: values.startDate,

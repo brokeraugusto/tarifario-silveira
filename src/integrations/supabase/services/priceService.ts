@@ -215,3 +215,23 @@ export const updatePricesByCategory = async (
     return false;
   }
 };
+
+// New function to delete all prices
+export const deleteAllPrices = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('prices_by_people')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+    if (error) {
+      console.error('Error deleting all prices:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in deleteAllPrices:', error);
+    return false;
+  }
+};
