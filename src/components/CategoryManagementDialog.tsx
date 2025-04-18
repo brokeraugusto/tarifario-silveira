@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CategoryType, Accommodation } from '@/types';
 import { toast } from 'sonner';
-import { getAllAccommodations } from '@/integrations/supabase/accommodationService';
+import { getAllAccommodations } from '@/integrations/supabase'; // Fixed import path
 import CategoryDialog from './CategoryDialog';
 import {
   AlertDialog,

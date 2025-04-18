@@ -24,12 +24,12 @@ export const searchAccommodations = async (params: SearchParams): Promise<Search
       return [];
     }
 
-    // Convert to application model
+    // Convert to application model with proper type casting
     const accommodations: Accommodation[] = accommodationsData.map(item => ({
       id: item.id,
       name: item.name,
       roomNumber: item.room_number,
-      category: item.category,
+      category: item.category as CategoryType, // Cast string to CategoryType
       capacity: item.capacity,
       description: item.description,
       imageUrl: item.image_url || '',
