@@ -1,6 +1,6 @@
 
 import { supabase } from '../client';
-import { Accommodation, SearchParams, SearchResult } from '@/types';
+import { Accommodation, BlockReasonType, CategoryType, SearchParams, SearchResult } from '@/types';
 import { differenceInDays } from 'date-fns';
 import { findPeriodForDate } from './periodService';
 
@@ -35,7 +35,7 @@ export const searchAccommodations = async (params: SearchParams): Promise<Search
       imageUrl: item.image_url || '',
       images: item.images || [],
       isBlocked: item.is_blocked || false,
-      blockReason: item.block_reason,
+      blockReason: item.block_reason as BlockReasonType | undefined, // Cast string to BlockReasonType
       blockNote: item.block_note
     }));
 
