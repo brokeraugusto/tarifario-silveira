@@ -1,16 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import { X, Plus, DollarSign, Calendar } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { CategoryType, Accommodation, PriceOption, PricePeriod } from '@/types';
+import { CategoryType, PriceOption, PricePeriod } from '@/types';
 import { getAllAccommodations, getAccommodationsByCategory, updatePricesByCategory, getAllPricePeriods } from '@/integrations/supabase/accommodationService';
 import PeriodDialog from './PeriodDialog';
+import PriceOptionForm from './prices/PriceOptionForm';
+import ExcludedAccommodations from './prices/ExcludedAccommodations';
 
 interface CategoryPriceDialogProps {
   category: CategoryType;
@@ -41,21 +40,17 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch periods
       const periodData = await getAllPricePeriods();
       setPeriods(periodData);
       
-      // Set default period if there is at least one
       if (periodData.length > 0 && !periodId) {
         setPeriodId(periodData[0].id);
       }
 
-      // Fetch accommodations by category
       const categoryAccommodations = await getAccommodationsByCategory(category);
       setAccommodations(categoryAccommodations);
       setExcludedAccommodations([]);
       
-      // Reset price options based on category
       let defaultOptions: PriceOption[] = [];
       
       if (category === 'Standard') {
@@ -99,7 +94,6 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
   };
   
   const addPriceOption = () => {
-    // Find the next logical number of people
     const lastOption = priceOptions[priceOptions.length - 1];
     const nextPeople = lastOption ? Math.min(lastOption.people + 1, 10) : 1;
     
@@ -161,7 +155,6 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
             </DialogTitle>
             <DialogDescription>
               Configure os preços padrão para todos os apartamentos desta categoria.
-              Desmarque os apartamentos que terão valores diferentes.
             </DialogDescription>
           </DialogHeader>
           
@@ -212,112 +205,24 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
               </div>
               
               {priceOptions.map((option, index) => (
-                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-center border p-3 rounded-md">
-                  <div className="space-y-1">
-                    <Label htmlFor={`people-${index}`} className="text-xs text-muted-foreground">
-                      Pessoas
-                    </Label>
-                    <Select 
-                      value={String(option.people)} 
-                      onValueChange={(value) => handlePriceChange(index, 'people', parseInt(value))}
-                      disabled={loading}
-                    >
-                      <SelectTrigger id={`people-${index}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[...Array(10)].map((_, i) => (
-                          <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label htmlFor={`with-breakfast-${index}`} className="text-xs text-muted-foreground">
-                      Com Café da Manhã
-                    </Label>
-                    <div className="flex items-center">
-                      <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
-                      <Input
-                        id={`with-breakfast-${index}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={option.withBreakfast}
-                        onChange={(e) => handlePriceChange(index, 'withBreakfast', Number(e.target.value))}
-                        disabled={loading}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label htmlFor={`without-breakfast-${index}`} className="text-xs text-muted-foreground">
-                      Sem Café da Manhã
-                    </Label>
-                    <div className="flex items-center">
-                      <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
-                      <Input
-                        id={`without-breakfast-${index}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={option.withoutBreakfast}
-                        onChange={(e) => handlePriceChange(index, 'withoutBreakfast', Number(e.target.value))}
-                        disabled={loading}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end items-center">
-                    {priceOptions.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removePriceOption(index)}
-                        className="h-8 w-8 p-0"
-                        disabled={loading}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                <PriceOptionForm
+                  key={index}
+                  option={option}
+                  index={index}
+                  onPriceChange={handlePriceChange}
+                  onRemove={removePriceOption}
+                  canRemove={priceOptions.length > 1}
+                  disabled={loading}
+                />
               ))}
             </div>
-            
-            {accommodations.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Apartamentos ({accommodations.length})
-                </Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Desmarque os apartamentos que terão preços diferentes do padrão da categoria.
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[200px] overflow-y-auto border rounded-md p-2">
-                  {accommodations.map((acc) => (
-                    <div key={acc.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`acc-${acc.id}`} 
-                        checked={!excludedAccommodations.includes(acc.id)}
-                        onCheckedChange={() => handleToggleAccommodation(acc.id)}
-                        disabled={loading}
-                      />
-                      <Label 
-                        htmlFor={`acc-${acc.id}`} 
-                        className="text-sm cursor-pointer"
-                      >
-                        {acc.roomNumber} - {acc.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {excludedAccommodations.length} apartamentos excluídos da atualização em massa
-                </p>
-              </div>
-            )}
+
+            <ExcludedAccommodations
+              accommodations={accommodations}
+              excludedAccommodations={excludedAccommodations}
+              onToggle={handleToggleAccommodation}
+              disabled={loading}
+            />
           </div>
           
           <DialogFooter>
