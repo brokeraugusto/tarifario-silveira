@@ -111,7 +111,7 @@ const Layout = ({
         </> : <>
           <aside className="bg-silveira-gray text-white min-h-screen w-[250px] fixed left-0 top-0 bottom-0 overflow-y-auto">
             <div className="p-4 flex items-center justify-between border-b border-silveira-green/30">
-              <img alt="Silveira Eco Village" src="/lovable-uploads/cdb5dcb5-ba2f-41a9-bef6-4b5845ca0e35.jpg" className="h-8 w-auto object-contain" />
+              <img alt="Silveira Eco Village" src="/lovable-uploads/53dac66f-17e6-433a-8bb7-f777bbe4d70c.png" className="h-8 w-auto object-contain" />
               {user && <UserMenu />}
             </div>
             <nav className="p-4">
