@@ -1,6 +1,6 @@
 
 export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'De Luxe';
-export type BlockReasonType = 'maintenance' | 'reserved' | 'unavailable' | 'other';
+export type BlockReasonType = 'maintenance' | 'reserved' | 'unavailable' | 'other' | 'Reforma' | 'Manutenção' | 'Locação Mensal' | 'Locação Anual' | 'Outro';
 
 export interface Accommodation {
   id: string;
@@ -33,6 +33,12 @@ export interface PriceByPeople {
   people: number;
   pricePerNight: number;
   includesBreakfast: boolean;
+}
+
+export interface PriceOption {
+  people: number;
+  withBreakfast: number; 
+  withoutBreakfast: number;
 }
 
 export interface SearchParams {

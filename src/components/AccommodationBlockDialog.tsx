@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,10 +19,9 @@ interface BlockDialogProps {
 const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({ 
   accommodation, isOpen, onOpenChange, onUpdate 
 }) => {
-  const [reason, setReason] = useState<BlockReasonType>('Manutenção');
+  const [reason, setReason] = useState<BlockReasonType>('maintenance');
   const [note, setNote] = useState('');
   
-  // If accommodation is null, don't render the dialog content
   if (!accommodation) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -107,11 +105,10 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
                     <SelectValue placeholder="Selecione o motivo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Reforma">Reforma</SelectItem>
-                    <SelectItem value="Manutenção">Manutenção</SelectItem>
-                    <SelectItem value="Locação Mensal">Locação Mensal</SelectItem>
-                    <SelectItem value="Locação Anual">Locação Anual</SelectItem>
-                    <SelectItem value="Outro">Outro</SelectItem>
+                    <SelectItem value="maintenance">Manutenção</SelectItem>
+                    <SelectItem value="reserved">Reservado</SelectItem>
+                    <SelectItem value="unavailable">Indisponível</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
