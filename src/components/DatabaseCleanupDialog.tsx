@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { deleteAllAccommodations } from '@/integrations/supabase/services/accommodationService';
 import { deleteAllPricePeriods } from '@/integrations/supabase/services/periodService';
 import { deleteAllPrices } from '@/integrations/supabase/services/priceService';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DatabaseCleanupDialogProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const DatabaseCleanupDialog: React.FC<DatabaseCleanupDialogProps> = ({
   onCleanupComplete
 }) => {
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   
   const handleCleanup = async () => {
     setLoading(true);
@@ -39,6 +41,12 @@ const DatabaseCleanupDialog: React.FC<DatabaseCleanupDialogProps> = ({
         deleteAllPricePeriods(),
         deleteAllAccommodations()
       ]);
+      
+      // Invalidate all related queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['accommodations'] });
+      queryClient.invalidateQueries({ queryKey: ['periods'] });
+      queryClient.invalidateQueries({ queryKey: ['prices'] });
+      queryClient.invalidateQueries({ queryKey: ['search'] });
       
       toast.success("Banco de dados limpo com sucesso");
       onOpenChange(false);

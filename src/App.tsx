@@ -16,7 +16,20 @@ import AuthPage from "./pages/AuthPage";
 import RequireAuth from "./components/RequireAuth";
 import { AuthProvider } from "./contexts/AuthContext";
 
-const queryClient = new QueryClient();
+// Configuração do QueryClient com configuração de retry e stale time para melhorar as atualizações
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Tornar os dados stale imediatamente para garantir atualizações em tempo real
+      staleTime: 0,
+      // Permitir 1 retry em caso de falha
+      retry: 1,
+      // Refetch automático ao reconectar ou focar na janela
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

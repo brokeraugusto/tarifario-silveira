@@ -63,11 +63,9 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				hotel: {
-					navy: '#0c2340',
-					gold: '#c8a97e',
-					lightgold: '#e6d4b8',
-					silver: '#e5e5e5',
+				silveira: {
+					gray: '#707070',
+					green: '#b3cf5a',
 				}
 			},
 			borderRadius: {
