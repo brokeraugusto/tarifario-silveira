@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createPricePeriod, updatePricePeriod } from '@/integrations/supabase/services/periodService';
+import { createPricePeriod, updatePricePeriod, getAllPricePeriods } from '@/integrations/supabase/services/periodService';
 import { PricePeriod } from '@/types';
 
 interface PeriodDialogProps {
@@ -60,19 +60,66 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
   periodId
 }) => {
   const [loading, setLoading] = useState(false);
-
+  const [currentPeriod, setCurrentPeriod] = useState<PricePeriod | null>(null);
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: editPeriod?.name || '',
-      startDate: editPeriod?.startDate ? new Date(editPeriod.startDate) : new Date(),
-      endDate: editPeriod?.endDate ? new Date(editPeriod.endDate) : new Date(),
-      minimumStay: editPeriod?.minimumStay || 1,
-      isHoliday: editPeriod?.isHoliday || false,
+      name: '',
+      startDate: new Date(),
+      endDate: new Date(),
+      minimumStay: 1,
+      isHoliday: false,
     },
   });
+  
+  useEffect(() => {
+    if (periodId && isOpen) {
+      fetchPeriod(periodId);
+    } else if (editPeriod) {
+      setCurrentPeriod(editPeriod);
+      form.reset({
+        name: editPeriod.name,
+        startDate: new Date(editPeriod.startDate),
+        endDate: new Date(editPeriod.endDate),
+        minimumStay: editPeriod.minimumStay || 1,
+        isHoliday: editPeriod.isHoliday || false,
+      });
+    } else {
+      form.reset({
+        name: '',
+        startDate: new Date(),
+        endDate: new Date(),
+        minimumStay: 1,
+        isHoliday: false,
+      });
+    }
+  }, [isOpen, editPeriod, periodId]);
+
+  const fetchPeriod = async (id: string) => {
+    try {
+      const periods = await getAllPricePeriods();
+      const period = periods.find(p => p.id === id);
+      
+      if (period) {
+        setCurrentPeriod(period);
+        form.reset({
+          name: period.name,
+          startDate: new Date(period.startDate),
+          endDate: new Date(period.endDate),
+          minimumStay: period.minimumStay || 1,
+          isHoliday: period.isHoliday || false,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching period:", error);
+      toast.error("Erro ao buscar período");
+    }
+  };
 
   const onSubmit = async (values: FormValues) => {
+    console.log('Submitting period form with values:', values);
+    
     if (values.endDate < values.startDate) {
       form.setError('endDate', { 
         type: 'manual', 
@@ -83,28 +130,44 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
 
     setLoading(true);
     try {
-      if (editPeriod || periodId) {
-        await updatePricePeriod(periodId || editPeriod?.id || '', {
+      let result;
+      
+      if (currentPeriod || periodId) {
+        const id = periodId || currentPeriod?.id || '';
+        console.log(`Updating period with id ${id}:`, values);
+        result = await updatePricePeriod(id, {
           name: values.name,
           startDate: values.startDate,
           endDate: values.endDate,
           minimumStay: values.minimumStay,
           isHoliday: values.isHoliday
         });
-        toast.success("Período atualizado com sucesso");
+        
+        if (result) {
+          toast.success("Período atualizado com sucesso");
+        }
       } else {
-        await createPricePeriod({
+        console.log("Creating new period:", values);
+        result = await createPricePeriod({
           name: values.name,
           startDate: values.startDate,
           endDate: values.endDate,
           minimumStay: values.minimumStay,
           isHoliday: values.isHoliday
         });
-        toast.success("Período criado com sucesso");
+        
+        if (result) {
+          toast.success("Período criado com sucesso");
+          console.log("Created period:", result);
+        }
       }
       
-      form.reset();
-      onSuccess();
+      if (result) {
+        form.reset();
+        onSuccess();
+      } else {
+        toast.error("Erro ao salvar período");
+      }
     } catch (error) {
       console.error("Error saving period:", error);
       toast.error("Erro ao salvar período");

@@ -36,6 +36,8 @@ export const getAllPricePeriods = async (): Promise<PricePeriod[]> => {
  */
 export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promise<PricePeriod | null> => {
   try {
+    console.log('Creating price period:', period);
+    
     const { data, error } = await supabase
       .from('price_periods')
       .insert({
@@ -48,8 +50,13 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
       .select()
       .single();
 
-    if (error || !data) {
+    if (error) {
       console.error('Error creating price period:', error);
+      return null;
+    }
+    
+    if (!data) {
+      console.error('No data returned after creating price period');
       return null;
     }
 

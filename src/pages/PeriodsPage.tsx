@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -21,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MultiSelectTable, { Column } from '@/components/ui/multi-select-table';
 import PeriodDialog from '@/components/PeriodDialog';
 import CategoryPriceDialog from '@/components/CategoryPriceDialog';
-import { getAllPricePeriods, deletePricePeriod } from '@/utils/accommodationService';
+import { getAllPricePeriods, deletePricePeriod } from '@/integrations/supabase/services/periodService';
 import { PricePeriod, CategoryType } from '@/types';
 
 const PeriodsPage: React.FC = () => {
@@ -44,6 +43,7 @@ const PeriodsPage: React.FC = () => {
     setLoading(true);
     try {
       const data = await getAllPricePeriods();
+      console.log('Fetched periods:', data);
       setPeriods(data);
     } catch (error) {
       console.error("Error fetching periods:", error);
@@ -101,9 +101,6 @@ const PeriodsPage: React.FC = () => {
       // Perform a hard delete or permanent deletion
       for (const id of selectedPeriodIds) {
         await deletePricePeriod(id);
-        
-        // You might want to also clean up related records in other tables
-        // that reference this period id, depending on your data model
       }
       toast.success(`${selectedPeriodIds.length} período(s) excluído(s) permanentemente`);
       fetchPeriods();
@@ -265,7 +262,6 @@ const PeriodsPage: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Dialog for permanent deletion */}
       <AlertDialog open={isPermanentDeleteDialogOpen} onOpenChange={setIsPermanentDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -37,6 +37,8 @@ export const getPricesForAccommodation = async (accommodationId: string): Promis
  */
 export const createPrice = async (price: Omit<PriceByPeople, 'id'>): Promise<PriceByPeople | null> => {
   try {
+    console.log('Creating price:', price);
+    
     const { data, error } = await supabase
       .from('prices_by_people')
       .insert({
@@ -49,8 +51,13 @@ export const createPrice = async (price: Omit<PriceByPeople, 'id'>): Promise<Pri
       .select()
       .single();
 
-    if (error || !data) {
+    if (error) {
       console.error('Error creating price:', error);
+      return null;
+    }
+    
+    if (!data) {
+      console.error('No data returned after creating price');
       return null;
     }
 
@@ -88,8 +95,13 @@ export const updatePrice = async (id: string, updates: Partial<PriceByPeople>): 
       .select()
       .single();
 
-    if (error || !data) {
+    if (error) {
       console.error('Error updating price:', error);
+      return null;
+    }
+    
+    if (!data) {
+      console.error('No data returned after updating price');
       return null;
     }
 
