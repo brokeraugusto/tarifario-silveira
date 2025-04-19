@@ -16,16 +16,17 @@ import AuthPage from "./pages/AuthPage";
 import RequireAuth from "./components/RequireAuth";
 import { AuthProvider } from "./contexts/AuthContext";
 
-// Configuração do QueryClient com configuração de retry e stale time para melhorar as atualizações
+// QueryClient configuration with optimized settings for real-time updates
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Tornar os dados stale imediatamente para garantir atualizações em tempo real
+      // Make data stale immediately to ensure fresh data on refetch
       staleTime: 0,
-      // Permitir 1 retry em caso de falha
+      // Allow one retry on failure
       retry: 1,
-      // Refetch automático ao reconectar ou focar na janela
+      // Enable automatic refetching when window gets focus
       refetchOnWindowFocus: true,
+      // Enable automatic refetching when network reconnects
       refetchOnReconnect: true,
     },
   },

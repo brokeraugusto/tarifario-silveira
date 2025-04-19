@@ -33,27 +33,44 @@ const DatabaseCleanupDialog: React.FC<DatabaseCleanupDialogProps> = ({
   const handleCleanup = async () => {
     setLoading(true);
     try {
-      // Delete all prices first to avoid foreign key constraints
-      await deleteAllPrices();
+      // Delete prices first (to avoid foreign key constraint issues)
+      const pricesDeleted = await deleteAllPrices();
+      if (!pricesDeleted) {
+        throw new Error("Falha ao remover preços");
+      }
       
-      // Then delete periods and accommodations (order doesn't matter now)
-      await Promise.all([
+      // Then delete periods and accommodations in parallel
+      const [periodsDeleted, accommodationsDeleted] = await Promise.all([
         deleteAllPricePeriods(),
         deleteAllAccommodations()
       ]);
       
-      // Invalidate all related queries to refresh UI
-      queryClient.invalidateQueries({ queryKey: ['accommodations'] });
-      queryClient.invalidateQueries({ queryKey: ['periods'] });
-      queryClient.invalidateQueries({ queryKey: ['prices'] });
-      queryClient.invalidateQueries({ queryKey: ['search'] });
+      if (!periodsDeleted || !accommodationsDeleted) {
+        throw new Error("Falha ao remover períodos ou acomodações");
+      }
+      
+      // Force invalidate all relevant queries to refresh UI
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['accommodations'] }),
+        queryClient.invalidateQueries({ queryKey: ['periods'] }),
+        queryClient.invalidateQueries({ queryKey: ['prices'] }),
+        queryClient.invalidateQueries({ queryKey: ['search'] })
+      ]);
+      
+      // Force refetch to ensure UI is updated
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['accommodations'] }),
+        queryClient.refetchQueries({ queryKey: ['periods'] }),
+        queryClient.refetchQueries({ queryKey: ['prices'] }),
+        queryClient.refetchQueries({ queryKey: ['search'] })
+      ]);
       
       toast.success("Banco de dados limpo com sucesso");
-      onOpenChange(false);
       onCleanupComplete();
+      onOpenChange(false);
     } catch (error) {
       console.error("Error cleaning database:", error);
-      toast.error("Erro ao limpar o banco de dados");
+      toast.error("Erro ao limpar o banco de dados: " + (error instanceof Error ? error.message : "Erro desconhecido"));
     } finally {
       setLoading(false);
     }

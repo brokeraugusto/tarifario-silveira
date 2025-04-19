@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Bed, Calendar, Settings, Search, Menu, X } from 'lucide-react';
@@ -9,9 +10,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import DatabaseCleanupDialog from './DatabaseCleanupDialog';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
+
 const Layout = ({
   children
 }: LayoutProps) => {
@@ -28,9 +31,11 @@ const Layout = ({
       setIsSidebarOpen(false);
     }
   };
+
   const handleCleanupComplete = () => {
     toast.success("Todos os dados foram removidos com sucesso");
   };
+
   return <div className="min-h-screen flex flex-col md:flex-row">
       {isMobile ? <>
           <div className="bg-silveira-gray text-white p-4 flex items-center justify-between sticky top-0 z-50">
@@ -172,4 +177,5 @@ const Layout = ({
       <DatabaseCleanupDialog isOpen={isCleanupDialogOpen} onOpenChange={setIsCleanupDialogOpen} onCleanupComplete={handleCleanupComplete} />
     </div>;
 };
+
 export default Layout;
