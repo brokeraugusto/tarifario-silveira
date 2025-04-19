@@ -3,6 +3,10 @@ import { supabase } from '../../client';
 import { Accommodation, BlockReasonType } from '@/types';
 import { accommodationMapper } from './mapper';
 import { AccommodationCreate, AccommodationUpdate } from './types';
+import { Database } from '@/integrations/supabase/types';
+
+// Define the database insert type explicitly
+type DbAccommodation = Database['public']['Tables']['accommodations']['Insert'];
 
 export const createAccommodation = async (accommodation: AccommodationCreate): Promise<Accommodation | null> => {
   try {
@@ -16,7 +20,7 @@ export const createAccommodation = async (accommodation: AccommodationCreate): P
     
     const { data, error } = await supabase
       .from('accommodations')
-      .insert(dbData)
+      .insert(dbData as DbAccommodation)
       .select()
       .single();
 
@@ -38,7 +42,7 @@ export const updateAccommodation = async (id: string, updates: AccommodationUpda
     
     const { data, error } = await supabase
       .from('accommodations')
-      .update(dbUpdates)
+      .update(dbUpdates as DbAccommodation)
       .eq('id', id)
       .select()
       .single();
