@@ -1,11 +1,15 @@
 
 import { Accommodation, BlockReasonType, CategoryType } from '@/types';
 import { AccommodationMapper } from './types';
+import { Database } from '@/integrations/supabase/types';
+
+// Define the database insert type explicitly based on Supabase schema
+type DbAccommodation = Database['public']['Tables']['accommodations']['Insert'];
 
 export const accommodationMapper: AccommodationMapper = {
-  toDatabase: (accommodation) => {
+  toDatabase: (accommodation): DbAccommodation => {
     // Create the base object with all possible fields
-    const dbObject: Record<string, any> = {
+    const dbObject: DbAccommodation = {
       name: accommodation.name,
       room_number: accommodation.roomNumber,
       category: accommodation.category,
@@ -21,7 +25,7 @@ export const accommodationMapper: AccommodationMapper = {
     // Filter out undefined values to avoid setting null for optional fields during updates
     return Object.fromEntries(
       Object.entries(dbObject).filter(([_, value]) => value !== undefined)
-    );
+    ) as DbAccommodation;
   },
 
   fromDatabase: (data): Accommodation => ({
