@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,8 +68,12 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
           { people: 4, withBreakfast: 0, withoutBreakfast: 0 },
           { people: 5, withBreakfast: 0, withoutBreakfast: 0 }
         ];
-      } else {
-        defaultOptions = [{ people: 2, withBreakfast: 0, withoutBreakfast: 0 }];
+      } else if (category === 'Master') {
+        defaultOptions = [
+          { people: 2, withBreakfast: 0, withoutBreakfast: 0 },
+          { people: 4, withBreakfast: 0, withoutBreakfast: 0 },
+          { people: 6, withBreakfast: 0, withoutBreakfast: 0 }
+        ];
       }
       
       setPriceOptions(defaultOptions);
@@ -140,6 +143,8 @@ const CategoryPriceDialog: React.FC<CategoryPriceDialogProps> = ({
         return 'bg-purple-100 text-purple-800';
       case 'Super Luxo':
         return 'bg-amber-100 text-amber-800';
+      case 'Master':
+        return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

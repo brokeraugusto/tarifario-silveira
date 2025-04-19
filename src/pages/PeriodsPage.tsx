@@ -216,7 +216,7 @@ const PeriodsPage: React.FC = () => {
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {(['Standard', 'Luxo', 'Super Luxo', 'De Luxe'] as CategoryType[]).map(category => (
+            {(['Standard', 'Luxo', 'Super Luxo', 'Master'] as CategoryType[]).map(category => (
               <Button
                 key={category}
                 variant="outline"

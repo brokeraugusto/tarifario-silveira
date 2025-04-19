@@ -1,5 +1,4 @@
-
-export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'De Luxe';
+export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'Master';
 export type BlockReasonType = 'maintenance' | 'reserved' | 'unavailable' | 'other' | 'Reforma' | 'Manutenção' | 'Locação Mensal' | 'Locação Anual' | 'Outro';
 
 export interface Accommodation {
