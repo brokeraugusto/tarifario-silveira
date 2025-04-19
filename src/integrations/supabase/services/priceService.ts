@@ -2,12 +2,16 @@
 import { supabase } from '../client';
 import { PriceByPeople, PriceOption, CategoryType } from '@/types';
 
+/**
+ * Fetches all prices for a specific accommodation
+ */
 export const getPricesForAccommodation = async (accommodationId: string): Promise<PriceByPeople[]> => {
   try {
     const { data, error } = await supabase
       .from('prices_by_people')
       .select('*')
-      .eq('accommodation_id', accommodationId);
+      .eq('accommodation_id', accommodationId)
+      .order('people');
     
     if (error) {
       console.error('Error fetching prices for accommodation:', error);
@@ -23,11 +27,14 @@ export const getPricesForAccommodation = async (accommodationId: string): Promis
       includesBreakfast: price.includes_breakfast || false
     }));
   } catch (error) {
-    console.error('Error in getPricesForAccommodation:', error);
+    console.error('Unexpected error in getPricesForAccommodation:', error);
     return [];
   }
 };
 
+/**
+ * Creates a new price in the database
+ */
 export const createPrice = async (price: Omit<PriceByPeople, 'id'>): Promise<PriceByPeople | null> => {
   try {
     const { data, error } = await supabase
@@ -56,11 +63,14 @@ export const createPrice = async (price: Omit<PriceByPeople, 'id'>): Promise<Pri
       includesBreakfast: data.includes_breakfast || false
     };
   } catch (error) {
-    console.error('Error in createPrice:', error);
+    console.error('Unexpected error in createPrice:', error);
     return null;
   }
 };
 
+/**
+ * Updates an existing price in the database
+ */
 export const updatePrice = async (id: string, updates: Partial<PriceByPeople>): Promise<PriceByPeople | null> => {
   try {
     const dbUpdates: any = {};
@@ -92,11 +102,14 @@ export const updatePrice = async (id: string, updates: Partial<PriceByPeople>): 
       includesBreakfast: data.includes_breakfast || false
     };
   } catch (error) {
-    console.error('Error in updatePrice:', error);
+    console.error('Unexpected error in updatePrice:', error);
     return null;
   }
 };
 
+/**
+ * Deletes a price from the database
+ */
 export const deletePrice = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -111,11 +124,14 @@ export const deletePrice = async (id: string): Promise<boolean> => {
 
     return true;
   } catch (error) {
-    console.error('Error in deletePrice:', error);
+    console.error('Unexpected error in deletePrice:', error);
     return false;
   }
 };
 
+/**
+ * Updates prices for a category of accommodations
+ */
 export const updatePricesByCategory = async (
   category: CategoryType,
   periodId: string,
@@ -136,87 +152,97 @@ export const updatePricesByCategory = async (
     }
     
     if (!accommodationsData || accommodationsData.length === 0) {
+      // No accommodations to update
       return true;
     }
     
+    // Update prices for each accommodation
     for (const accommodation of accommodationsData) {
       const maxPeopleForAccommodation = accommodation.capacity;
       
+      // Only update prices for options that don't exceed accommodation capacity
       for (const option of priceOptions.filter(opt => opt.people <= maxPeopleForAccommodation)) {
-        // Check existing prices with breakfast
-        const { data: existingPricesWithBreakfast, error: errorWithBreakfast } = await supabase
-          .from('prices_by_people')
-          .select('*')
-          .eq('accommodation_id', accommodation.id)
-          .eq('period_id', periodId)
-          .eq('people', option.people)
-          .eq('includes_breakfast', true);
-          
-        if (errorWithBreakfast) {
-          console.error('Error checking existing prices with breakfast:', errorWithBreakfast);
-          continue;
-        }
-        
-        // Check existing prices without breakfast
-        const { data: existingPricesWithoutBreakfast, error: errorWithoutBreakfast } = await supabase
-          .from('prices_by_people')
-          .select('*')
-          .eq('accommodation_id', accommodation.id)
-          .eq('period_id', periodId)
-          .eq('people', option.people)
-          .eq('includes_breakfast', false);
-          
-        if (errorWithoutBreakfast) {
-          console.error('Error checking existing prices without breakfast:', errorWithoutBreakfast);
-          continue;
-        }
-        
-        // Update or create price with breakfast
-        if (existingPricesWithBreakfast && existingPricesWithBreakfast.length > 0) {
-          await supabase
-            .from('prices_by_people')
-            .update({ price_per_night: option.withBreakfast })
-            .eq('id', existingPricesWithBreakfast[0].id);
-        } else {
-          await supabase
-            .from('prices_by_people')
-            .insert({
-              accommodation_id: accommodation.id,
-              period_id: periodId,
-              people: option.people,
-              price_per_night: option.withBreakfast,
-              includes_breakfast: true
-            });
-        }
-        
-        // Update or create price without breakfast
-        if (existingPricesWithoutBreakfast && existingPricesWithoutBreakfast.length > 0) {
-          await supabase
-            .from('prices_by_people')
-            .update({ price_per_night: option.withoutBreakfast })
-            .eq('id', existingPricesWithoutBreakfast[0].id);
-        } else {
-          await supabase
-            .from('prices_by_people')
-            .insert({
-              accommodation_id: accommodation.id,
-              period_id: periodId,
-              people: option.people,
-              price_per_night: option.withoutBreakfast,
-              includes_breakfast: false
-            });
-        }
+        await updateOrCreatePrice(accommodation.id, periodId, option);
       }
     }
     
     return true;
   } catch (error) {
-    console.error('Error in updatePricesByCategory:', error);
+    console.error('Unexpected error in updatePricesByCategory:', error);
     return false;
   }
 };
 
-// New function to delete all prices
+/**
+ * Helper function to update or create prices for an accommodation
+ */
+const updateOrCreatePrice = async (
+  accommodationId: string,
+  periodId: string,
+  option: PriceOption
+): Promise<void> => {
+  try {
+    // Check existing prices with breakfast
+    const { data: existingPricesWithBreakfast } = await supabase
+      .from('prices_by_people')
+      .select('*')
+      .eq('accommodation_id', accommodationId)
+      .eq('period_id', periodId)
+      .eq('people', option.people)
+      .eq('includes_breakfast', true);
+      
+    // Check existing prices without breakfast
+    const { data: existingPricesWithoutBreakfast } = await supabase
+      .from('prices_by_people')
+      .select('*')
+      .eq('accommodation_id', accommodationId)
+      .eq('period_id', periodId)
+      .eq('people', option.people)
+      .eq('includes_breakfast', false);
+      
+    // Update or create price with breakfast
+    if (existingPricesWithBreakfast && existingPricesWithBreakfast.length > 0) {
+      await supabase
+        .from('prices_by_people')
+        .update({ price_per_night: option.withBreakfast })
+        .eq('id', existingPricesWithBreakfast[0].id);
+    } else {
+      await supabase
+        .from('prices_by_people')
+        .insert({
+          accommodation_id: accommodationId,
+          period_id: periodId,
+          people: option.people,
+          price_per_night: option.withBreakfast,
+          includes_breakfast: true
+        });
+    }
+    
+    // Update or create price without breakfast
+    if (existingPricesWithoutBreakfast && existingPricesWithoutBreakfast.length > 0) {
+      await supabase
+        .from('prices_by_people')
+        .update({ price_per_night: option.withoutBreakfast })
+        .eq('id', existingPricesWithoutBreakfast[0].id);
+    } else {
+      await supabase
+        .from('prices_by_people')
+        .insert({
+          accommodation_id: accommodationId,
+          period_id: periodId,
+          people: option.people,
+          price_per_night: option.withoutBreakfast,
+          includes_breakfast: false
+        });
+    }
+  } catch (error) {
+    console.error(`Error updating prices for accommodation ${accommodationId}:`, error);
+  }
+};
+
+/**
+ * Deletes all prices from the database
+ */
 export const deleteAllPrices = async (): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -231,7 +257,7 @@ export const deleteAllPrices = async (): Promise<boolean> => {
 
     return true;
   } catch (error) {
-    console.error('Error in deleteAllPrices:', error);
+    console.error('Unexpected error in deleteAllPrices:', error);
     return false;
   }
 };

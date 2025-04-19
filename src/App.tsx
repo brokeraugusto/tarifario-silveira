@@ -28,6 +28,8 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: true,
       // Enable automatic refetching when network reconnects
       refetchOnReconnect: true,
+      // Always refetch on mount to ensure latest data
+      refetchOnMount: true,
     },
   },
 });

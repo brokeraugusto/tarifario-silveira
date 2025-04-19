@@ -2,6 +2,9 @@
 import { supabase } from '../client';
 import { PricePeriod } from '@/types';
 
+/**
+ * Fetches all price periods from the database
+ */
 export const getAllPricePeriods = async (): Promise<PricePeriod[]> => {
   try {
     const { data, error } = await supabase
@@ -23,11 +26,14 @@ export const getAllPricePeriods = async (): Promise<PricePeriod[]> => {
       minimumStay: period.minimum_stay || 1
     }));
   } catch (error) {
-    console.error('Error in getAllPricePeriods:', error);
+    console.error('Unexpected error in getAllPricePeriods:', error);
     return [];
   }
 };
 
+/**
+ * Creates a new price period in the database
+ */
 export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promise<PricePeriod | null> => {
   try {
     const { data, error } = await supabase
@@ -56,11 +62,14 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
       minimumStay: data.minimum_stay || 1
     };
   } catch (error) {
-    console.error('Error in createPricePeriod:', error);
+    console.error('Unexpected error in createPricePeriod:', error);
     return null;
   }
 };
 
+/**
+ * Updates an existing price period in the database
+ */
 export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod>): Promise<PricePeriod | null> => {
   try {
     const dbUpdates: any = {};
@@ -92,11 +101,14 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
       minimumStay: data.minimum_stay || 1
     };
   } catch (error) {
-    console.error('Error in updatePricePeriod:', error);
+    console.error('Unexpected error in updatePricePeriod:', error);
     return null;
   }
 };
 
+/**
+ * Deletes a price period and its associated prices from the database
+ */
 export const deletePricePeriod = async (id: string): Promise<boolean> => {
   try {
     // First delete all related prices to prevent foreign key constraint issues
@@ -123,11 +135,14 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
 
     return true;
   } catch (error) {
-    console.error('Error in deletePricePeriod:', error);
+    console.error('Unexpected error in deletePricePeriod:', error);
     return false;
   }
 };
 
+/**
+ * Finds a price period for a specific date
+ */
 export const findPeriodForDate = async (date: Date): Promise<PricePeriod | null> => {
   try {
     const dateString = date.toISOString().split('T')[0];
@@ -184,26 +199,19 @@ export const findPeriodForDate = async (date: Date): Promise<PricePeriod | null>
 
     return null;
   } catch (error) {
-    console.error('Error in findPeriodForDate:', error);
+    console.error('Unexpected error in findPeriodForDate:', error);
     return null;
   }
 };
 
-// New function to delete all price periods
+/**
+ * Deletes all price periods from the database
+ */
 export const deleteAllPricePeriods = async (): Promise<boolean> => {
   try {
-    // First delete all related prices
-    const { error: pricesError } = await supabase
-      .from('prices_by_people')
-      .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
-
-    if (pricesError) {
-      console.error('Error deleting all prices:', pricesError);
-      return false;
-    }
-
-    // Then delete all periods
+    // We don't delete prices here because that's handled by the price service's deleteAllPrices method
+    
+    // Delete all periods
     const { error } = await supabase
       .from('price_periods')
       .delete()
@@ -216,7 +224,7 @@ export const deleteAllPricePeriods = async (): Promise<boolean> => {
 
     return true;
   } catch (error) {
-    console.error('Error in deleteAllPricePeriods:', error);
+    console.error('Unexpected error in deleteAllPricePeriods:', error);
     return false;
   }
 };
