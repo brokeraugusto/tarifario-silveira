@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { CategoryType, PriceOption, PricePeriod, Accommodation } from '@/types';
-import { getAccommodationsByCategory } from '@/integrations/supabase/services/accommodationService';
+import { getAccommodationsByCategory } from '@/integrations/supabase/services/accommodations';
 import { updatePricesByCategory } from '@/integrations/supabase/services/priceService';
 import { getAllPricePeriods } from '@/integrations/supabase/services/periodService';
 import PeriodDialog from './PeriodDialog';

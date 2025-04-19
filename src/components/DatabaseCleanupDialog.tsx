@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { deleteAllAccommodations } from '@/integrations/supabase/services/accommodationService';
+import { deleteAllAccommodations } from '@/integrations/supabase/services/accommodations';
 import { deleteAllPricePeriods } from '@/integrations/supabase/services/periodService';
 import { deleteAllPrices } from '@/integrations/supabase/services/priceService';
 import { useQueryClient } from '@tanstack/react-query';

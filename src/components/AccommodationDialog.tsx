@@ -31,7 +31,7 @@ import {
 import { SearchResult } from '@/types';
 import WhatsAppFormatter from './WhatsAppFormatter';
 import { toast } from 'sonner';
-import { deleteAccommodation } from '@/integrations/supabase/services/accommodationService';
+import { deleteAccommodation } from '@/integrations/supabase/services/accommodations';
 
 interface AccommodationDialogProps {
   result?: SearchResult;

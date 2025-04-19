@@ -6,9 +6,17 @@ import { AccommodationCreate, AccommodationUpdate } from './types';
 
 export const createAccommodation = async (accommodation: AccommodationCreate): Promise<Accommodation | null> => {
   try {
+    const dbData = accommodationMapper.toDatabase(accommodation);
+    
+    // Ensure required fields are present for insert operation
+    if (!dbData.name || !dbData.room_number || !dbData.category || dbData.capacity === undefined || !dbData.description) {
+      console.error('Missing required fields for accommodation creation');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('accommodations')
-      .insert(accommodationMapper.toDatabase(accommodation))
+      .insert(dbData)
       .select()
       .single();
 
