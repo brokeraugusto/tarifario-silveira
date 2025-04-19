@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
@@ -25,7 +26,7 @@ import {
   updateAccommodation,
   createAccommodation,
   deleteAccommodation
-} from '@/utils/accommodationService';
+} from '@/integrations/supabase';
 import {
   Table,
   TableBody,
@@ -117,7 +118,9 @@ const AccommodationsPage: React.FC = () => {
   const fetchAccommodations = async () => {
     setLoading(true);
     try {
+      console.log('Fetching accommodations...');
       const data = await getAllAccommodations();
+      console.log('Fetched accommodations:', data);
       setAccommodations(data);
     } catch (error) {
       console.error("Error fetching accommodations:", error);
@@ -179,11 +182,22 @@ const AccommodationsPage: React.FC = () => {
   const confirmDelete = async () => {
     setLoading(true);
     try {
+      console.log('Deleting accommodations:', selectedAccommodationIds);
+      let successCount = 0;
+      
       for (const id of selectedAccommodationIds) {
-        await deleteAccommodation(id);
+        const success = await deleteAccommodation(id);
+        if (success) {
+          successCount++;
+        }
       }
-      toast.success(`${selectedAccommodationIds.length} acomodação(ões) excluída(s) com sucesso`);
-      fetchAccommodations();
+      
+      if (successCount > 0) {
+        toast.success(`${successCount} acomodação(ões) excluída(s) com sucesso`);
+        await fetchAccommodations(); // Re-fetch after deletion
+      } else {
+        toast.error("Não foi possível excluir nenhuma acomodação");
+      }
     } catch (error) {
       console.error("Error deleting accommodations:", error);
       toast.error("Erro ao excluir acomodações");
@@ -219,20 +233,30 @@ const AccommodationsPage: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      console.log('Submitting accommodation form:', formData);
       const accommodationData = {
         ...formData,
         capacity: Number(formData.capacity),
-        isBlocked: false
+        isBlocked: formData.isBlocked || false
       };
       
       if (editingAccommodationId) {
-        await updateAccommodation(editingAccommodationId, accommodationData);
-        toast.success("Acomodação atualizada com sucesso");
+        const updated = await updateAccommodation(editingAccommodationId, accommodationData);
+        if (updated) {
+          toast.success("Acomodação atualizada com sucesso");
+          await fetchAccommodations(); // Re-fetch after update
+        } else {
+          toast.error("Erro ao atualizar acomodação");
+        }
       } else {
-        await createAccommodation(accommodationData);
-        toast.success("Acomodação criada com sucesso");
+        const created = await createAccommodation(accommodationData);
+        if (created) {
+          toast.success("Acomodação criada com sucesso");
+          await fetchAccommodations(); // Re-fetch after create
+        } else {
+          toast.error("Erro ao criar acomodação");
+        }
       }
-      fetchAccommodations();
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error saving accommodation:", error);

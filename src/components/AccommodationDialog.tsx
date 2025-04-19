@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, Coffee, Trash2, ExternalLink, Copy } from 'lucide-react';
 import { format } from 'date-fns';
@@ -31,7 +32,7 @@ import {
 import { SearchResult } from '@/types';
 import WhatsAppFormatter from './WhatsAppFormatter';
 import { toast } from 'sonner';
-import { deleteAccommodation } from '@/integrations/supabase/services/accommodations';
+import { deleteAccommodation } from '@/integrations/supabase';
 
 interface AccommodationDialogProps {
   result?: SearchResult;
@@ -91,11 +92,15 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     
     setIsDeleting(true);
     try {
+      console.log('Deleting accommodation from dialog:', result.accommodation.id);
       const success = await deleteAccommodation(result.accommodation.id);
+      
       if (success) {
         toast.success("Acomodação excluída com sucesso");
         setIsDeleteDialogOpen(false);
-        if (onReload) onReload();
+        if (onReload) {
+          await onReload(); // Ensure this actually awaits the reload
+        }
         onClose();
       } else {
         toast.error("Erro ao excluir acomodação");
