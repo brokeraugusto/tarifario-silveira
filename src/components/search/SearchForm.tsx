@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Coffee } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/DatePickerWithRange';
@@ -14,12 +14,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface SearchFormProps {
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
   guests: number;
   setGuests: (guests: number) => void;
+  includesBreakfast: boolean;
+  setIncludesBreakfast: (includesBreakfast: boolean) => void;
   onSearch: () => void;
   loading: boolean;
   disablePastDates?: boolean;
@@ -30,6 +33,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
   setDateRange,
   guests,
   setGuests,
+  includesBreakfast,
+  setIncludesBreakfast,
   onSearch,
   loading,
   disablePastDates = false
@@ -65,6 +70,18 @@ const SearchForm: React.FC<SearchFormProps> = ({
                 </SelectGroup>
               </SelectContent>
             </Select>
+            
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="withBreakfast" 
+                checked={includesBreakfast} 
+                onCheckedChange={(checked) => setIncludesBreakfast(checked === true)}
+              />
+              <Label htmlFor="withBreakfast" className="cursor-pointer flex items-center">
+                <Coffee className="h-4 w-4 mr-1 text-muted-foreground" />
+                Com café da manhã
+              </Label>
+            </div>
           </div>
           
           <div className="flex items-end">

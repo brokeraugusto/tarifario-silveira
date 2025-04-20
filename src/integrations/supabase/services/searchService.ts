@@ -5,7 +5,7 @@ import { differenceInDays } from 'date-fns';
 import { findPeriodForDate } from './periodService';
 
 export const searchAccommodations = async (params: SearchParams): Promise<SearchResult[]> => {
-  const { checkIn, checkOut, guests } = params;
+  const { checkIn, checkOut, guests, includesBreakfast = false } = params;
   
   try {
     // Get available accommodations with sufficient capacity
@@ -34,6 +34,7 @@ export const searchAccommodations = async (params: SearchParams): Promise<Search
       description: item.description,
       imageUrl: item.image_url || '',
       images: item.images || [],
+      albumUrl: item.album_url || '',
       isBlocked: item.is_blocked || false,
       blockReason: item.block_reason as BlockReasonType | undefined, // Cast string to BlockReasonType
       blockNote: item.block_note
@@ -49,12 +50,13 @@ export const searchAccommodations = async (params: SearchParams): Promise<Search
     const results: SearchResult[] = [];
     
     for (const accommodation of accommodations) {
-      // Get prices for this accommodation and period
+      // Get prices for this accommodation and period based on breakfast preference
       const { data: pricesData, error: pricesError } = await supabase
         .from('prices_by_people')
         .select('*')
         .eq('accommodation_id', accommodation.id)
         .eq('period_id', period.id)
+        .eq('includes_breakfast', includesBreakfast)
         .lte('people', guests)
         .order('people', { ascending: false })
         .limit(1);

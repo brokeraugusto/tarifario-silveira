@@ -18,6 +18,7 @@ const SearchPage = () => {
     to: undefined
   });
   const [guests, setGuests] = useState<number>(1);
+  const [includesBreakfast, setIncludesBreakfast] = useState<boolean>(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearched, setIsSearched] = useState(false);
   const [selectedResult, setSelectedResult] = useState<SearchResult | undefined>();
@@ -33,7 +34,8 @@ const SearchPage = () => {
     const searchParams: SearchParams = {
       checkIn: dateRange?.from || new Date(),
       checkOut: dateRange?.to || null,
-      guests: guests
+      guests: guests,
+      includesBreakfast: includesBreakfast
     };
     
     const validationError = validateSearchParams(searchParams);
@@ -94,6 +96,8 @@ const SearchPage = () => {
         setDateRange={setDateRange}
         guests={guests}
         setGuests={setGuests}
+        includesBreakfast={includesBreakfast}
+        setIncludesBreakfast={setIncludesBreakfast}
         onSearch={handleSearch}
         loading={loading}
         disablePastDates={false}
