@@ -58,7 +58,7 @@ const AccommodationDetails: React.FC<Props> = ({
         return 'bg-purple-100 text-purple-800';
       case 'Super Luxo':
         return 'bg-amber-100 text-amber-800';
-      case 'De Luxe':
+      case 'Master':
         return 'bg-emerald-100 text-emerald-800';
       default:
         return 'bg-gray-100 text-gray-800';
