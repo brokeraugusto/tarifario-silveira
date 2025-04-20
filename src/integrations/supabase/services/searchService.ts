@@ -25,20 +25,25 @@ export const searchAccommodations = async (params: SearchParams): Promise<Search
     }
 
     // Convert to application model with proper type casting
-    const accommodations: Accommodation[] = accommodationsData.map(item => ({
-      id: item.id,
-      name: item.name,
-      roomNumber: item.room_number,
-      category: item.category as CategoryType, // Cast string to CategoryType
-      capacity: item.capacity,
-      description: item.description,
-      imageUrl: item.image_url || '',
-      images: item.images || [],
-      albumUrl: item.album_url || '',
-      isBlocked: item.is_blocked || false,
-      blockReason: item.block_reason as BlockReasonType | undefined, // Cast string to BlockReasonType
-      blockNote: item.block_note
-    }));
+    const accommodations: Accommodation[] = accommodationsData.map(item => {
+      // Type assertion to handle potentially missing album_url property
+      const dbItem = item as any; // Use any for flexibility with existing DB schema
+      
+      return {
+        id: item.id,
+        name: item.name,
+        roomNumber: item.room_number,
+        category: item.category as CategoryType, // Cast string to CategoryType
+        capacity: item.capacity,
+        description: item.description,
+        imageUrl: item.image_url || '',
+        images: item.images || [],
+        albumUrl: dbItem.album_url || '', // Use type assertion to access album_url safely
+        isBlocked: item.is_blocked || false,
+        blockReason: item.block_reason as BlockReasonType | undefined, // Cast string to BlockReasonType
+        blockNote: item.block_note
+      };
+    });
 
     // Find applicable price period
     const period = await findPeriodForDate(checkIn);
