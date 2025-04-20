@@ -409,7 +409,7 @@ const AccommodationsPage: React.FC = () => {
                         <SelectItem value="Standard">Standard</SelectItem>
                         <SelectItem value="Luxo">Luxo</SelectItem>
                         <SelectItem value="Super Luxo">Super Luxo</SelectItem>
-                        <SelectItem value="De Luxe">De Luxe</SelectItem>
+                        <SelectItem value="Master">Master</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -512,7 +512,7 @@ const AccommodationsPage: React.FC = () => {
                       <SelectItem value="Standard">Standard</SelectItem>
                       <SelectItem value="Luxo">Luxo</SelectItem>
                       <SelectItem value="Super Luxo">Super Luxo</SelectItem>
-                      <SelectItem value="De Luxe">De Luxe</SelectItem>
+                      <SelectItem value="Master">Master</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
