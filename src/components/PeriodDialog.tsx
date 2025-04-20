@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -132,13 +133,28 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
     try {
       let result;
       
+      // Format dates properly to prevent timezone issues
+      const formatDateToYYYYMMDD = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      // Create date objects that don't have timezone information to avoid date shifts
+      const startDate = new Date(formatDateToYYYYMMDD(values.startDate));
+      const endDate = new Date(formatDateToYYYYMMDD(values.endDate));
+      
       if (currentPeriod || periodId) {
         const id = periodId || currentPeriod?.id || '';
         console.log(`Updating period with id ${id}:`, values);
+        console.log(`Start date (formatted): ${formatDateToYYYYMMDD(values.startDate)}`);
+        console.log(`End date (formatted): ${formatDateToYYYYMMDD(values.endDate)}`);
+        
         result = await updatePricePeriod(id, {
           name: values.name,
-          startDate: values.startDate,
-          endDate: values.endDate,
+          startDate,
+          endDate,
           minimumStay: values.minimumStay,
           isHoliday: values.isHoliday
         });
@@ -148,10 +164,13 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
         }
       } else {
         console.log("Creating new period:", values);
+        console.log(`Start date (formatted): ${formatDateToYYYYMMDD(values.startDate)}`);
+        console.log(`End date (formatted): ${formatDateToYYYYMMDD(values.endDate)}`);
+        
         result = await createPricePeriod({
           name: values.name,
-          startDate: values.startDate,
-          endDate: values.endDate,
+          startDate,
+          endDate,
           minimumStay: values.minimumStay,
           isHoliday: values.isHoliday
         });

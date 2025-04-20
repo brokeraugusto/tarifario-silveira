@@ -1,4 +1,3 @@
-
 import { supabase } from '../../client';
 import { Accommodation, BlockReasonType } from '@/types';
 import { accommodationMapper } from './mapper';
@@ -138,5 +137,83 @@ export const deleteAllAccommodations = async (): Promise<boolean> => {
   } catch (error) {
     console.error('Unexpected error in deleteAllAccommodations:', error);
     return false;
+  }
+};
+
+/**
+ * Duplicates an accommodation with all its data except for the name
+ */
+export const duplicateAccommodation = async (id: string, newName: string): Promise<Accommodation | null> => {
+  try {
+    console.log('Duplicating accommodation:', id, 'with new name:', newName);
+    
+    // Get the original accommodation
+    const { data: originalAccommodationData, error: accommodationError } = await supabase
+      .from('accommodations')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (accommodationError || !originalAccommodationData) {
+      console.error('Error fetching original accommodation:', accommodationError);
+      return null;
+    }
+    
+    // Create a new accommodation with the same data but a new name
+    const newAccommodation = {
+      ...originalAccommodationData,
+      id: undefined, // Let Supabase generate new id
+      name: newName
+    };
+    
+    delete newAccommodation.id;
+    delete newAccommodation.created_at;
+    delete newAccommodation.updated_at;
+    
+    const { data: newAccommodationData, error: createError } = await supabase
+      .from('accommodations')
+      .insert(newAccommodation)
+      .select()
+      .single();
+    
+    if (createError || !newAccommodationData) {
+      console.error('Error creating duplicated accommodation:', createError);
+      return null;
+    }
+    
+    // Get prices associated with the original accommodation
+    const { data: pricesData, error: pricesError } = await supabase
+      .from('prices_by_people')
+      .select('*')
+      .eq('accommodation_id', id);
+    
+    if (pricesError) {
+      console.error('Error fetching prices for original accommodation:', pricesError);
+      // Continue anyway, we already have the new accommodation
+    } else if (pricesData && pricesData.length > 0) {
+      // Duplicate prices for the new accommodation
+      const newPrices = pricesData.map(price => ({
+        accommodation_id: newAccommodationData.id,
+        period_id: price.period_id,
+        people: price.people,
+        price_per_night: price.price_per_night,
+        includes_breakfast: price.includes_breakfast
+      }));
+      
+      const { error: insertPricesError } = await supabase
+        .from('prices_by_people')
+        .insert(newPrices);
+      
+      if (insertPricesError) {
+        console.error('Error duplicating prices:', insertPricesError);
+        // Continue anyway, we already have the new accommodation
+      }
+    }
+    
+    console.log('Successfully duplicated accommodation:', newAccommodationData);
+    return accommodationMapper.fromDatabase(newAccommodationData);
+  } catch (error) {
+    console.error('Unexpected error in duplicateAccommodation:', error);
+    return null;
   }
 };

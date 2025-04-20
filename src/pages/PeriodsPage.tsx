@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Plus, Calendar, FileSpreadsheet, Trash2 } from 'lucide-react';
+import { Plus, Calendar, FileSpreadsheet, Trash2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MultiSelectTable, { Column } from '@/components/ui/multi-select-table';
 import PeriodDialog from '@/components/PeriodDialog';
 import CategoryPriceDialog from '@/components/CategoryPriceDialog';
-import { getAllPricePeriods, deletePricePeriod } from '@/integrations/supabase/services/periodService';
+import DuplicateDialog from '@/components/DuplicateDialog';
+import CategoryPricesList from '@/components/CategoryPricesList';
+
+import { 
+  getAllPricePeriods, 
+  deletePricePeriod,
+  duplicatePricePeriod
+} from '@/integrations/supabase/services/periodService';
 import { PricePeriod, CategoryType } from '@/types';
 
 const PeriodsPage: React.FC = () => {
@@ -34,6 +42,8 @@ const PeriodsPage: React.FC = () => {
   const [isCategoryPriceDialogOpen, setIsCategoryPriceDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("periods");
   const [loading, setLoading] = useState(false);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
+  const [periodToDuplicate, setPeriodToDuplicate] = useState<PricePeriod | null>(null);
   
   useEffect(() => {
     fetchPeriods();
@@ -64,6 +74,19 @@ const PeriodsPage: React.FC = () => {
       setIsPeriodDialogOpen(true);
     } else {
       toast.error("Selecione apenas um período para editar");
+    }
+  };
+  
+  const handleDuplicatePeriods = (ids: string[]) => {
+    if (ids.length === 1) {
+      const periodId = ids[0];
+      const period = periods.find(p => p.id === periodId);
+      if (period) {
+        setPeriodToDuplicate(period);
+        setIsDuplicateDialogOpen(true);
+      }
+    } else {
+      toast.error("Selecione apenas um período para duplicar");
     }
   };
   
@@ -128,6 +151,25 @@ const PeriodsPage: React.FC = () => {
     toast.success("Preços atualizados com sucesso");
   };
   
+  const handleDuplicatePeriod = async (newName: string) => {
+    if (!periodToDuplicate) return;
+    
+    try {
+      const result = await duplicatePricePeriod(periodToDuplicate.id, newName);
+      if (result) {
+        toast.success(`Período duplicado com sucesso`);
+        fetchPeriods();
+        return Promise.resolve();
+      } else {
+        throw new Error('Falha ao duplicar período');
+      }
+    } catch (error) {
+      console.error("Error duplicating period:", error);
+      toast.error("Erro ao duplicar período");
+      throw error;
+    }
+  };
+  
   const periodColumns: Column<PricePeriod>[] = [
     {
       id: "name",
@@ -183,17 +225,28 @@ const PeriodsPage: React.FC = () => {
         <TabsList>
           <TabsTrigger value="periods">Períodos</TabsTrigger>
           <TabsTrigger value="prices">Preços por Categoria</TabsTrigger>
+          <TabsTrigger value="prices-list">Lista de Preços</TabsTrigger>
         </TabsList>
         
         <TabsContent value="periods" className="space-y-4 mt-4">
           <div className="flex justify-between">
-            <Button 
-              variant="destructive" 
-              onClick={() => handlePermanentDeletePeriods(selectedPeriodIds)}
-              disabled={selectedPeriodIds.length === 0}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Exclusão Permanente
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="destructive" 
+                onClick={() => handlePermanentDeletePeriods(selectedPeriodIds)}
+                disabled={selectedPeriodIds.length === 0}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Exclusão Permanente
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => handleDuplicatePeriods(selectedPeriodIds)}
+                disabled={selectedPeriodIds.length !== 1}
+              >
+                <Copy className="mr-2 h-4 w-4" /> Duplicar Período
+              </Button>
+            </div>
             
             <Button onClick={handleAddPeriod}>
               <Plus className="mr-2 h-4 w-4" /> Novo Período
@@ -229,6 +282,10 @@ const PeriodsPage: React.FC = () => {
             ))}
           </div>
         </TabsContent>
+        
+        <TabsContent value="prices-list" className="space-y-6 mt-4">
+          <CategoryPricesList />
+        </TabsContent>
       </Tabs>
       
       <PeriodDialog 
@@ -244,6 +301,18 @@ const PeriodsPage: React.FC = () => {
         onOpenChange={setIsCategoryPriceDialogOpen}
         onUpdate={handleCategoryPriceUpdate}
       />
+      
+      {periodToDuplicate && (
+        <DuplicateDialog
+          isOpen={isDuplicateDialogOpen}
+          onOpenChange={setIsDuplicateDialogOpen}
+          title="Duplicar Período"
+          description={`Duplicar o período "${periodToDuplicate.name}" com todos os seus preços associados.`}
+          nameLabel="Nome do Novo Período"
+          originalName={periodToDuplicate.name}
+          onConfirm={handleDuplicatePeriod}
+        />
+      )}
       
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
