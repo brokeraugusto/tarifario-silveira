@@ -17,8 +17,8 @@ const SearchPage = () => {
     from: new Date(),
     to: undefined
   });
-  const [guests, setGuests] = useState<number>(1);
-  const [includesBreakfast, setIncludesBreakfast] = useState<boolean>(false);
+  const [guests, setGuests] = useState<number>(2);
+  const [includesBreakfast, setIncludesBreakfast] = useState<boolean>(true);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearched, setIsSearched] = useState(false);
   const [selectedResult, setSelectedResult] = useState<SearchResult | undefined>();
