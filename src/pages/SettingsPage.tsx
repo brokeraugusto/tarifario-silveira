@@ -46,7 +46,7 @@ const SettingsPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="dark-mode" className="text-base">Modo escuro</Label>
-              <p className="text-sm text-muted-foreground">Alternar entre modo claro e escuro</p>
+              <p className="text-sm text-muted-foreground">Alternar entre modo claro e escuro (em breve)</p>
             </div>
             <Switch id="dark-mode" />
           </div>
@@ -60,7 +60,7 @@ const SettingsPage = () => {
             Sobre o Sistema
           </CardTitle>
           <CardDescription>
-            Informações do sistema AcomodaValor
+            Informações do sistema Tarifário Silveira Eco Village
           </CardDescription>
         </CardHeader>
         <CardContent className={`space-y-2 ${isMobile ? "p-4 pt-0" : ""}`}>
