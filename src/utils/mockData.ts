@@ -1,3 +1,4 @@
+
 import { Accommodation, PricePeriod, PriceByPeople } from '../types';
 import { addDays, addMonths } from 'date-fns';
 
@@ -117,7 +118,7 @@ export const accommodations: Accommodation[] = [
     id: '11',
     name: 'Suíte Cubo',
     roomNumber: '301',
-    category: 'De Luxe',
+    category: 'Master',
     capacity: 2,
     description: 'Suíte Cubo exclusiva com design moderno, cama king size, área de estar, banheiro privativo com banheira de hidromassagem e café da manhã gourmet incluso.',
     imageUrl: '/placeholder.svg',

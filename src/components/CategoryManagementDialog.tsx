@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Pencil, Plus, Trash } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CategoryType, Accommodation } from '@/types';
 import { toast } from 'sonner';
-import { getAllAccommodations } from '@/integrations/supabase'; // Fixed import path
+import { getAllAccommodations } from '@/integrations/supabase';
 import CategoryDialog from './CategoryDialog';
 import {
   AlertDialog,
@@ -49,9 +48,8 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
   const [description, setDescription] = useState<string>('');
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<CategoryType[]>(['Standard', 'Luxo', 'Super Luxo', 'De Luxe']);
+  const [categories, setCategories] = useState<CategoryType[]>(['Standard', 'Luxo', 'Super Luxo', 'Master']);
   
-  // State for category dialog
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryType | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -84,7 +82,7 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
         return 'bg-purple-100 text-purple-800';
       case 'Super Luxo':
         return 'bg-amber-100 text-amber-800';
-      case 'De Luxe':
+      case 'Master':
         return 'bg-emerald-100 text-emerald-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -108,7 +106,6 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
   };
   
   const handleDeleteCategory = (category: CategoryType) => {
-    // Check if there are accommodations using this category
     const roomsWithCategory = getCategoryRooms(category);
     if (roomsWithCategory.length > 0) {
       toast.error(`Esta categoria está em uso por ${roomsWithCategory.length} acomodações`);
@@ -122,11 +119,9 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
   const confirmDeleteCategory = () => {
     if (!deletingCategory) return;
     
-    // Remove the category from the list
     setCategories(prev => prev.filter(cat => cat !== deletingCategory));
     toast.success(`Categoria ${deletingCategory} excluída com sucesso`);
     
-    // If the deleted category is the selected one, select another one
     if (selectedCategory === deletingCategory) {
       setSelectedCategory(categories.find(cat => cat !== deletingCategory) || 'Standard');
     }
@@ -136,25 +131,19 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
   };
   
   const handleSaveCategory = async (categoryData: { name: CategoryType, description: string }) => {
-    // If editing existing category
     if (editingCategory) {
-      // Update the category name in the categories list
       setCategories(prev => prev.map(cat => 
         cat === editingCategory ? categoryData.name : cat
       ));
       
-      // If you update the currently selected category, update it
       if (selectedCategory === editingCategory) {
         setSelectedCategory(categoryData.name);
       }
       
-      // For now, just store the description in state
-      // In a real app, you would save this to the database
       setDescription(categoryData.description);
       
       toast.success(`Categoria atualizada: ${categoryData.name}`);
     } else {
-      // Adding a new category
       if (categories.includes(categoryData.name)) {
         toast.error("Esta categoria já existe");
         throw new Error("Category already exists");
@@ -166,7 +155,6 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
   };
 
   const handleSave = () => {
-    // For now, just show a toast since we're not modifying category definitions yet
     toast.success(`Configurações da categoria ${selectedCategory} atualizadas`);
     onUpdate();
     onOpenChange(false);
@@ -267,7 +255,6 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
                 className="w-full" 
                 onClick={() => {
                   onOpenChange(false);
-                  // Use setTimeout to avoid dialog transition conflicts
                   setTimeout(() => {
                     document.dispatchEvent(new CustomEvent('open-category-price', { 
                       detail: { category: selectedCategory } 
@@ -291,7 +278,6 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
         </DialogContent>
       </Dialog>
       
-      {/* Category Edit/Add Dialog */}
       <CategoryDialog
         isOpen={isCategoryDialogOpen}
         onOpenChange={setIsCategoryDialogOpen}
@@ -299,7 +285,6 @@ const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> = ({
         onSave={handleSaveCategory}
       />
       
-      {/* Confirm Delete Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
