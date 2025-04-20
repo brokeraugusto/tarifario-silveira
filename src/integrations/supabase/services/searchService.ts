@@ -33,14 +33,14 @@ export const searchAccommodations = async (params: SearchParams): Promise<Search
         id: item.id,
         name: item.name,
         roomNumber: item.room_number,
-        category: item.category as CategoryType, // Cast string to CategoryType
+        category: item.category as CategoryType,
         capacity: item.capacity,
         description: item.description,
         imageUrl: item.image_url || '',
         images: item.images || [],
-        albumUrl: dbItem.album_url || '', // Use type assertion to access album_url safely
+        albumUrl: dbItem.album_url || '',
         isBlocked: item.is_blocked || false,
-        blockReason: item.block_reason as BlockReasonType | undefined, // Cast string to BlockReasonType
+        blockReason: item.block_reason as BlockReasonType | undefined,
         blockNote: item.block_note
       };
     });

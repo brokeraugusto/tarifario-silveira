@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       accommodations: {
         Row: {
+          album_url: string | null
           block_note: string | null
           block_reason: string | null
           capacity: number
@@ -26,6 +27,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          album_url?: string | null
           block_note?: string | null
           block_reason?: string | null
           capacity: number
@@ -41,6 +43,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          album_url?: string | null
           block_note?: string | null
           block_reason?: string | null
           capacity?: number

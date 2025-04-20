@@ -16,16 +16,14 @@ interface MinStayDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   maxMinStay: number;
-  onContinue: () => void;
-  onCancel: () => void;
+  onClose: () => void;
 }
 
 const MinStayDialog: React.FC<MinStayDialogProps> = ({
   isOpen,
   onOpenChange,
   maxMinStay,
-  onContinue,
-  onCancel,
+  onClose,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -42,16 +40,13 @@ const MinStayDialog: React.FC<MinStayDialogProps> = ({
             <AlertTitle>Atenção</AlertTitle>
             <AlertDescription>
               O período que você selecionou tem uma duração menor que o mínimo exigido.
-              Algumas acomodações estarão disponíveis somente para um período maior.
+              Por favor, ajuste as datas da sua pesquisa.
             </AlertDescription>
           </Alert>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
-            Ajustar Datas
-          </Button>
-          <Button onClick={onContinue}>
-            Continuar Mesmo Assim
+          <Button onClick={onClose}>
+            Fechar
           </Button>
         </DialogFooter>
       </DialogContent>
