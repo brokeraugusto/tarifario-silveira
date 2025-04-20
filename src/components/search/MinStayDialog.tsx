@@ -16,7 +16,9 @@ interface MinStayDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   maxMinStay: number;
-  onClose: () => void;
+  onClose?: () => void;
+  onContinue?: () => void;
+  onCancel?: () => void;
 }
 
 const MinStayDialog: React.FC<MinStayDialogProps> = ({
@@ -24,7 +26,15 @@ const MinStayDialog: React.FC<MinStayDialogProps> = ({
   onOpenChange,
   maxMinStay,
   onClose,
+  onContinue,
+  onCancel,
 }) => {
+  // Handle the close button click
+  const handleClose = () => {
+    if (onClose) onClose();
+    if (onCancel) onCancel();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -44,8 +54,13 @@ const MinStayDialog: React.FC<MinStayDialogProps> = ({
             </AlertDescription>
           </Alert>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>
+        <DialogFooter className="gap-2">
+          {onContinue && (
+            <Button onClick={onContinue} variant="default">
+              Prosseguir Mesmo Assim
+            </Button>
+          )}
+          <Button variant={onContinue ? "outline" : "default"} onClick={handleClose}>
             Fechar
           </Button>
         </DialogFooter>
