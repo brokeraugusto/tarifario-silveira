@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, Coffee, Trash2, ExternalLink, Copy } from 'lucide-react';
 import { format } from 'date-fns';
@@ -116,11 +115,27 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   const handleCopyToClipboard = () => {
     if (!accommodation) return;
     
-    const text = `*${accommodation.name}*\n\n` +
-      `*Categoria:* ${accommodation.category}\n` +
-      `*Capacidade:* ${accommodation.capacity} pessoas\n\n` +
-      `${accommodation.description}\n\n` +
-      `${accommodation.albumUrl ? `*Veja mais fotos:* ${accommodation.albumUrl}\n` : ''}`;
+    let text = `*${accommodation.name}*\n\n`;
+    text += `*Categoria:* ${accommodation.category}\n`;
+    text += `*Capacidade:* ${accommodation.capacity} pessoas\n\n`;
+    text += `${accommodation.description}\n\n`;
+    
+    if (accommodation.albumUrl && accommodation.albumUrl.trim() !== '') {
+      text += `*Álbum de fotos:* ${accommodation.albumUrl}\n\n`;
+    }
+    
+    // Add price information if available
+    if (pricePerNight > 0) {
+      text += `*Valor da diária:* R$ ${pricePerNight.toFixed(2)}\n`;
+      
+      if (nights !== null && nights > 0) {
+        text += `*Número de diárias:* ${nights}\n`;
+        
+        if (totalPrice !== null) {
+          text += `*Valor total:* R$ ${totalPrice.toFixed(2)}\n`;
+        }
+      }
+    }
     
     navigator.clipboard.writeText(text)
       .then(() => toast.success("Informações copiadas para o clipboard"))
@@ -130,13 +145,29 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   const handleShareWhatsApp = () => {
     if (!accommodation) return;
     
-    const text = encodeURIComponent(`*${accommodation.name}*\n\n` +
-      `*Categoria:* ${accommodation.category}\n` +
-      `*Capacidade:* ${accommodation.capacity} pessoas\n\n` +
-      `${accommodation.description}\n\n` +
-      `${accommodation.albumUrl ? `*Veja mais fotos:* ${accommodation.albumUrl}\n` : ''}`);
+    let text = `*${accommodation.name}*\n\n`;
+    text += `*Categoria:* ${accommodation.category}\n`;
+    text += `*Capacidade:* ${accommodation.capacity} pessoas\n\n`;
+    text += `${accommodation.description}\n\n`;
     
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    if (accommodation.albumUrl && accommodation.albumUrl.trim() !== '') {
+      text += `*Álbum de fotos:* ${accommodation.albumUrl}\n\n`;
+    }
+    
+    // Add price information if available
+    if (pricePerNight > 0) {
+      text += `*Valor da diária:* R$ ${pricePerNight.toFixed(2)}\n`;
+      
+      if (nights !== null && nights > 0) {
+        text += `*Número de diárias:* ${nights}\n`;
+        
+        if (totalPrice !== null) {
+          text += `*Valor total:* R$ ${totalPrice.toFixed(2)}\n`;
+        }
+      }
+    }
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const hasAlbumUrl = accommodation?.albumUrl && accommodation.albumUrl.trim() !== '';
