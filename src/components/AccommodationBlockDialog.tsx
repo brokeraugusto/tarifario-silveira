@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,10 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Accommodation, BlockReasonType } from '@/types';
-import { blockAccommodation, unblockAccommodation } from '@/integrations/supabase';
-import { DateRange } from 'react-day-picker';
-import { DatePickerWithRange } from './DatePickerWithRange';
-import { addDays } from 'date-fns';
+import { blockAccommodation, unblockAccommodation } from '@/utils/accommodationService';
 
 interface BlockDialogProps {
   accommodation: Accommodation | null;
@@ -25,10 +21,6 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
 }) => {
   const [reason, setReason] = useState<BlockReasonType>('maintenance');
   const [note, setNote] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 7)
-  });
   
   if (!accommodation) {
     return (
@@ -50,32 +42,9 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
     );
   }
   
-  const handleBlock = async () => {
+  const handleBlock = () => {
     try {
-      if (!dateRange?.from) {
-        toast.error("Selecione uma data inicial para o bloqueio");
-        return;
-      }
-      
-      console.log("Blocking accommodation with data:", {
-        reason, 
-        note,
-        blockPeriod: {
-          from: dateRange.from,
-          to: dateRange.to
-        }
-      });
-      
-      const updated = await blockAccommodation(
-        accommodation.id, 
-        reason, 
-        note,
-        {
-          from: dateRange.from,
-          to: dateRange.to
-        }
-      );
-      
+      const updated = blockAccommodation(accommodation.id, reason, note);
       if (updated) {
         toast.success(`Acomodação ${accommodation.roomNumber} bloqueada com sucesso.`);
         onUpdate(updated);
@@ -89,9 +58,9 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
     }
   };
   
-  const handleUnblock = async () => {
+  const handleUnblock = () => {
     try {
-      const updated = await unblockAccommodation(accommodation.id);
+      const updated = unblockAccommodation(accommodation.id);
       if (updated) {
         toast.success(`Acomodação ${accommodation.roomNumber} desbloqueada com sucesso.`);
         onUpdate(updated);
@@ -118,7 +87,7 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
           <DialogDescription>
             {accommodation.isBlocked 
               ? 'Esta acomodação está atualmente bloqueada. Deseja liberá-la para reservas?'
-              : 'Informe o motivo pelo qual esta acomodação não estará disponível para reservas e o período de bloqueio.'
+              : 'Informe o motivo pelo qual esta acomodação não estará disponível para reservas.'
             }
           </DialogDescription>
         </DialogHeader>
@@ -142,15 +111,6 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
                     <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Período de Bloqueio</Label>
-                <DatePickerWithRange 
-                  dateRange={dateRange}
-                  onDateRangeChange={setDateRange}
-                  disablePastDates={true}
-                />
               </div>
               
               <div className="space-y-2">
@@ -187,12 +147,6 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
                 <p className="text-sm font-medium">Motivo atual: {accommodation.blockReason}</p>
                 {accommodation.blockNote && (
                   <p className="text-sm text-muted-foreground mt-1">{accommodation.blockNote}</p>
-                )}
-                {accommodation.blockPeriod && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Período: {new Date(accommodation.blockPeriod.from).toLocaleDateString()} 
-                    {accommodation.blockPeriod.to && ` até ${new Date(accommodation.blockPeriod.to).toLocaleDateString()}`}
-                  </p>
                 )}
               </div>
             )}

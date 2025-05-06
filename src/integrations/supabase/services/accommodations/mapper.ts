@@ -7,9 +7,9 @@ import { Database } from '@/integrations/supabase/types';
 type DbAccommodation = Database['public']['Tables']['accommodations']['Insert'];
 
 export const accommodationMapper: AccommodationMapper = {
-  toDatabase: (accommodation): Record<string, any> => {
+  toDatabase: (accommodation): DbAccommodation => {
     // Create the base object with all possible fields
-    const dbObject: Record<string, any> = {
+    const dbObject: DbAccommodation = {
       name: accommodation.name,
       room_number: accommodation.roomNumber,
       category: accommodation.category,
@@ -22,18 +22,10 @@ export const accommodationMapper: AccommodationMapper = {
       block_note: accommodation.blockNote
     };
     
-    // Add block_period separately if it exists
-    if (accommodation.blockPeriod) {
-      dbObject.block_period = {
-        from: accommodation.blockPeriod.from,
-        to: accommodation.blockPeriod.to
-      };
-    }
-    
     // Filter out undefined values to avoid setting null for optional fields during updates
     return Object.fromEntries(
       Object.entries(dbObject).filter(([_, value]) => value !== undefined)
-    );
+    ) as DbAccommodation;
   },
 
   fromDatabase: (data): Accommodation => ({
@@ -47,8 +39,6 @@ export const accommodationMapper: AccommodationMapper = {
     images: data.images || [],
     isBlocked: data.is_blocked || false,
     blockReason: data.block_reason as BlockReasonType | undefined,
-    blockNote: data.block_note,
-    blockPeriod: data.block_period,
-    albumUrl: data.album_url
+    blockNote: data.block_note
   })
 };

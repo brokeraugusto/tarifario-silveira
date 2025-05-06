@@ -1,5 +1,5 @@
 
-import { Accommodation, BlockReasonType, CategoryType, BlockPeriod } from '@/types';
+import { Accommodation, BlockReasonType, CategoryType } from '@/types';
 
 export interface AccommodationUpdate {
   name?: string;
@@ -12,7 +12,6 @@ export interface AccommodationUpdate {
   isBlocked?: boolean;
   blockReason?: BlockReasonType;
   blockNote?: string;
-  blockPeriod?: BlockPeriod;
 }
 
 export interface AccommodationCreate extends Omit<Accommodation, 'id'> {}
