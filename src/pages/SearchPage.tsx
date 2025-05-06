@@ -134,6 +134,7 @@ const SearchPage = () => {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onReload={handleReload}
+        showDeleteButton={false}
       />
 
       <MinStayDialog 

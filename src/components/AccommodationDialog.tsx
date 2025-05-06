@@ -32,13 +32,15 @@ interface AccommodationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onReload?: () => void;
+  showDeleteButton?: boolean;
 }
 
 const AccommodationDialog: React.FC<AccommodationDialogProps> = ({ 
   result, 
   isOpen, 
   onClose,
-  onReload
+  onReload,
+  showDeleteButton = true
 }) => {
   const [activeTab, setActiveTab] = useState<string>('info');
   const [isMinStayDialogOpen, setIsMinStayDialogOpen] = useState<boolean>(false);
@@ -153,7 +155,8 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
             <DialogFooterActions 
               result={result} 
               onClose={onClose} 
-              onDelete={handleDeleteClick} 
+              onDelete={handleDeleteClick}
+              showDeleteButton={showDeleteButton}
             />
           </DialogFooter>
         </DialogContent>
