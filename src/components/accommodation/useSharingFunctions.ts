@@ -3,13 +3,16 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { SearchResult } from '@/types';
 
-export const useSharingFunctions = (result: SearchResult) => {
-  const accommodation = result?.accommodation;
-  const pricePerNight = result?.pricePerNight || 0;
-  const nights = result?.nights || 0;
-  const totalPrice = result?.totalPrice || 0;
+export const useSharingFunctions = () => {
+  const [hasCopyFeature] = useState(() => !!navigator.clipboard);
+  const [hasShareFeature] = useState(() => !!navigator.share);
 
-  const buildSharingText = () => {
+  const buildSharingText = (result: SearchResult) => {
+    const accommodation = result?.accommodation;
+    const pricePerNight = result?.pricePerNight || 0;
+    const nights = result?.nights || 0;
+    const totalPrice = result?.totalPrice || 0;
+    
     if (!accommodation) return '';
     
     let text = `*${accommodation.name}*\n\n`;
@@ -37,25 +40,31 @@ export const useSharingFunctions = (result: SearchResult) => {
     return text;
   };
 
-  const handleCopyToClipboard = () => {
-    if (!accommodation) return;
+  const handleShare = (result: SearchResult) => {
+    if (!result?.accommodation || !hasShareFeature) return;
     
-    const text = buildSharingText();
+    const text = buildSharingText(result);
     
-    navigator.clipboard.writeText(text)
-      .then(() => toast.success("Informações copiadas para o clipboard"))
-      .catch(() => toast.error("Erro ao copiar informações"));
+    navigator.share({
+      title: result.accommodation.name,
+      text: text
+    }).catch((error) => {
+      console.error('Error sharing:', error);
+      toast.error('Erro ao compartilhar');
+    });
   };
 
-  const handleShareWhatsApp = () => {
-    if (!accommodation) return;
+  const handleWhatsApp = (result: SearchResult) => {
+    if (!result?.accommodation) return;
     
-    const text = buildSharingText();
+    const text = buildSharingText(result);
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return {
-    handleCopyToClipboard,
-    handleShareWhatsApp
+    handleShare,
+    handleWhatsApp,
+    hasCopyFeature,
+    hasShareFeature
   };
 };

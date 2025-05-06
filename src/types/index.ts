@@ -1,3 +1,4 @@
+
 export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'Master';
 
 export interface SearchParams {
@@ -56,4 +57,10 @@ export interface PriceByPeople {
   people: number;
   pricePerNight: number;
   includesBreakfast: boolean;
+}
+
+export interface PriceOption {
+  people: number;
+  withBreakfast: number;
+  withoutBreakfast: number;
 }

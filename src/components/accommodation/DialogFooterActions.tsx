@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { SearchResult } from '@/types';
 import { Share, Smartphone } from 'lucide-react';
-import useSharingFunctions from './useSharingFunctions';
+import { useSharingFunctions } from './useSharingFunctions';
 
 interface DialogFooterActionsProps {
   result?: SearchResult;

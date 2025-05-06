@@ -20,7 +20,7 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import { toast } from 'sonner';
-import { Accommodation } from '@/types';
+import { Accommodation, CategoryType } from '@/types';
 import { createAccommodation, updateAccommodation } from '@/integrations/supabase';
 
 interface AccommodationFormProps {
@@ -41,7 +41,7 @@ const AccommodationForm: React.FC<AccommodationFormProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     roomNumber: '',
-    category: 'Standard',
+    category: 'Standard' as CategoryType,
     capacity: 2,
     description: '',
     imageUrl: '',
@@ -81,7 +81,11 @@ const AccommodationForm: React.FC<AccommodationFormProps> = ({
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'category') {
+      setFormData((prev) => ({ ...prev, [name]: value as CategoryType }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleNumberChange = (name: string, value: string) => {

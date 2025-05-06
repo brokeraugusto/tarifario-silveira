@@ -19,7 +19,11 @@ export const accommodationMapper: AccommodationMapper = {
       images: accommodation.images,
       is_blocked: accommodation.isBlocked,
       block_reason: accommodation.blockReason,
-      block_note: accommodation.blockNote
+      block_note: accommodation.blockNote,
+      block_period: accommodation.blockPeriod ? {
+        from: accommodation.blockPeriod.from,
+        to: accommodation.blockPeriod.to
+      } : undefined
     };
     
     // Filter out undefined values to avoid setting null for optional fields during updates
@@ -39,6 +43,7 @@ export const accommodationMapper: AccommodationMapper = {
     images: data.images || [],
     isBlocked: data.is_blocked || false,
     blockReason: data.block_reason as BlockReasonType | undefined,
-    blockNote: data.block_note
+    blockNote: data.block_note,
+    blockPeriod: data.block_period
   })
 };
