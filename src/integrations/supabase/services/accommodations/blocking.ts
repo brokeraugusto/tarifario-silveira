@@ -17,10 +17,13 @@ export const blockAccommodation = async (
     isBlocked: true, 
     blockReason: reason, 
     blockNote: note,
-    blockPeriod: blockPeriod || {
-      from: new Date(),
-      to: undefined
-    }
+    // Use optional chaining to safely access blockPeriod properties
+    ...(blockPeriod && {
+      blockPeriod: {
+        from: blockPeriod.from,
+        to: blockPeriod.to
+      }
+    })
   });
 };
 

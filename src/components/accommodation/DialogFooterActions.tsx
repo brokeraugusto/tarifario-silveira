@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
 import { SearchResult } from '@/types';
+import { Share, Smartphone } from 'lucide-react';
+import useSharingFunctions from './useSharingFunctions';
 
 interface DialogFooterActionsProps {
   result?: SearchResult;
   onClose: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   showDeleteButton?: boolean;
 }
 
@@ -17,21 +18,46 @@ const DialogFooterActions: React.FC<DialogFooterActionsProps> = ({
   onDelete,
   showDeleteButton = true
 }) => {
-  const hasResult = !!result;
+  const { handleShare, handleWhatsApp, hasCopyFeature, hasShareFeature } = useSharingFunctions();
+  
+  if (!result) return null;
   
   return (
-    <div className="mt-4 flex flex-row justify-between">
-      <div className="flex gap-2">
-        {showDeleteButton && hasResult && result?.accommodation && (
-          <Button variant="destructive" onClick={onDelete} size="sm">
-            <Trash2 className="h-4 w-4 mr-1" />
+    <div className="flex justify-between w-full">
+      <div>
+        {showDeleteButton && onDelete && (
+          <Button 
+            variant="destructive" 
+            onClick={onDelete} 
+            className="mr-2"
+          >
             Excluir
           </Button>
         )}
+        <Button variant="outline" onClick={onClose}>
+          Fechar
+        </Button>
       </div>
+      
       <div className="flex gap-2">
-        <Button variant="outline" onClick={onClose}>Fechar</Button>
-        {hasResult && <Button>Reservar</Button>}
+        {hasShareFeature && (
+          <Button 
+            variant="outline"
+            onClick={() => handleShare(result)}
+            className="gap-1"
+          >
+            <Share className="h-4 w-4" />
+            Compartilhar
+          </Button>
+        )}
+        
+        <Button 
+          onClick={() => handleWhatsApp(result)}
+          className="gap-1"
+        >
+          <Smartphone className="h-4 w-4" />
+          WhatsApp
+        </Button>
       </div>
     </div>
   );

@@ -57,17 +57,24 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
         return;
       }
       
-      const blockData = {
-        reason,
+      console.log("Blocking accommodation with data:", {
+        reason, 
         note,
         blockPeriod: {
           from: dateRange.from,
-          to: dateRange.to || dateRange.from
+          to: dateRange.to
         }
-      };
+      });
       
-      console.log("Blocking accommodation with data:", blockData);
-      const updated = await blockAccommodation(accommodation.id, reason, note);
+      const updated = await blockAccommodation(
+        accommodation.id, 
+        reason, 
+        note,
+        {
+          from: dateRange.from,
+          to: dateRange.to
+        }
+      );
       
       if (updated) {
         toast.success(`Acomodação ${accommodation.roomNumber} bloqueada com sucesso.`);
@@ -183,8 +190,8 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
                 )}
                 {accommodation.blockPeriod && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    Período: {accommodation.blockPeriod.from.toLocaleDateString()} 
-                    {accommodation.blockPeriod.to && ` até ${accommodation.blockPeriod.to.toLocaleDateString()}`}
+                    Período: {new Date(accommodation.blockPeriod.from).toLocaleDateString()} 
+                    {accommodation.blockPeriod.to && ` até ${new Date(accommodation.blockPeriod.to).toLocaleDateString()}`}
                   </p>
                 )}
               </div>
