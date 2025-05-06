@@ -6,6 +6,7 @@ import { SearchResult } from '@/types';
 export const useSharingFunctions = () => {
   const [hasCopyFeature] = useState(() => !!navigator.clipboard);
   const [hasShareFeature] = useState(() => !!navigator.share);
+  const [copied, setCopied] = useState(false);
 
   const buildSharingText = (result: SearchResult) => {
     const accommodation = result?.accommodation;
@@ -61,10 +62,38 @@ export const useSharingFunctions = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
+  // Add the missing handleCopyToClipboard function
+  const handleCopyToClipboard = () => {
+    if (!hasCopyFeature) {
+      toast.error('Seu navegador não suporta copiar para a área de transferência');
+      return;
+    }
+    
+    const text = document.querySelector('.whatsapp-formatted')?.textContent;
+    
+    if (text) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          setCopied(true);
+          toast.success('Informações copiadas para a área de transferência');
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch(err => {
+          console.error('Error copying text: ', err);
+          toast.error('Erro ao copiar texto');
+        });
+    }
+  };
+
   return {
     handleShare,
     handleWhatsApp,
+    handleCopyToClipboard,
     hasCopyFeature,
-    hasShareFeature
+    hasShareFeature,
+    copied
   };
 };
+
+// This is necessary for importing the hook
+export default useSharingFunctions;

@@ -7,9 +7,9 @@ import { Database } from '@/integrations/supabase/types';
 type DbAccommodation = Database['public']['Tables']['accommodations']['Insert'];
 
 export const accommodationMapper: AccommodationMapper = {
-  toDatabase: (accommodation): DbAccommodation => {
+  toDatabase: (accommodation): Record<string, any> => {
     // Create the base object with all possible fields
-    const dbObject: DbAccommodation = {
+    const dbObject: Record<string, any> = {
       name: accommodation.name,
       room_number: accommodation.roomNumber,
       category: accommodation.category,
@@ -19,17 +19,21 @@ export const accommodationMapper: AccommodationMapper = {
       images: accommodation.images,
       is_blocked: accommodation.isBlocked,
       block_reason: accommodation.blockReason,
-      block_note: accommodation.blockNote,
-      block_period: accommodation.blockPeriod ? {
+      block_note: accommodation.blockNote
+    };
+    
+    // Add block_period separately if it exists
+    if (accommodation.blockPeriod) {
+      dbObject.block_period = {
         from: accommodation.blockPeriod.from,
         to: accommodation.blockPeriod.to
-      } : undefined
-    };
+      };
+    }
     
     // Filter out undefined values to avoid setting null for optional fields during updates
     return Object.fromEntries(
       Object.entries(dbObject).filter(([_, value]) => value !== undefined)
-    ) as DbAccommodation;
+    );
   },
 
   fromDatabase: (data): Accommodation => ({
@@ -44,6 +48,7 @@ export const accommodationMapper: AccommodationMapper = {
     isBlocked: data.is_blocked || false,
     blockReason: data.block_reason as BlockReasonType | undefined,
     blockNote: data.block_note,
-    blockPeriod: data.block_period
+    blockPeriod: data.block_period,
+    albumUrl: data.album_url
   })
 };

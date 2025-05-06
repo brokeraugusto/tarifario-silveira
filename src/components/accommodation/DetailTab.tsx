@@ -22,7 +22,7 @@ const DetailTab: React.FC<DetailTabProps> = ({ result }) => {
     minimumStay 
   } = result;
   
-  const { handleCopyToClipboard, handleShareWhatsApp } = useSharingFunctions(result);
+  const { handleCopyToClipboard, handleShare, handleWhatsApp } = useSharingFunctions();
   
   const hasAlbumUrl = accommodation?.albumUrl && accommodation.albumUrl.trim() !== '';
 
@@ -53,10 +53,19 @@ const DetailTab: React.FC<DetailTabProps> = ({ result }) => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={handleShareWhatsApp}
-              title="Compartilhar via WhatsApp"
+              onClick={() => handleShare(result)}
+              title="Compartilhar via sistema"
             >
               Compartilhar
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleWhatsApp(result)}
+              title="Compartilhar via WhatsApp"
+            >
+              WhatsApp
             </Button>
             
             {hasAlbumUrl && (
