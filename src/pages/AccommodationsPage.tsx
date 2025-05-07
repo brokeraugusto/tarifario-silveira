@@ -1,65 +1,27 @@
+
 import React, { useState, useEffect } from 'react';
-import { 
-  Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
-  Users, Lock, Unlock, Pencil, Images, X, ExternalLink, Database, LockOpen
-} from 'lucide-react';
+import { Plus, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import MultiSelectTable from '@/components/ui/multi-select-table';
-import { ItemActions } from '@/components/ui/multi-select-actions';
 import { Accommodation, CategoryType } from '@/types';
 import { 
   getAllAccommodations, 
-  updateAccommodation,
-  createAccommodation,
   deleteAccommodation,
 } from '@/integrations/supabase';
 import {
   blockAccommodation,
   unblockAccommodation
 } from '@/integrations/supabase/services/accommodations/blocking';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Label } from '@/components/ui/label';
 import AccommodationDetails from '@/components/AccommodationDetails';
 import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
 import CategoryManagementDialog from '@/components/CategoryManagementDialog';
-import ImageUploader from '@/components/ImageUploader';
 import DatabaseCleanupDialog from '@/components/DatabaseCleanupDialog';
-import { ColumnDef } from '@tanstack/react-table'; // Make sure this import exists
+import AccommodationsTable from '@/components/accommodations/AccommodationsTable';
+import AccommodationForm from '@/components/accommodations/AccommodationForm';
+import AccommodationFormDialog from '@/components/accommodations/AccommodationFormDialog';
+import DeleteConfirmationDialog from '@/components/accommodations/DeleteConfirmationDialog';
 
 interface AccommodationFormData {
   name: string;
@@ -221,133 +183,6 @@ const AccommodationsPage: React.FC = () => {
       setSelectedAccommodationIds([]);
     }
   };
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  const handleImageUpload = (url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrl: url
-    }));
-  };
-
-  const handleImagesUpload = (images: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      images: images
-    }));
-  };
-  
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      console.log('Submitting accommodation form:', formData);
-      const accommodationData = {
-        ...formData,
-        capacity: Number(formData.capacity),
-        isBlocked: formData.isBlocked || false
-      };
-      
-      if (editingAccommodationId) {
-        const updated = await updateAccommodation(editingAccommodationId, accommodationData);
-        if (updated) {
-          toast.success("Acomodação atualizada com sucesso");
-          await fetchAccommodations(); // Re-fetch after update
-        } else {
-          toast.error("Erro ao atualizar acomodação");
-        }
-      } else {
-        const created = await createAccommodation(accommodationData);
-        if (created) {
-          toast.success("Acomodação criada com sucesso");
-          await fetchAccommodations(); // Re-fetch after create
-        } else {
-          toast.error("Erro ao criar acomodação");
-        }
-      }
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error("Error saving accommodation:", error);
-      toast.error("Erro ao salvar acomodação");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Column definitions for the accommodation table
-  const accommodationColumns: ColumnDef<Accommodation>[] = [
-    {
-      id: "name",
-      header: "Nome",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.original.name}</div>
-      ),
-    },
-    {
-      id: "roomNumber",
-      header: "Número",
-      cell: ({ row }) => (
-        <div>{row.original.roomNumber}</div>
-      ),
-    },
-    {
-      id: "category",
-      header: "Categoria",
-      cell: ({ row }) => (
-        <div>{row.original.category}</div>
-      ),
-    },
-    {
-      id: "capacity",
-      header: "Capacidade",
-      cell: ({ row }) => (
-        <div>{row.original.capacity}</div>
-      ),
-    },
-    {
-      id: "status",
-      header: "Status",
-      cell: ({ row }) => (
-        <div>
-          {row.original.isBlocked ? (
-            <Badge variant="destructive" className="whitespace-nowrap">Bloqueado</Badge>
-          ) : (
-            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 whitespace-nowrap">
-              Ativo
-            </Badge>
-          )}
-        </div>
-      ),
-    },
-    {
-      id: "albumLink",
-      header: "Álbum",
-      cell: ({ row }) => (
-        <div>
-          {row.original.albumUrl ? (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(row.original.albumUrl, '_blank');
-              }}
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </div>
-      ),
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -384,221 +219,38 @@ const AccommodationsPage: React.FC = () => {
             </Button>
           </div>
           
-          <MultiSelectTable
-            data={accommodations}
-            columns={accommodationColumns}
-            getRowId={(row) => row.id}
+          <AccommodationsTable
+            accommodations={accommodations}
             onEdit={handleEditAccommodations}
             onDelete={handleDeleteAccommodations}
-            onBlock={(ids) => handleOpenBlockDialog(ids[0])}
+            onBlock={handleOpenBlockDialog}
             onActivate={handleActivateAccommodation}
-            onRowClick={(row) => handleViewDetails(row.id)}
+            onViewDetails={handleViewDetails}
           />
         </TabsContent>
         
         <TabsContent value="new" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{editingAccommodationId ? 'Editar Acomodação' : 'Nova Acomodação'}</CardTitle>
-              <CardDescription>
-                Preencha os campos abaixo para {editingAccommodationId ? 'editar' : 'criar'} uma nova acomodação.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Nome</Label>
-                  <Input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleInputChange} 
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="roomNumber">Número do Quarto</Label>
-                  <Input 
-                    type="text" 
-                    id="roomNumber" 
-                    name="roomNumber" 
-                    value={formData.roomNumber} 
-                    onChange={handleInputChange} 
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="category">Categoria</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as CategoryType }))}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Categoria</SelectLabel>
-                        <SelectItem value="Standard">Standard</SelectItem>
-                        <SelectItem value="Luxo">Luxo</SelectItem>
-                        <SelectItem value="Super Luxo">Super Luxo</SelectItem>
-                        <SelectItem value="Master">Master</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="capacity">Capacidade</Label>
-                  <Input 
-                    type="number" 
-                    id="capacity" 
-                    name="capacity" 
-                    value={formData.capacity} 
-                    onChange={handleInputChange} 
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="albumUrl">Link para Álbum Externo</Label>
-                <Input 
-                  type="url" 
-                  id="albumUrl" 
-                  name="albumUrl" 
-                  placeholder="https://exemplo.com/album" 
-                  value={formData.albumUrl || ''} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  value={formData.description} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-
-              <div>
-                <Label>Imagens</Label>
-                <ImageUploader 
-                  onImageUploaded={handleImageUpload} 
-                  initialImages={formData.images}
-                />
-              </div>
-              
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button onClick={handleSubmit} disabled={loading}>
-                {loading ? 'Salvando...' : 'Salvar'}
-              </Button>
-            </CardFooter>
-          </Card>
+          <AccommodationForm
+            formData={formData}
+            setFormData={setFormData}
+            editingAccommodationId={editingAccommodationId}
+            onSuccess={fetchAccommodations}
+            loading={loading}
+            setLoading={setLoading}
+          />
         </TabsContent>
       </Tabs>
       
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
-            <DialogTitle>{editingAccommodationId ? 'Editar Acomodação' : 'Nova Acomodação'}</DialogTitle>
-            <DialogDescription>
-              Preencha os campos abaixo para {editingAccommodationId ? 'editar' : 'criar'} uma nova acomodação.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input 
-                  type="text" 
-                  id="name" 
-                  name="name" 
-                  value={formData.name} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="roomNumber">Número do Quarto</Label>
-                <Input 
-                  type="text" 
-                  id="roomNumber" 
-                  name="roomNumber" 
-                  value={formData.roomNumber} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="category">Categoria</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as CategoryType }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Categoria</SelectLabel>
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Luxo">Luxo</SelectItem>
-                      <SelectItem value="Super Luxo">Super Luxo</SelectItem>
-                      <SelectItem value="Master">Master</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="capacity">Capacidade</Label>
-                <Input 
-                  type="number" 
-                  id="capacity" 
-                  name="capacity" 
-                  value={formData.capacity} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="albumUrl">Link para Álbum Externo</Label>
-              <Input 
-                type="url" 
-                id="albumUrl" 
-                name="albumUrl" 
-                placeholder="https://exemplo.com/album" 
-                value={formData.albumUrl || ''} 
-                onChange={handleInputChange} 
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea 
-                id="description" 
-                name="description" 
-                value={formData.description} 
-                onChange={handleInputChange} 
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Imagem</Label>
-              <ImageUploader 
-                onImageUploaded={handleImageUpload}
-                initialImages={formData.images}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="submit" onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Salvando...' : 'Salvar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AccommodationFormDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        formData={formData}
+        setFormData={setFormData}
+        editingAccommodationId={editingAccommodationId}
+        onSuccess={fetchAccommodations}
+        loading={loading}
+        setLoading={setLoading}
+      />
       
       <AccommodationDetails 
         open={isDetailsOpen}
@@ -629,7 +281,6 @@ const AccommodationsPage: React.FC = () => {
         onOpenChange={setIsBlockDialogOpen}
         accommodation={selectedAccommodation}
         onUpdate={(updated) => {
-          // Update the accommodation in the list
           setAccommodations(prev => prev.map(acc => 
             acc.id === updated.id ? updated : acc
           ));
@@ -640,7 +291,7 @@ const AccommodationsPage: React.FC = () => {
       <CategoryManagementDialog
         isOpen={isCategoryDialogOpen}
         onOpenChange={setIsCategoryDialogOpen}
-        onUpdate={() => fetchAccommodations()}
+        onUpdate={fetchAccommodations}
       />
       
       <DatabaseCleanupDialog
@@ -649,22 +300,13 @@ const AccommodationsPage: React.FC = () => {
         onCleanupComplete={fetchAccommodations}
       />
       
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir {selectedAccommodationIds.length} acomodação(ões)? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} disabled={loading}>
-              {loading ? "Processando..." : "Excluir"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        selectedIds={selectedAccommodationIds}
+        onConfirm={confirmDelete}
+        loading={loading}
+      />
     </div>
   );
 };
