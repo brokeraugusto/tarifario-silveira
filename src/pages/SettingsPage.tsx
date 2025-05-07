@@ -1,16 +1,12 @@
-
 import React from 'react';
 import { Settings, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useIsMobile } from '@/hooks/use-mobile';
-
 const SettingsPage = () => {
   const isMobile = useIsMobile();
-  
-  return (
-    <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
+  return <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-hotel-navy">Configurações</h1>
         <p className="text-muted-foreground mt-2">Gerencie as configurações do sistema.</p>
@@ -66,7 +62,7 @@ const SettingsPage = () => {
         <CardContent className={`space-y-2 ${isMobile ? "p-4 pt-0" : ""}`}>
           <div>
             <Label className="text-base">Versão</Label>
-            <p className="text-sm text-muted-foreground">1.0.0</p>
+            <p className="text-sm text-muted-foreground">1.0.1</p>
           </div>
           
           <div>
@@ -80,8 +76,6 @@ const SettingsPage = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default SettingsPage;
