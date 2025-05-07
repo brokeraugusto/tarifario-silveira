@@ -38,80 +38,82 @@ const TableContextMenu: React.FC<TableContextMenuProps> = ({
   if (!rowId) return null;
 
   return (
-    <ContextMenu open={isOpen} onOpenChange={onOpenChange}>
+    <ContextMenu onOpenChange={onOpenChange}>
       <ContextMenuTrigger>
         <span className="sr-only">Menu de contexto</span>
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-40">
-        {onRowClick && (
-          <ContextMenuItem onClick={() => {
-            onRowClick(rowId);
-            onOpenChange(false);
-          }}>
-            <Eye className="mr-2 h-4 w-4" />
-            <span>Visualizar</span>
-          </ContextMenuItem>
-        )}
-        {onEdit && (
-          <ContextMenuItem onClick={() => {
-            onEdit([rowId]);
-            onOpenChange(false);
-          }}>
-            <Pencil className="mr-2 h-4 w-4" />
-            <span>Editar</span>
-          </ContextMenuItem>
-        )}
-        {onBlock && (
-          <ContextMenuItem onClick={() => {
-            onBlock([rowId]);
-            onOpenChange(false);
-          }}>
-            <Lock className="mr-2 h-4 w-4" />
-            <span>Bloquear</span>
-          </ContextMenuItem>
-        )}
-        {onActivate && (
-          <ContextMenuItem onClick={() => {
-            onActivate([rowId]);
-            onOpenChange(false);
-          }}>
-            <LockOpen className="mr-2 h-4 w-4" />
-            <span>Ativar</span>
-          </ContextMenuItem>
-        )}
-        {customActions.length > 0 && (
-          <>
-            <ContextMenuSeparator />
-            {customActions.map((action) => (
-              <ContextMenuItem
-                key={action.key}
+      {isOpen && (
+        <ContextMenuContent className="w-40">
+          {onRowClick && (
+            <ContextMenuItem onClick={() => {
+              onRowClick(rowId);
+              onOpenChange(false);
+            }}>
+              <Eye className="mr-2 h-4 w-4" />
+              <span>Visualizar</span>
+            </ContextMenuItem>
+          )}
+          {onEdit && (
+            <ContextMenuItem onClick={() => {
+              onEdit([rowId]);
+              onOpenChange(false);
+            }}>
+              <Pencil className="mr-2 h-4 w-4" />
+              <span>Editar</span>
+            </ContextMenuItem>
+          )}
+          {onBlock && (
+            <ContextMenuItem onClick={() => {
+              onBlock([rowId]);
+              onOpenChange(false);
+            }}>
+              <Lock className="mr-2 h-4 w-4" />
+              <span>Bloquear</span>
+            </ContextMenuItem>
+          )}
+          {onActivate && (
+            <ContextMenuItem onClick={() => {
+              onActivate([rowId]);
+              onOpenChange(false);
+            }}>
+              <LockOpen className="mr-2 h-4 w-4" />
+              <span>Ativar</span>
+            </ContextMenuItem>
+          )}
+          {customActions.length > 0 && (
+            <>
+              <ContextMenuSeparator />
+              {customActions.map((action) => (
+                <ContextMenuItem
+                  key={action.key}
+                  onClick={() => {
+                    if (onCustomAction) onCustomAction([rowId], action.key);
+                    onOpenChange(false);
+                  }}
+                >
+                  {action.icon}
+                  <span>{action.label}</span>
+                </ContextMenuItem>
+              ))}
+            </>
+          )}
+          {onDelete && (
+            <>
+              <ContextMenuSeparator />
+              <ContextMenuItem 
+                className="text-red-600"
                 onClick={() => {
-                  if (onCustomAction) onCustomAction([rowId], action.key);
+                  onDelete([rowId]);
                   onOpenChange(false);
                 }}
               >
-                {action.icon}
-                <span>{action.label}</span>
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Excluir</span>
               </ContextMenuItem>
-            ))}
-          </>
-        )}
-        {onDelete && (
-          <>
-            <ContextMenuSeparator />
-            <ContextMenuItem 
-              className="text-red-600"
-              onClick={() => {
-                onDelete([rowId]);
-                onOpenChange(false);
-              }}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              <span>Excluir</span>
-            </ContextMenuItem>
-          </>
-        )}
-      </ContextMenuContent>
+            </>
+          )}
+        </ContextMenuContent>
+      )}
     </ContextMenu>
   );
 };

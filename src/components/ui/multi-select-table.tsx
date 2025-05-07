@@ -13,19 +13,14 @@ import { ItemActions } from "./multi-select-actions";
 import TableHeaderComponent from "./table-header";
 import TableBodyComponent from "./table-body";
 import TableContextMenu from "./table-context-menu";
-import { CustomAction } from "./table-types";
+import { CustomAction, ActionHandlers } from "./table-types";
 
-interface MultiSelectTableProps<T> {
+interface MultiSelectTableProps<T> extends ActionHandlers {
   data: T[];
   columns: ColumnDef<T>[];
-  onEdit?: (ids: string[]) => void;
-  onDelete?: (ids: string[]) => void;
-  onBlock?: (ids: string[]) => void;
-  onActivate?: (ids: string[]) => void;
   getRowId: (row: T) => string;
   onRowClick?: (row: T) => void;
   customActions?: CustomAction[];
-  onCustomAction?: (ids: string[], action: string) => void;
 }
 
 export default function MultiSelectTable<T>({
