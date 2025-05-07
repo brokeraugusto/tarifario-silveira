@@ -55,7 +55,7 @@ const AuthPage = () => {
           <div className="mx-auto mb-4">
             <img alt="Silveira Eco Village Logo" className="h-16 w-auto" src="/lovable-uploads/ab881029-adcb-4085-8c02-0720c4a2a096.png" />
           </div>
-          <CardTitle className="text-2xl">Tarifário Silveira Eco Village</CardTitle>
+          <CardTitle className="text-2xl">Tarifário</CardTitle>
           <CardDescription>
             {mode === 'login' ? 'Faça login para acessar o sistema' : 'Crie sua conta para acessar o sistema'}
           </CardDescription>
