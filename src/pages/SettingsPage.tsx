@@ -67,7 +67,7 @@ const SettingsPage = () => {
           
           <div>
             <Label className="text-base">Desenvolvido por</Label>
-            <p className="text-sm text-muted-foreground">Augusto Gonçalves</p>
+            <p className="text-sm text-muted-foreground">Augusto Gonçalves - Todos os direitos reservados 2025</p>
           </div>
           
           <div>
