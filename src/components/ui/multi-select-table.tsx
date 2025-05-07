@@ -76,7 +76,7 @@ export default function MultiSelectTable<T>({
     },
     getRowId,
     getSortedRowModel: getSortedRowModel(),
-    sortMode: "basic", // Changed from sortingMode to sortMode (the correct property name)
+    enableSorting: true,  // Replaced sortMode with enableSorting which is the correct property
   })
 
   // Context menu handler
