@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Database } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -186,22 +186,11 @@ const AccommodationsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Acomodações</h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie as acomodações disponíveis para reserva.
-          </p>
-        </div>
-        
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={() => setIsCleanupDialogOpen(true)}
-        >
-          <Database className="h-4 w-4" />
-          Limpar Banco de Dados
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Acomodações</h1>
+        <p className="text-muted-foreground mt-2">
+          Gerencie as acomodações disponíveis para reserva.
+        </p>
       </div>
       
       <Separator />

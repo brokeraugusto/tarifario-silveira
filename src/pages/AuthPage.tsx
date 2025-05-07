@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bed, Lock, LogIn } from 'lucide-react';
+import { Lock, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,8 +58,12 @@ const AuthPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-hotel-navy">
-            <Bed className="h-8 w-8 text-hotel-gold" />
+          <div className="mx-auto mb-4">
+            <img 
+              src="/lovable-uploads/cdb5dcb5-ba2f-41a9-bef6-4b5845ca0e35.jpg" 
+              alt="Silveira Eco Village Logo" 
+              className="h-16 w-auto"
+            />
           </div>
           <CardTitle className="text-2xl">Tarifário Silveira Eco Village</CardTitle>
           <CardDescription>
