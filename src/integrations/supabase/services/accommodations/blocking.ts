@@ -19,8 +19,8 @@ export const blockAccommodation = async (
 export const unblockAccommodation = async (id: string): Promise<Accommodation | null> => {
   return updateAccommodation(id, { 
     isBlocked: false, 
-    blockReason: undefined, 
-    blockNote: undefined,
-    blockPeriod: undefined
+    blockReason: null, 
+    blockNote: null,
+    blockPeriod: null
   });
 };

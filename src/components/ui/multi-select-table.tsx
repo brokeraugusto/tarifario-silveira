@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Eye, Lock } from "lucide-react"
+import { Pencil, Trash2, Eye, Lock, LockOpen } from "lucide-react"
 import { 
   ContextMenu, 
   ContextMenuContent, 
@@ -42,7 +42,8 @@ interface MultiSelectTableProps<T> {
   columns: ColumnDef<T>[];
   onEdit?: (ids: string[]) => void;
   onDelete?: (ids: string[]) => void;
-  onBlock?: (ids: string[]) => void;  
+  onBlock?: (ids: string[]) => void;
+  onActivate?: (ids: string[]) => void;
   getRowId: (row: T) => string;
   onRowClick?: (row: T) => void;
   customActions?: CustomAction[];
@@ -55,6 +56,7 @@ export default function MultiSelectTable<T>({
   onEdit,
   onDelete,
   onBlock,
+  onActivate,
   getRowId,
   onRowClick,
   customActions = [],
@@ -76,7 +78,7 @@ export default function MultiSelectTable<T>({
     },
     getRowId,
     getSortedRowModel: getSortedRowModel(),
-    enableSorting: true,  // Replaced sortMode with enableSorting which is the correct property
+    enableSorting: true,
   })
 
   // Context menu handler
@@ -94,6 +96,7 @@ export default function MultiSelectTable<T>({
         onEdit={onEdit} 
         onDelete={onDelete}
         onBlock={onBlock}
+        onActivate={onActivate}
         customActions={customActions} 
         onCustomAction={onCustomAction}
       />
@@ -171,7 +174,7 @@ export default function MultiSelectTable<T>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length + 1} className="h-24 text-center">
                   Sem resultados.
                 </TableCell>
               </TableRow>
@@ -214,6 +217,15 @@ export default function MultiSelectTable<T>({
               }}>
                 <Lock className="mr-2 h-4 w-4" />
                 <span>Bloquear</span>
+              </ContextMenuItem>
+            )}
+            {onActivate && (
+              <ContextMenuItem onClick={() => {
+                onActivate([contextMenuRowId]);
+                setIsContextMenuOpen(false);
+              }}>
+                <LockOpen className="mr-2 h-4 w-4" />
+                <span>Ativar</span>
               </ContextMenuItem>
             )}
             {customActions.length > 0 && (

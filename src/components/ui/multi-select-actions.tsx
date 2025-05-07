@@ -1,11 +1,13 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Lock } from "lucide-react";
+import { Pencil, Trash2, Lock, LockOpen } from "lucide-react";
 
 export interface ActionHandlers {
   onEdit?: (ids: string[]) => void;
   onDelete?: (ids: string[]) => void;
   onBlock?: (ids: string[]) => void;
+  onActivate?: (ids: string[]) => void;
   onCustomAction?: (ids: string[], action: string) => void;
 }
 
@@ -25,6 +27,7 @@ export const ItemActions: React.FC<ItemActionsProps> = ({
   onEdit, 
   onDelete, 
   onBlock,
+  onActivate,
   onCustomAction,
   customActions = [] 
 }) => {
@@ -61,6 +64,19 @@ export const ItemActions: React.FC<ItemActionsProps> = ({
               >
                 <Lock className="h-3.5 w-3.5 mr-1" />
                 Bloquear
+              </Button>
+            )}
+
+            {onActivate && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => onActivate(selectedIds)}
+                disabled={selectedIds.length !== 1}
+              >
+                <LockOpen className="h-3.5 w-3.5 mr-1" />
+                Ativar
               </Button>
             )}
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
-  Users, Lock, Unlock, Pencil, Images, X, ExternalLink, Database
+  Users, Lock, Unlock, Pencil, Images, X, ExternalLink, Database, LockOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -24,27 +24,16 @@ import {
   getAllAccommodations, 
   updateAccommodation,
   createAccommodation,
-  deleteAccommodation
+  deleteAccommodation,
 } from '@/integrations/supabase';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  blockAccommodation,
+  unblockAccommodation
+} from '@/integrations/supabase/services/accommodations/blocking';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +59,7 @@ import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
 import CategoryManagementDialog from '@/components/CategoryManagementDialog';
 import ImageUploader from '@/components/ImageUploader';
 import DatabaseCleanupDialog from '@/components/DatabaseCleanupDialog';
-import { ColumnDef } from '@tanstack/react-table'; // Added this import!
+import { ColumnDef } from '@tanstack/react-table'; // Make sure this import exists
 
 interface AccommodationFormData {
   name: string;
@@ -178,6 +167,31 @@ const AccommodationsPage: React.FC = () => {
       setIsBlockDialogOpen(true);
     }
   };
+
+  const handleActivateAccommodation = async (ids: string[]) => {
+    if (ids.length !== 1) {
+      toast.error("Selecione apenas uma acomodação para ativar");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      console.log('Activating accommodation:', ids[0]);
+      const updated = await unblockAccommodation(ids[0]);
+      
+      if (updated) {
+        toast.success("Acomodação ativada com sucesso");
+        await fetchAccommodations(); // Re-fetch after update
+      } else {
+        toast.error("Erro ao ativar acomodação");
+      }
+    } catch (error) {
+      console.error("Error activating accommodation:", error);
+      toast.error("Erro ao ativar acomodação");
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const confirmDelete = async () => {
     setLoading(true);
@@ -266,7 +280,7 @@ const AccommodationsPage: React.FC = () => {
     }
   };
   
-  // Atualização do formato das colunas para corresponder ao novo ColumnDef
+  // Column definitions for the accommodation table
   const accommodationColumns: ColumnDef<Accommodation>[] = [
     {
       id: "name",
@@ -294,6 +308,21 @@ const AccommodationsPage: React.FC = () => {
       header: "Capacidade",
       cell: ({ row }) => (
         <div>{row.original.capacity}</div>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <div>
+          {row.original.isBlocked ? (
+            <Badge variant="destructive" className="whitespace-nowrap">Bloqueado</Badge>
+          ) : (
+            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 whitespace-nowrap">
+              Ativo
+            </Badge>
+          )}
+        </div>
       ),
     },
     {
@@ -361,7 +390,8 @@ const AccommodationsPage: React.FC = () => {
             getRowId={(row) => row.id}
             onEdit={handleEditAccommodations}
             onDelete={handleDeleteAccommodations}
-            onBlock={(ids) => handleOpenBlockDialog(ids[0])} // Add block handler
+            onBlock={(ids) => handleOpenBlockDialog(ids[0])}
+            onActivate={handleActivateAccommodation}
             onRowClick={(row) => handleViewDetails(row.id)}
           />
         </TabsContent>
