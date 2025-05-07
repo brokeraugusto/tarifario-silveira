@@ -12,6 +12,10 @@ export interface AccommodationUpdate {
   isBlocked?: boolean;
   blockReason?: BlockReasonType;
   blockNote?: string;
+  blockPeriod?: {
+    from: Date;
+    to: Date;
+  };
 }
 
 export interface AccommodationCreate extends Omit<Accommodation, 'id'> {}

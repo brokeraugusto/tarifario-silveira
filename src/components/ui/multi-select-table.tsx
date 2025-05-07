@@ -1,15 +1,13 @@
-
-import React, { useState } from 'react';
-import { Check, ChevronDown, X } from 'lucide-react';
-import { cn } from "@/lib/utils";
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import React from "react"
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+
 import {
   Table,
   TableBody,
@@ -17,259 +15,239 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import MultiSelectActions, { ItemActions } from './multi-select-actions';
+} from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
+import { Pencil, Trash2, Eye, Lock } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 
-export interface Column<T> {
-  id: string;
-  header: string;
-  accessorFn?: (row: T) => React.ReactNode;
-  cell?: (row: T) => React.ReactNode;
+import { cn } from "@/lib/utils"
+import { ItemActions } from "./multi-select-actions"
+
+export interface CustomAction {
+  label: string;
+  key: string;
+  icon?: React.ReactNode;
 }
 
 interface MultiSelectTableProps<T> {
   data: T[];
-  columns: Column<T>[];
-  getRowId: (row: T) => string;
+  columns: ColumnDef<T>[];
   onEdit?: (ids: string[]) => void;
   onDelete?: (ids: string[]) => void;
+  onBlock?: (ids: string[]) => void;  // Added block option
+  getRowId: (row: T) => string;
   onRowClick?: (row: T) => void;
-  onSelectionChange?: (selectedIds: string[]) => void; // Added this prop
+  customActions?: CustomAction[];
+  onCustomAction?: (ids: string[], action: string) => void;
 }
 
-function MultiSelectTable<T>({
+export default function MultiSelectTable<T>({
   data,
   columns,
-  getRowId,
   onEdit,
   onDelete,
+  onBlock, // Added block parameter
+  getRowId,
   onRowClick,
-  onSelectionChange
+  customActions = [],
+  onCustomAction
 }: MultiSelectTableProps<T>) {
-  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(columns.map(col => col.id));
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = React.useState({ x: 0, y: 0 });
+  const [contextMenuRowId, setContextMenuRowId] = React.useState<string | null>(null);
 
-  const handleRowClick = (row: T) => {
-    if (onRowClick) {
-      onRowClick(row);
-    }
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onRowSelectionChange: setRowSelection,
+    rowSelection,
+    getRowId,
+    getSortedRowModel: getSortedRowModel(),
+    sortMode: "basic",
+  })
+
+  // Context menu handler
+  const handleContextMenu = (rowId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setContextMenuRowId(rowId);
+    setIsContextMenuOpen(true);
   };
-
-  const handleSelectRow = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    setSelectedRowIds(prev => {
-      const newSelection = prev.includes(id)
-        ? prev.filter(rowId => rowId !== id)
-        : [...prev, id];
-      
-      // Call the onSelectionChange callback if provided
-      if (onSelectionChange) {
-        onSelectionChange(newSelection);
-      }
-      
-      return newSelection;
-    });
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    const newSelection = checked ? data.map(row => getRowId(row)) : [];
-    setSelectedRowIds(newSelection);
-    
-    // Call the onSelectionChange callback if provided
-    if (onSelectionChange) {
-      onSelectionChange(newSelection);
-    }
-  };
-
-  const handleClearSelection = () => {
-    setSelectedRowIds([]);
-    
-    // Call the onSelectionChange callback with empty array
-    if (onSelectionChange) {
-      onSelectionChange([]);
-    }
-  };
-
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(selectedRowIds);
-    }
-  };
-
-  const handleDelete = () => {
-    if (onDelete) {
-      onDelete(selectedRowIds);
-    }
-  };
-
-  const handleEditSingle = (id: string) => {
-    if (onEdit) {
-      onEdit([id]);
-    }
-  };
-
-  const handleDeleteSingle = (id: string) => {
-    if (onDelete) {
-      onDelete([id]);
-    }
-  };
-
-  const toggleColumnVisibility = (columnId: string, isVisible: boolean) => {
-    setVisibleColumns(prev =>
-      isVisible
-        ? [...prev, columnId]
-        : prev.filter(id => id !== columnId)
-    );
-  };
-
-  // Update selected rows when data changes to prevent stale selections
-  React.useEffect(() => {
-    const validIds = data.map(row => getRowId(row));
-    const validSelections = selectedRowIds.filter(id => validIds.includes(id));
-    
-    if (validSelections.length !== selectedRowIds.length) {
-      setSelectedRowIds(validSelections);
-      
-      // Call onSelectionChange with the valid selections
-      if (onSelectionChange) {
-        onSelectionChange(validSelections);
-      }
-    }
-  }, [data, getRowId]);
-
-  const visibleColumnsData = columns.filter(col => visibleColumns.includes(col.id));
-  const allSelected = data.length > 0 && selectedRowIds.length === data.length;
-  const someSelected = selectedRowIds.length > 0 && !allSelected;
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between py-4">
-        <MultiSelectActions
-          selectedIds={selectedRowIds}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onClearSelection={handleClearSelection}
-        />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="ml-auto">
-              Colunas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {columns.map((column) => {
-              const isVisible = visibleColumns.includes(column.id);
-              
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  checked={isVisible}
-                  onCheckedChange={(checked) => toggleColumnVisibility(column.id, checked)}
-                >
-                  {column.header}
-                </DropdownMenuCheckboxItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
+    <div className="space-y-4">
+      <ItemActions 
+        selectedIds={Object.keys(rowSelection)}
+        onEdit={onEdit} 
+        onDelete={onDelete}
+        onBlock={onBlock}  // Added block handler
+        customActions={customActions} 
+        onCustomAction={onCustomAction}
+      />
+      
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
-              {onEdit || onDelete ? (
-                <TableHead className="w-12">
+            {table.getHeaderGroups().map(headerGroup => (
+              <TableRow key={headerGroup.id}>
+                <TableHead className="w-[50px]">
                   <Checkbox
-                    checked={allSelected}
-                    // We need to remove the indeterminate property since it's not supported by our Checkbox component
-                    data-state={someSelected ? "indeterminate" : undefined}
-                    onCheckedChange={handleSelectAll}
+                    checked={
+                      table.getIsAllPageRowsSelected()
+                    }
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                     aria-label="Selecionar todos"
                   />
                 </TableHead>
-              ) : null}
-              
-              {visibleColumnsData.map((column) => (
-                <TableHead key={column.id}>{column.header}</TableHead>
-              ))}
-              
-              {(onEdit || onDelete) && <TableHead className="w-10"></TableHead>}
-            </TableRow>
+                {headerGroup.headers.map(header => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : (
+                          <Button
+                            variant="ghost"
+                            onClick={header.column.getToggleSortingHandler()}
+                            className={cn(
+                              "flex h-8 items-center p-0 text-sm hover:no-underline",
+                              header.column.getIsSorted() && "font-medium",
+                            )}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            {/* <ArrowDownUp className="ml-2 h-4 w-4" /> */}
+                            {
+                              {
+                                asc: '▲',
+                                desc: '▼',
+                              }[header.column.getIsSorted() as string]
+                            }
+                          </Button>
+                        )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
-            {data.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={visibleColumnsData.length + (onEdit || onDelete ? 2 : 0)}
-                  className="h-24 text-center"
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map(row => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick?.(row.original)}
+                  onContextMenu={(e) => handleContextMenu(getRowId(row.original), e)}
+                  className={onRowClick ? "cursor-pointer" : ""}
                 >
-                  Nenhum registro encontrado.
+                  <TableCell className="w-[50px]">
+                    <Checkbox
+                      checked={row.getIsSelected()}
+                      onCheckedChange={(value) => row.toggleSelected(!!value)}
+                      aria-label="Selecionar linha"
+                    />
+                  </TableCell>
+                  {row.getVisibleCells().map(cell => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Sem resultados.
                 </TableCell>
               </TableRow>
-            ) : (
-              data.map((row) => {
-                const id = getRowId(row);
-                const isSelected = selectedRowIds.includes(id);
-                
-                return (
-                  <TableRow
-                    key={id}
-                    className={cn(
-                      onRowClick && "cursor-pointer hover:bg-muted/50",
-                      isSelected && "bg-muted/50"
-                    )}
-                    onClick={() => handleRowClick(row)}
-                    data-state={isSelected ? "selected" : undefined}
-                  >
-                    {(onEdit || onDelete) && (
-                      <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedRowIds((prev) => [...prev, id]);
-                            } else {
-                              setSelectedRowIds((prev) =>
-                                prev.filter((rowId) => rowId !== id)
-                              );
-                            }
-                          }}
-                          aria-label={`Selecionar linha ${id}`}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </TableCell>
-                    )}
-                    
-                    {visibleColumnsData.map((column) => (
-                      <TableCell key={`${id}-${column.id}`}>
-                        {column.cell 
-                          ? column.cell(row) 
-                          : column.accessorFn 
-                            ? column.accessorFn(row) 
-                            : null}
-                      </TableCell>
-                    ))}
-                    
-                    {(onEdit || onDelete) && (
-                      <TableCell className="w-10 p-0 pr-2 text-right">
-                        <ItemActions
-                          onEdit={() => handleEditSingle(id)}
-                          onDelete={() => handleDeleteSingle(id)}
-                          className="justify-end"
-                        />
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })
             )}
           </TableBody>
         </Table>
       </div>
+      
+      {/* Context Menu */}
+      {isContextMenuOpen && contextMenuRowId && (
+        <ContextMenu 
+          open={isContextMenuOpen} 
+          onOpenChange={setIsContextMenuOpen}
+        >
+          <ContextMenuContent className="w-40">
+            {onRowClick && (
+              <ContextMenuItem onClick={() => {
+                const row = data.find(item => getRowId(item) === contextMenuRowId);
+                if (row) onRowClick(row);
+                setIsContextMenuOpen(false);
+              }}>
+                <Eye className="mr-2 h-4 w-4" />
+                <span>Visualizar</span>
+              </ContextMenuItem>
+            )}
+            {onEdit && (
+              <ContextMenuItem onClick={() => {
+                onEdit([contextMenuRowId]);
+                setIsContextMenuOpen(false);
+              }}>
+                <Pencil className="mr-2 h-4 w-4" />
+                <span>Editar</span>
+              </ContextMenuItem>
+            )}
+            {onBlock && (
+              <ContextMenuItem onClick={() => {
+                onBlock([contextMenuRowId]);
+                setIsContextMenuOpen(false);
+              }}>
+                <Lock className="mr-2 h-4 w-4" />
+                <span>Bloquear</span>
+              </ContextMenuItem>
+            )}
+            {customActions.length > 0 && (
+              <>
+                <ContextMenuSeparator />
+                {customActions.map((action) => (
+                  <ContextMenuItem
+                    key={action.key}
+                    onClick={() => {
+                      if (onCustomAction) onCustomAction([contextMenuRowId], action.key);
+                      setIsContextMenuOpen(false);
+                    }}
+                  >
+                    {action.icon}
+                    <span>{action.label}</span>
+                  </ContextMenuItem>
+                ))}
+              </>
+            )}
+            {onDelete && (
+              <>
+                <ContextMenuSeparator />
+                <ContextMenuItem 
+                  className="text-red-600"
+                  onClick={() => {
+                    onDelete([contextMenuRowId]);
+                    setIsContextMenuOpen(false);
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Excluir</span>
+                </ContextMenuItem>
+              </>
+            )}
+          </ContextMenuContent>
+        </ContextMenu>
+      )}
     </div>
   );
 }
-
-export default MultiSelectTable;

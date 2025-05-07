@@ -1,116 +1,96 @@
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Pencil, Trash2, Lock } from "lucide-react";
 
-import React from 'react';
-import { MoreHorizontal, Edit, Trash2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
-
-interface MultiSelectActionsProps {
-  selectedIds: string[];
-  onEdit: () => void;
-  onDelete: () => void;
-  onClearSelection: () => void;
+export interface ActionHandlers {
+  onEdit?: (ids: string[]) => void;
+  onDelete?: (ids: string[]) => void;
+  onBlock?: (ids: string[]) => void;
+  onCustomAction?: (ids: string[], action: string) => void;
 }
 
-const MultiSelectActions: React.FC<MultiSelectActionsProps> = ({
-  selectedIds,
-  onEdit,
-  onDelete,
-  onClearSelection
+export interface CustomAction {
+  label: string;
+  key: string;
+  icon?: React.ReactNode;
+}
+
+export interface ItemActionsProps extends ActionHandlers {
+  selectedIds: string[];
+  customActions?: CustomAction[];
+}
+
+export const ItemActions: React.FC<ItemActionsProps> = ({ 
+  selectedIds, 
+  onEdit, 
+  onDelete, 
+  onBlock,
+  onCustomAction,
+  customActions = [] 
 }) => {
-  if (selectedIds.length === 0) return null;
+  const hasSelection = selectedIds.length > 0;
   
   return (
-    <div className="flex items-center gap-2">
-      <Badge variant="outline" className="gap-1 px-2 py-1 border-primary/20 bg-primary/5 text-primary">
-        <span>{selectedIds.length} selecionado{selectedIds.length > 1 ? 's' : ''}</span>
-        <button 
-          onClick={onClearSelection} 
-          className="text-primary hover:text-primary/80 cursor-pointer ml-1"
-          aria-label="Limpar seleção"
-        >
-          <X className="h-3 w-3" />
-        </button>
-      </Badge>
-      
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onEdit}
-              disabled={selectedIds.length === 0}
-            >
-              <Edit className="h-4 w-4 mr-1" />
-              Editar
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Editar {selectedIds.length} item{selectedIds.length > 1 ? 's' : ''}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={onDelete}
-              disabled={selectedIds.length === 0}
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Excluir
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Excluir {selectedIds.length} item{selectedIds.length > 1 ? 's' : ''}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+    <div className="flex items-center justify-between">
+      <div className="flex-1 text-sm text-muted-foreground">
+        {hasSelection ? `${selectedIds.length} item(s) selecionado(s)` : ""}
+      </div>
+      <div className="flex items-center space-x-2">
+        {hasSelection && (
+          <>
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => onEdit(selectedIds)}
+                disabled={selectedIds.length !== 1}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1" />
+                Editar
+              </Button>
+            )}
+            
+            {onBlock && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => onBlock(selectedIds)}
+                disabled={selectedIds.length !== 1}
+              >
+                <Lock className="h-3.5 w-3.5 mr-1" />
+                Bloquear
+              </Button>
+            )}
+
+            {customActions.length > 0 && customActions.map((action) => (
+              <Button
+                key={action.key}
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => onCustomAction && onCustomAction(selectedIds, action.key)}
+              >
+                {action.icon && <span className="mr-1">{action.icon}</span>}
+                {action.label}
+              </Button>
+            ))}
+            
+            {onDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => onDelete(selectedIds)}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                Excluir
+              </Button>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };
-
-interface ItemActionsProps {
-  onEdit: () => void;
-  onDelete: () => void;
-  className?: string;
-}
-
-export const ItemActions: React.FC<ItemActionsProps> = ({ onEdit, onDelete, className }) => {
-  return (
-    <div className={className}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Ações</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onEdit}>
-            <Edit className="mr-2 h-4 w-4" />
-            <span>Editar</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem 
-            onClick={onDelete}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            <span>Excluir</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-};
-
-export default MultiSelectActions;

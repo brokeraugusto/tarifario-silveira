@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2, Coffee } from 'lucide-react';
@@ -7,6 +8,7 @@ import { DatePickerWithRange } from '@/components/DatePickerWithRange';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+
 interface SearchFormProps {
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
@@ -18,6 +20,7 @@ interface SearchFormProps {
   loading: boolean;
   disablePastDates?: boolean;
 }
+
 const SearchForm: React.FC<SearchFormProps> = ({
   dateRange,
   setDateRange,
@@ -32,12 +35,17 @@ const SearchForm: React.FC<SearchFormProps> = ({
   const guestOptions = Array.from({
     length: 10
   }, (_, i) => i + 1);
+  
   return <Card className="bg-white shadow-sm">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <Label>Datas</Label>
-            <DatePickerWithRange dateRange={dateRange} onDateRangeChange={setDateRange} disablePastDates={disablePastDates} />
+            <DatePickerWithRange 
+              dateRange={dateRange} 
+              onDateRangeChange={setDateRange} 
+              disablePastDates={disablePastDates} 
+            />
           </div>
           
           <div className="space-y-2">
@@ -74,4 +82,5 @@ const SearchForm: React.FC<SearchFormProps> = ({
       </CardContent>
     </Card>;
 };
+
 export default SearchForm;

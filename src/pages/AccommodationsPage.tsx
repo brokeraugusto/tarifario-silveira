@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Filter, RotateCcw, Trash2, MoreHorizontal, 
@@ -360,6 +359,7 @@ const AccommodationsPage: React.FC = () => {
             getRowId={(row) => row.id}
             onEdit={handleEditAccommodations}
             onDelete={handleDeleteAccommodations}
+            onBlock={(ids) => handleOpenBlockDialog(ids[0])} // Add block handler
             onRowClick={(row) => handleViewDetails(row.id)}
           />
         </TabsContent>
@@ -596,9 +596,12 @@ const AccommodationsPage: React.FC = () => {
         isOpen={isBlockDialogOpen}
         onOpenChange={setIsBlockDialogOpen}
         accommodation={selectedAccommodation}
-        onUpdate={() => {
+        onUpdate={(updated) => {
+          // Update the accommodation in the list
+          setAccommodations(prev => prev.map(acc => 
+            acc.id === updated.id ? updated : acc
+          ));
           setIsBlockDialogOpen(false);
-          fetchAccommodations();
         }}
       />
       

@@ -15,6 +15,10 @@ export interface Accommodation {
   isBlocked: boolean;
   blockReason?: BlockReasonType;
   blockNote?: string;
+  blockPeriod?: {
+    from: Date;
+    to: Date;
+  };
 }
 
 export interface PricePeriod {

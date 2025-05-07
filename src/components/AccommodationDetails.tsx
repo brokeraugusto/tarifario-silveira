@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Users, Copy, Check } from 'lucide-react';
+import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -179,6 +180,11 @@ ${accommodation.images && accommodation.images.length > 0 ?
                 <p className="text-red-700 font-medium">
                   Bloqueado: {accommodation.blockReason}
                 </p>
+                {accommodation.blockPeriod && (
+                  <p className="text-red-700 text-sm mt-1">
+                    Período: {format(new Date(accommodation.blockPeriod.from), 'dd/MM/yyyy')} até {format(new Date(accommodation.blockPeriod.to), 'dd/MM/yyyy')}
+                  </p>
+                )}
                 {accommodation.blockNote && (
                   <p className="text-red-600 text-sm mt-1">{accommodation.blockNote}</p>
                 )}
