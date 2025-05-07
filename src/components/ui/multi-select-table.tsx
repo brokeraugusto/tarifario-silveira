@@ -20,13 +20,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Pencil, Trash2, Eye, Lock } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { 
   ContextMenu, 
   ContextMenuContent, 
@@ -78,10 +71,12 @@ export default function MultiSelectTable<T>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
-    rowSelection,
+    state: {
+      rowSelection,
+    },
     getRowId,
     getSortedRowModel: getSortedRowModel(),
-    sortMode: "basic",
+    sortingMode: "basic",
   })
 
   // Context menu handler

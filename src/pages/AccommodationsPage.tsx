@@ -265,47 +265,48 @@ const AccommodationsPage: React.FC = () => {
     }
   };
   
-  const accommodationColumns = [
+  // Atualização do formato das colunas para corresponder ao novo ColumnDef
+  const accommodationColumns: ColumnDef<Accommodation>[] = [
     {
       id: "name",
       header: "Nome",
-      cell: (row: Accommodation) => (
-        <div className="font-medium">{row.name}</div>
+      cell: ({ row }) => (
+        <div className="font-medium">{row.original.name}</div>
       ),
     },
     {
       id: "roomNumber",
       header: "Número",
-      cell: (row: Accommodation) => (
-        <div>{row.roomNumber}</div>
+      cell: ({ row }) => (
+        <div>{row.original.roomNumber}</div>
       ),
     },
     {
       id: "category",
       header: "Categoria",
-      cell: (row: Accommodation) => (
-        <div>{row.category}</div>
+      cell: ({ row }) => (
+        <div>{row.original.category}</div>
       ),
     },
     {
       id: "capacity",
       header: "Capacidade",
-      cell: (row: Accommodation) => (
-        <div>{row.capacity}</div>
+      cell: ({ row }) => (
+        <div>{row.original.capacity}</div>
       ),
     },
     {
       id: "albumLink",
       header: "Álbum",
-      cell: (row: Accommodation) => (
+      cell: ({ row }) => (
         <div>
-          {row.albumUrl ? (
+          {row.original.albumUrl ? (
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(row.albumUrl, '_blank');
+                window.open(row.original.albumUrl, '_blank');
               }}
             >
               <ExternalLink className="h-4 w-4" />

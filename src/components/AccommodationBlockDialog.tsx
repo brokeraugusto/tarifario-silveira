@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -30,6 +30,28 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
     to: new Date(new Date().setDate(new Date().getDate() + 7)) // Default to 7 days
   });
   
+  // Reset form when dialog opens or accommodation changes
+  useEffect(() => {
+    if (isOpen && accommodation) {
+      setReason(accommodation.blockReason || 'maintenance');
+      setNote(accommodation.blockNote || '');
+      
+      // If the accommodation has block period, use it
+      if (accommodation.blockPeriod) {
+        setDateRange({
+          from: new Date(accommodation.blockPeriod.from),
+          to: new Date(accommodation.blockPeriod.to)
+        });
+      } else {
+        setDateRange({
+          from: new Date(),
+          to: new Date(new Date().setDate(new Date().getDate() + 7))
+        });
+      }
+    }
+  }, [isOpen, accommodation]);
+  
+  // Renderização antecipada para caso em que accommodation é null
   if (!accommodation) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -50,26 +72,6 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
     );
   }
 
-  // Reset form when dialog opens
-  React.useEffect(() => {
-    if (isOpen) {
-      setReason('maintenance');
-      setNote('');
-      setDateRange({
-        from: new Date(),
-        to: new Date(new Date().setDate(new Date().getDate() + 7))
-      });
-      
-      // If the accommodation has block period, use it
-      if (accommodation.blockPeriod) {
-        setDateRange({
-          from: new Date(accommodation.blockPeriod.from),
-          to: new Date(accommodation.blockPeriod.to)
-        });
-      }
-    }
-  }, [isOpen, accommodation]);
-  
   const handleBlock = async () => {
     if (!dateRange || !dateRange.from || !dateRange.to) {
       toast.error("Selecione um período de bloqueio válido");
@@ -130,7 +132,7 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        {!accommodation.isBlocked && (
+        {!accommodation.isBlocked ? (
           <>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -185,9 +187,7 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
               </Button>
             </DialogFooter>
           </>
-        )}
-        
-        {accommodation.isBlocked && (
+        ) : (
           <>
             <div className="py-4 space-y-2">
               {accommodation.blockReason && (
