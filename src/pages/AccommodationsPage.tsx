@@ -70,6 +70,7 @@ import AccommodationBlockDialog from '@/components/AccommodationBlockDialog';
 import CategoryManagementDialog from '@/components/CategoryManagementDialog';
 import ImageUploader from '@/components/ImageUploader';
 import DatabaseCleanupDialog from '@/components/DatabaseCleanupDialog';
+import { ColumnDef } from '@tanstack/react-table'; // Added this import!
 
 interface AccommodationFormData {
   name: string;

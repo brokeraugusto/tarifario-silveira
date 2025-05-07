@@ -76,7 +76,7 @@ export default function MultiSelectTable<T>({
     },
     getRowId,
     getSortedRowModel: getSortedRowModel(),
-    sortingMode: "basic",
+    sortMode: "basic", // Changed from sortingMode to sortMode (the correct property name)
   })
 
   // Context menu handler
@@ -183,6 +183,10 @@ export default function MultiSelectTable<T>({
       {/* Context Menu */}
       {isContextMenuOpen && contextMenuRowId && (
         <ContextMenu onOpenChange={setIsContextMenuOpen}>
+          <ContextMenuTrigger>
+            {/* This is an invisible trigger that won't be clicked directly */}
+            <span className="sr-only">Menu de contexto</span>
+          </ContextMenuTrigger>
           <ContextMenuContent className="w-40">
             {onRowClick && (
               <ContextMenuItem onClick={() => {
