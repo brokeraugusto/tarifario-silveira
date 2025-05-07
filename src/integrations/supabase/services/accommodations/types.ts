@@ -9,6 +9,7 @@ export interface AccommodationUpdate {
   description?: string;
   imageUrl?: string;
   images?: string[];
+  albumUrl?: string;
   isBlocked?: boolean;
   blockReason?: BlockReasonType;
   blockNote?: string;

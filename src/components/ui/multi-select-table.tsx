@@ -1,3 +1,4 @@
+
 import React from "react"
 import {
   ColumnDef,
@@ -26,7 +27,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
+import { 
+  ContextMenu, 
+  ContextMenuContent, 
+  ContextMenuItem, 
+  ContextMenuSeparator, 
+  ContextMenuTrigger 
+} from "@/components/ui/context-menu"
 
 import { cn } from "@/lib/utils"
 import { ItemActions } from "./multi-select-actions"
@@ -42,7 +49,7 @@ interface MultiSelectTableProps<T> {
   columns: ColumnDef<T>[];
   onEdit?: (ids: string[]) => void;
   onDelete?: (ids: string[]) => void;
-  onBlock?: (ids: string[]) => void;  // Added block option
+  onBlock?: (ids: string[]) => void;  
   getRowId: (row: T) => string;
   onRowClick?: (row: T) => void;
   customActions?: CustomAction[];
@@ -54,7 +61,7 @@ export default function MultiSelectTable<T>({
   columns,
   onEdit,
   onDelete,
-  onBlock, // Added block parameter
+  onBlock,
   getRowId,
   onRowClick,
   customActions = [],
@@ -91,7 +98,7 @@ export default function MultiSelectTable<T>({
         selectedIds={Object.keys(rowSelection)}
         onEdit={onEdit} 
         onDelete={onDelete}
-        onBlock={onBlock}  // Added block handler
+        onBlock={onBlock}
         customActions={customActions} 
         onCustomAction={onCustomAction}
       />
@@ -180,10 +187,7 @@ export default function MultiSelectTable<T>({
       
       {/* Context Menu */}
       {isContextMenuOpen && contextMenuRowId && (
-        <ContextMenu 
-          open={isContextMenuOpen} 
-          onOpenChange={setIsContextMenuOpen}
-        >
+        <ContextMenu onOpenChange={setIsContextMenuOpen}>
           <ContextMenuContent className="w-40">
             {onRowClick && (
               <ContextMenuItem onClick={() => {

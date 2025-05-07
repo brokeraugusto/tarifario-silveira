@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import MultiSelectTable, { Column } from '@/components/ui/multi-select-table';
+import MultiSelectTable from '@/components/ui/multi-select-table';
+import { ColumnDef } from '@tanstack/react-table';
 import PeriodDialog from '@/components/PeriodDialog';
 import CategoryPriceDialog from '@/components/CategoryPriceDialog';
 import DuplicateDialog from '@/components/DuplicateDialog';
@@ -170,22 +171,22 @@ const PeriodsPage: React.FC = () => {
     }
   };
   
-  const periodColumns: Column<PricePeriod>[] = [
+  const periodColumns: ColumnDef<PricePeriod>[] = [
     {
       id: "name",
       header: "Nome",
-      cell: (row) => (
-        <div className="font-medium">{row.name}</div>
+      cell: ({ row }) => (
+        <div className="font-medium">{row.original.name}</div>
       ),
     },
     {
       id: "dateRange",
       header: "Período",
-      cell: (row) => (
+      cell: ({ row }) => (
         <div className="flex items-center">
           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
           <span>
-            {format(new Date(row.startDate), 'dd/MM/yyyy')} - {format(new Date(row.endDate), 'dd/MM/yyyy')}
+            {format(new Date(row.original.startDate), 'dd/MM/yyyy')} - {format(new Date(row.original.endDate), 'dd/MM/yyyy')}
           </span>
         </div>
       ),
@@ -193,18 +194,18 @@ const PeriodsPage: React.FC = () => {
     {
       id: "isHoliday",
       header: "Tipo",
-      cell: (row) => (
+      cell: ({ row }) => (
         <div>
-          {row.isHoliday ? 'Feriado/Especial' : 'Regular'}
+          {row.original.isHoliday ? 'Feriado/Especial' : 'Regular'}
         </div>
       ),
     },
     {
       id: "minimumStay",
       header: "Estadia Mínima",
-      cell: (row) => (
+      cell: ({ row }) => (
         <div>
-          {row.minimumStay} {row.minimumStay === 1 ? 'diária' : 'diárias'}
+          {row.original.minimumStay} {row.original.minimumStay === 1 ? 'diária' : 'diárias'}
         </div>
       ),
     },
@@ -259,7 +260,6 @@ const PeriodsPage: React.FC = () => {
             getRowId={(row) => row.id}
             onEdit={handleEditPeriods}
             onDelete={handleDeletePeriods}
-            onSelectionChange={setSelectedPeriodIds}
           />
         </TabsContent>
         
