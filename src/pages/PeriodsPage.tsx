@@ -195,9 +195,7 @@ const PeriodsPage: React.FC = () => {
             <div className="flex gap-2">
               
               
-              <Button variant="outline" onClick={() => handleDuplicatePeriods(selectedPeriodIds)} disabled={selectedPeriodIds.length !== 1}>
-                <Copy className="mr-2 h-4 w-4" /> Duplicar Período
-              </Button>
+              
             </div>
             
             <Button onClick={handleAddPeriod}>
