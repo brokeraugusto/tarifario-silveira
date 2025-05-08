@@ -12,6 +12,7 @@ import { Accommodation, BlockReasonType } from '@/types';
 import { blockAccommodation, unblockAccommodation } from '@/integrations/supabase/services/accommodations/blocking';
 import { DatePickerWithRange } from '@/components/DatePickerWithRange';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface BlockDialogProps {
   accommodation: Accommodation | null;
@@ -27,17 +28,18 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
   const [note, setNote] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
-    to: new Date(new Date().setDate(new Date().getDate() + 7)) // Default to 7 days
+    to: new Date(new Date().setDate(new Date().getDate() + 7)) // Padrão para 7 dias
   });
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Reset form when dialog opens or accommodation changes
+  // Reset do formulário quando o diálogo abre ou a acomodação muda
   useEffect(() => {
     if (isOpen && accommodation) {
       setReason(accommodation.blockReason || 'maintenance');
       setNote(accommodation.blockNote || '');
       
-      // If the accommodation has block period, use it
-      if (accommodation.blockPeriod) {
+      // Se a acomodação tem período de bloqueio, utilize-o
+      if (accommodation.blockPeriod && accommodation.blockPeriod.from && accommodation.blockPeriod.to) {
         setDateRange({
           from: new Date(accommodation.blockPeriod.from),
           to: new Date(accommodation.blockPeriod.to)
@@ -78,6 +80,7 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
       return;
     }
     
+    setIsLoading(true);
     try {
       const blockPeriod = {
         from: dateRange.from,
@@ -93,12 +96,15 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
         toast.error("Erro ao bloquear acomodação");
       }
     } catch (error) {
-      toast.error("Erro ao bloquear acomodação");
-      console.error(error);
+      console.error("Erro ao bloquear acomodação:", error);
+      toast.error("Erro ao bloquear acomodação. Verifique o console para mais detalhes.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
   const handleUnblock = async () => {
+    setIsLoading(true);
     try {
       const updated = await unblockAccommodation(accommodation.id);
       if (updated) {
@@ -109,8 +115,10 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
         toast.error("Erro ao desbloquear acomodação");
       }
     } catch (error) {
-      toast.error("Erro ao desbloquear acomodação");
-      console.error(error);
+      console.error("Erro ao desbloquear acomodação:", error);
+      toast.error("Erro ao desbloquear acomodação. Verifique o console para mais detalhes.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -181,9 +189,10 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
                 variant="destructive" 
                 onClick={handleBlock}
                 className="flex items-center gap-2"
+                disabled={isLoading}
               >
                 <Lock className="h-4 w-4" />
-                Bloquear
+                {isLoading ? 'Bloqueando...' : 'Bloquear'}
               </Button>
             </DialogFooter>
           </>
@@ -194,9 +203,9 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
                 <p className="text-sm font-medium">Motivo atual: {accommodation.blockReason}</p>
               )}
               
-              {accommodation.blockPeriod && (
+              {accommodation.blockPeriod && accommodation.blockPeriod.from && accommodation.blockPeriod.to && (
                 <p className="text-sm font-medium">
-                  Período: {format(new Date(accommodation.blockPeriod.from), 'dd/MM/yyyy')} até {format(new Date(accommodation.blockPeriod.to), 'dd/MM/yyyy')}
+                  Período: {format(new Date(accommodation.blockPeriod.from), 'dd/MM/yyyy', { locale: ptBR })} até {format(new Date(accommodation.blockPeriod.to), 'dd/MM/yyyy', { locale: ptBR })}
                 </p>
               )}
               
@@ -213,9 +222,10 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
                 variant="default" 
                 onClick={handleUnblock}
                 className="flex items-center gap-2"
+                disabled={isLoading}
               >
                 <Unlock className="h-4 w-4" />
-                Desbloquear
+                {isLoading ? 'Desbloqueando...' : 'Desbloquear'}
               </Button>
             </DialogFooter>
           </>
