@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -133,27 +132,15 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
     try {
       let result;
       
-      // Garante que estamos usando datas sem timezone para evitar deslocamento de horário
-      const createUtcDate = (date: Date): Date => {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const day = date.getDate();
-        return new Date(Date.UTC(year, month, day, 12, 0, 0));
-      };
-      
-      const startDate = createUtcDate(values.startDate);
-      const endDate = createUtcDate(values.endDate);
-      
+      // We'll now rely on the service function to handle dates correctly
       if (currentPeriod || periodId) {
         const id = periodId || currentPeriod?.id || '';
         console.log(`Updating period with id ${id}:`, values);
-        console.log(`Start date: ${startDate.toISOString()}`);
-        console.log(`End date: ${endDate.toISOString()}`);
         
         result = await updatePricePeriod(id, {
           name: values.name,
-          startDate,
-          endDate,
+          startDate: values.startDate,
+          endDate: values.endDate,
           minimumStay: values.minimumStay,
           isHoliday: values.isHoliday
         });
@@ -163,13 +150,11 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
         }
       } else {
         console.log("Creating new period:", values);
-        console.log(`Start date: ${startDate.toISOString()}`);
-        console.log(`End date: ${endDate.toISOString()}`);
         
         result = await createPricePeriod({
           name: values.name,
-          startDate,
-          endDate,
+          startDate: values.startDate,
+          endDate: values.endDate,
           minimumStay: values.minimumStay,
           isHoliday: values.isHoliday
         });

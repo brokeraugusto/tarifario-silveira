@@ -28,6 +28,7 @@ const PeriodsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
   const [periodToDuplicate, setPeriodToDuplicate] = useState<PricePeriod | null>(null);
+  const [isUpdatingPeriods, setIsUpdatingPeriods] = useState(false);
   useEffect(() => {
     fetchPeriods();
   }, []);
@@ -193,9 +194,29 @@ const PeriodsPage: React.FC = () => {
         <TabsContent value="periods" className="space-y-4 mt-4">
           <div className="flex justify-between">
             <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={handleDuplicatePeriods}
+                disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
+              >
+                <Copy className="mr-2 h-4 w-4" /> Duplicar
+              </Button>
               
+              <Button
+                variant="outline"
+                onClick={() => handleEditPeriods(selectedPeriodIds)}
+                disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
+              >
+                Editar
+              </Button>
               
-              
+              <Button
+                variant="outline"
+                onClick={() => handleDeletePeriods(selectedPeriodIds)}
+                disabled={selectedPeriodIds.length === 0 || isUpdatingPeriods || loading}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Excluir
+              </Button>
             </div>
             
             <Button onClick={handleAddPeriod}>
@@ -203,7 +224,14 @@ const PeriodsPage: React.FC = () => {
             </Button>
           </div>
           
-          <MultiSelectTable data={periods} columns={periodColumns} getRowId={row => row.id} onEdit={handleEditPeriods} onDelete={handleDeletePeriods} />
+          <MultiSelectTable 
+            data={periods} 
+            columns={periodColumns} 
+            getRowId={row => row.id} 
+            onEdit={handleEditPeriods} 
+            onDelete={handleDeletePeriods} 
+            onSelectedRowsChange={setSelectedPeriodIds}
+          />
         </TabsContent>
         
         <TabsContent value="prices" className="space-y-6 mt-4">

@@ -3,6 +3,23 @@ import { supabase } from '../client';
 import { PricePeriod } from '@/types';
 
 /**
+ * Helper function to ensure consistent date handling
+ * Uses noon UTC to avoid timezone issues
+ */
+const toISODateString = (date: Date): string => {
+  // Ensure we're working with a fresh date object
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  
+  // Create a new date at noon UTC
+  const utcDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
+  
+  // Return only the date part (YYYY-MM-DD)
+  return utcDate.toISOString().split('T')[0];
+};
+
+/**
  * Fetches all price periods from the database
  */
 export const getAllPricePeriods = async (): Promise<PricePeriod[]> => {
@@ -20,8 +37,9 @@ export const getAllPricePeriods = async (): Promise<PricePeriod[]> => {
     return data.map(period => ({
       id: period.id,
       name: period.name,
-      startDate: new Date(period.start_date),
-      endDate: new Date(period.end_date),
+      // Parse dates correctly with proper timezone handling
+      startDate: new Date(period.start_date + 'T12:00:00Z'),
+      endDate: new Date(period.end_date + 'T12:00:00Z'),
       isHoliday: period.is_holiday || false,
       minimumStay: period.minimum_stay || 1
     }));
@@ -38,16 +56,18 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
   try {
     console.log('Creating price period:', period);
     
-    // Ajusta as datas para corrigir o problema de fuso horário
-    const startDate = new Date(period.startDate);
-    const endDate = new Date(period.endDate);
+    // Use our helper function to ensure consistent date strings
+    const startDateStr = toISODateString(period.startDate);
+    const endDateStr = toISODateString(period.endDate);
+    
+    console.log(`Using start_date: ${startDateStr}, end_date: ${endDateStr}`);
     
     const { data, error } = await supabase
       .from('price_periods')
       .insert({
         name: period.name,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
+        start_date: startDateStr,
+        end_date: endDateStr,
         is_holiday: period.isHoliday,
         minimum_stay: period.minimumStay
       })
@@ -67,8 +87,9 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
     return {
       id: data.id,
       name: data.name,
-      startDate: new Date(data.start_date),
-      endDate: new Date(data.end_date),
+      // Parse dates with proper timezone handling
+      startDate: new Date(data.start_date + 'T12:00:00Z'),
+      endDate: new Date(data.end_date + 'T12:00:00Z'),
       isHoliday: data.is_holiday || false,
       minimumStay: data.minimum_stay || 1
     };
@@ -86,8 +107,8 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
     const dbUpdates: any = {};
     
     if (updates.name !== undefined) dbUpdates.name = updates.name;
-    if (updates.startDate !== undefined) dbUpdates.start_date = updates.startDate.toISOString().split('T')[0];
-    if (updates.endDate !== undefined) dbUpdates.end_date = updates.endDate.toISOString().split('T')[0];
+    if (updates.startDate !== undefined) dbUpdates.start_date = toISODateString(updates.startDate);
+    if (updates.endDate !== undefined) dbUpdates.end_date = toISODateString(updates.endDate);
     if (updates.isHoliday !== undefined) dbUpdates.is_holiday = updates.isHoliday;
     if (updates.minimumStay !== undefined) dbUpdates.minimum_stay = updates.minimumStay;
     
@@ -106,8 +127,9 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
     return {
       id: data.id,
       name: data.name,
-      startDate: new Date(data.start_date),
-      endDate: new Date(data.end_date),
+      // Parse dates with proper timezone handling
+      startDate: new Date(data.start_date + 'T12:00:00Z'),
+      endDate: new Date(data.end_date + 'T12:00:00Z'),
       isHoliday: data.is_holiday || false,
       minimumStay: data.minimum_stay || 1
     };
@@ -156,7 +178,7 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
  */
 export const findPeriodForDate = async (date: Date): Promise<PricePeriod | null> => {
   try {
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = toISODateString(date);
 
     // First check holiday periods
     const { data: holidayPeriods, error: holidayError } = await supabase
@@ -176,8 +198,9 @@ export const findPeriodForDate = async (date: Date): Promise<PricePeriod | null>
       return {
         id: period.id,
         name: period.name,
-        startDate: new Date(period.start_date),
-        endDate: new Date(period.end_date),
+        // Parse dates with proper timezone handling
+        startDate: new Date(period.start_date + 'T12:00:00Z'),
+        endDate: new Date(period.end_date + 'T12:00:00Z'),
         isHoliday: period.is_holiday || false,
         minimumStay: period.minimum_stay || 1
       };
@@ -201,8 +224,9 @@ export const findPeriodForDate = async (date: Date): Promise<PricePeriod | null>
       return {
         id: period.id,
         name: period.name,
-        startDate: new Date(period.start_date),
-        endDate: new Date(period.end_date),
+        // Parse dates with proper timezone handling
+        startDate: new Date(period.start_date + 'T12:00:00Z'),
+        endDate: new Date(period.end_date + 'T12:00:00Z'),
         isHoliday: period.is_holiday || false,
         minimumStay: period.minimum_stay || 1
       };
@@ -308,8 +332,9 @@ export const duplicatePricePeriod = async (periodId: string, newName: string): P
     return {
       id: newPeriodData.id,
       name: newPeriodData.name,
-      startDate: new Date(newPeriodData.start_date),
-      endDate: new Date(newPeriodData.end_date),
+      // Parse dates with proper timezone handling
+      startDate: new Date(newPeriodData.start_date + 'T12:00:00Z'),
+      endDate: new Date(newPeriodData.end_date + 'T12:00:00Z'),
       isHoliday: newPeriodData.is_holiday || false,
       minimumStay: newPeriodData.minimum_stay || 1
     };
