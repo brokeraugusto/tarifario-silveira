@@ -17,10 +17,11 @@ export const blockAccommodation = async (
 
     // Garantir que as datas são objetos Date válidos
     if (blockPeriod) {
-      // Formatação correta para armazenamento em JSONB no Postgres
+      // Mantenha as datas como objetos Date para o TypeScript
+      // mas formate-as como strings ISO para o JSONB no Postgres
       const formattedBlockPeriod = {
-        from: blockPeriod.from instanceof Date ? blockPeriod.from.toISOString() : new Date(blockPeriod.from).toISOString(),
-        to: blockPeriod.to instanceof Date ? blockPeriod.to.toISOString() : new Date(blockPeriod.to).toISOString()
+        from: blockPeriod.from,
+        to: blockPeriod.to
       };
 
       return await updateAccommodation(id, { 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
@@ -15,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { buttonVariants } from "@/components/ui/button"
+import { DatePickerWithRange } from "@/components/DatePickerWithRange";
 
 interface SearchFormProps {
   dateRange: DateRange | undefined;
@@ -28,16 +29,6 @@ interface SearchFormProps {
   loading: boolean;
   disablePastDates?: boolean;
 }
-
-type CalendarProps = React.ComponentProps<typeof Calendar>;
-
-export type DatePickerWithRangeProps = {
-  dateRange: DateRange | undefined;
-  onDateRangeChange: (dateRange: DateRange | undefined) => void;
-  className?: string;
-  disablePastDates?: boolean;
-  align?: "start" | "center" | "end";
-};
 
 const SearchForm = ({
   dateRange,

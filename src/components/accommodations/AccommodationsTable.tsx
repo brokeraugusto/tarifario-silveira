@@ -103,9 +103,12 @@ const AccommodationsTable: React.FC<AccommodationsTableProps> = ({
       onBlock={(ids) => onBlock(ids[0])}
       onActivate={onActivate}
       onRowClick={(row) => onViewDetails(row.id)}
-      getRowAttributes={(row) => ({
-        'data-is-blocked': row.isBlocked
-      })}
+      getRowAttributes={(rowId) => {
+        const accommodation = accommodations.find(acc => acc.id === rowId);
+        return {
+          'data-is-blocked': accommodation?.isBlocked ? 'true' : 'false'
+        };
+      }}
     />
   );
 };

@@ -42,7 +42,7 @@ const TableBodyComponent = <T,>({
             data-row-id={rowId}
             {...rowAttributes}
           >
-            <TableCell padding="checkbox">
+            <TableCell className="p-0">
               <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(checked) => row.toggleSelected(!!checked)}
@@ -52,7 +52,8 @@ const TableBodyComponent = <T,>({
             </TableCell>
             {row.getVisibleCells().map(cell => (
               <TableCell key={cell.id}>
-                {cell.column.columnDef.cell && cell.column.columnDef.cell(cell)}
+                {cell.column.columnDef.cell && typeof cell.column.columnDef.cell === 'function' && 
+                  cell.column.columnDef.cell(cell)}
               </TableCell>
             ))}
           </TableRow>
