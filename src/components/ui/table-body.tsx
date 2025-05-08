@@ -53,7 +53,7 @@ const TableBodyComponent = <T,>({
             {row.getVisibleCells().map(cell => (
               <TableCell key={cell.id}>
                 {cell.column.columnDef.cell && typeof cell.column.columnDef.cell === 'function' && 
-                  cell.column.columnDef.cell(cell)}
+                  cell.column.columnDef.cell(cell.getContext())}
               </TableCell>
             ))}
           </TableRow>
