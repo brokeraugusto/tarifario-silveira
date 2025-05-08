@@ -90,7 +90,7 @@ export default function MultiSelectTable<T>({
             getRowAttributes={getRowAttributes ? 
               (rowId) => {
                 const row = data.find(item => getRowId(item) === rowId);
-                return row ? getRowAttributes(row) : {};
+                return row && getRowAttributes ? getRowAttributes(row) : {};
               } : undefined}
           />
         </Table>

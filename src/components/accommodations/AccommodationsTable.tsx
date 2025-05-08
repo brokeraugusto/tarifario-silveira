@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -103,10 +102,9 @@ const AccommodationsTable: React.FC<AccommodationsTableProps> = ({
       onBlock={(ids) => onBlock(ids[0])}
       onActivate={onActivate}
       onRowClick={(row) => onViewDetails(row.id)}
-      getRowAttributes={(rowId: string) => {
-        const accommodation = accommodations.find(acc => acc.id === rowId);
+      getRowAttributes={(row: Accommodation) => {
         return {
-          'data-is-blocked': accommodation ? (accommodation.isBlocked ? 'true' : 'false') : 'false'
+          'data-is-blocked': row.isBlocked ? 'true' : 'false'
         };
       }}
     />
