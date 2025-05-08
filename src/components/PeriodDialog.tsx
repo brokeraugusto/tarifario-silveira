@@ -133,23 +133,22 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
     try {
       let result;
       
-      // Format dates properly to prevent timezone issues
-      const formatDateToYYYYMMDD = (date: Date): string => {
+      // Garante que estamos usando datas sem timezone para evitar deslocamento de horário
+      const createUtcDate = (date: Date): Date => {
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const month = date.getMonth();
+        const day = date.getDate();
+        return new Date(Date.UTC(year, month, day, 12, 0, 0));
       };
       
-      // Create date objects that don't have timezone information to avoid date shifts
-      const startDate = new Date(formatDateToYYYYMMDD(values.startDate));
-      const endDate = new Date(formatDateToYYYYMMDD(values.endDate));
+      const startDate = createUtcDate(values.startDate);
+      const endDate = createUtcDate(values.endDate);
       
       if (currentPeriod || periodId) {
         const id = periodId || currentPeriod?.id || '';
         console.log(`Updating period with id ${id}:`, values);
-        console.log(`Start date (formatted): ${formatDateToYYYYMMDD(values.startDate)}`);
-        console.log(`End date (formatted): ${formatDateToYYYYMMDD(values.endDate)}`);
+        console.log(`Start date: ${startDate.toISOString()}`);
+        console.log(`End date: ${endDate.toISOString()}`);
         
         result = await updatePricePeriod(id, {
           name: values.name,
@@ -164,8 +163,8 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
         }
       } else {
         console.log("Creating new period:", values);
-        console.log(`Start date (formatted): ${formatDateToYYYYMMDD(values.startDate)}`);
-        console.log(`End date (formatted): ${formatDateToYYYYMMDD(values.endDate)}`);
+        console.log(`Start date: ${startDate.toISOString()}`);
+        console.log(`End date: ${endDate.toISOString()}`);
         
         result = await createPricePeriod({
           name: values.name,

@@ -1,3 +1,4 @@
+
 import { supabase } from '../client';
 import { PricePeriod } from '@/types';
 
@@ -37,12 +38,16 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
   try {
     console.log('Creating price period:', period);
     
+    // Ajusta as datas para corrigir o problema de fuso horário
+    const startDate = new Date(period.startDate);
+    const endDate = new Date(period.endDate);
+    
     const { data, error } = await supabase
       .from('price_periods')
       .insert({
         name: period.name,
-        start_date: period.startDate.toISOString().split('T')[0],
-        end_date: period.endDate.toISOString().split('T')[0],
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
         is_holiday: period.isHoliday,
         minimum_stay: period.minimumStay
       })
