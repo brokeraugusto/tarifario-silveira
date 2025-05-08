@@ -21,6 +21,7 @@ interface MultiSelectTableProps<T> extends ActionHandlers {
   getRowId: (row: T) => string;
   onRowClick?: (row: T) => void;
   customActions?: CustomAction[];
+  getRowAttributes?: (row: T) => Record<string, string>;
 }
 
 export default function MultiSelectTable<T>({
@@ -33,7 +34,8 @@ export default function MultiSelectTable<T>({
   getRowId,
   onRowClick,
   customActions = [],
-  onCustomAction
+  onCustomAction,
+  getRowAttributes
 }: MultiSelectTableProps<T>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
@@ -85,6 +87,11 @@ export default function MultiSelectTable<T>({
             onRowClick={onRowClick}
             handleContextMenu={handleContextMenu}
             columns={columns.length}
+            getRowAttributes={getRowAttributes ? 
+              (rowId) => {
+                const row = data.find(item => getRowId(item) === rowId);
+                return row ? getRowAttributes(row) : {};
+              } : undefined}
           />
         </Table>
       </div>

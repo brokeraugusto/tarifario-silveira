@@ -37,6 +37,9 @@ const TableContextMenu: React.FC<TableContextMenuProps> = ({
 }) => {
   if (!rowId) return null;
 
+  // Verifica se a acomodação está bloqueada para determinar qual ação mostrar
+  const isAccommodationBlocked = document.querySelector(`[data-row-id="${rowId}"]`)?.getAttribute('data-is-blocked') === 'true';
+
   return (
     <ContextMenu onOpenChange={onOpenChange}>
       <ContextMenuTrigger>
@@ -62,7 +65,7 @@ const TableContextMenu: React.FC<TableContextMenuProps> = ({
               <span>Editar</span>
             </ContextMenuItem>
           )}
-          {onBlock && (
+          {onBlock && !isAccommodationBlocked && (
             <ContextMenuItem onClick={() => {
               onBlock([rowId]);
               onOpenChange(false);
@@ -71,7 +74,7 @@ const TableContextMenu: React.FC<TableContextMenuProps> = ({
               <span>Bloquear</span>
             </ContextMenuItem>
           )}
-          {onActivate && (
+          {onActivate && isAccommodationBlocked && (
             <ContextMenuItem onClick={() => {
               onActivate([rowId]);
               onOpenChange(false);

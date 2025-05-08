@@ -17,18 +17,25 @@ export const blockAccommodation = async (
 
     // Garantir que as datas são objetos Date válidos
     if (blockPeriod) {
-      blockPeriod = {
-        from: blockPeriod.from instanceof Date ? blockPeriod.from : new Date(blockPeriod.from),
-        to: blockPeriod.to instanceof Date ? blockPeriod.to : new Date(blockPeriod.to)
+      // Formatação correta para armazenamento em JSONB no Postgres
+      const formattedBlockPeriod = {
+        from: blockPeriod.from instanceof Date ? blockPeriod.from.toISOString() : new Date(blockPeriod.from).toISOString(),
+        to: blockPeriod.to instanceof Date ? blockPeriod.to.toISOString() : new Date(blockPeriod.to).toISOString()
       };
-    }
 
-    return await updateAccommodation(id, { 
-      isBlocked: true, 
-      blockReason: reason, 
-      blockNote: note,
-      blockPeriod: blockPeriod
-    });
+      return await updateAccommodation(id, { 
+        isBlocked: true, 
+        blockReason: reason, 
+        blockNote: note,
+        blockPeriod: formattedBlockPeriod
+      });
+    } else {
+      return await updateAccommodation(id, { 
+        isBlocked: true, 
+        blockReason: reason, 
+        blockNote: note
+      });
+    }
   } catch (error) {
     console.error('Erro ao bloquear acomodação:', error);
     throw error; // Re-throw para permitir tratamento adequado no nível de UI

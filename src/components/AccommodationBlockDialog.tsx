@@ -122,6 +122,18 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
     }
   };
   
+  const reasonLabels: Record<BlockReasonType, string> = {
+    'maintenance': 'Manutenção',
+    'reserved': 'Reservado',
+    'unavailable': 'Indisponível',
+    'other': 'Outro',
+    'Reforma': 'Reforma',
+    'Manutenção': 'Manutenção',
+    'Locação Mensal': 'Locação Mensal',
+    'Locação Anual': 'Locação Anual',
+    'Outro': 'Outro'
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -200,7 +212,9 @@ const AccommodationBlockDialog: React.FC<BlockDialogProps> = ({
           <>
             <div className="py-4 space-y-2">
               {accommodation.blockReason && (
-                <p className="text-sm font-medium">Motivo atual: {accommodation.blockReason}</p>
+                <p className="text-sm font-medium">
+                  Motivo atual: {reasonLabels[accommodation.blockReason] || accommodation.blockReason}
+                </p>
               )}
               
               {accommodation.blockPeriod && accommodation.blockPeriod.from && accommodation.blockPeriod.to && (

@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           album_url: string | null
           block_note: string | null
+          block_period: Json | null
           block_reason: string | null
           capacity: number
           category: string
@@ -29,6 +30,7 @@ export type Database = {
         Insert: {
           album_url?: string | null
           block_note?: string | null
+          block_period?: Json | null
           block_reason?: string | null
           capacity: number
           category: string
@@ -45,6 +47,7 @@ export type Database = {
         Update: {
           album_url?: string | null
           block_note?: string | null
+          block_period?: Json | null
           block_reason?: string | null
           capacity?: number
           category?: string

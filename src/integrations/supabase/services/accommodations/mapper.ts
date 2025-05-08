@@ -27,10 +27,32 @@ const toDatabase = (
 // Convert database object to accommodation format
 const fromDatabase = (data: Record<string, any>): Accommodation => {
   // Parse dates if they exist
-  const blockPeriod = data.block_period ? {
-    from: new Date(data.block_period.from),
-    to: new Date(data.block_period.to)
-  } : undefined;
+  let blockPeriod = undefined;
+  
+  if (data.block_period) {
+    try {
+      // Se já é um objeto, converter as datas para objetos Date
+      if (typeof data.block_period === 'object') {
+        blockPeriod = {
+          from: new Date(data.block_period.from),
+          to: new Date(data.block_period.to)
+        };
+      } else {
+        // Se for uma string JSON, parsear primeiro
+        const parsed = typeof data.block_period === 'string' 
+          ? JSON.parse(data.block_period)
+          : data.block_period;
+        
+        blockPeriod = {
+          from: new Date(parsed.from),
+          to: new Date(parsed.to)
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao converter block_period:', error);
+      blockPeriod = undefined;
+    }
+  }
   
   return {
     id: data.id,

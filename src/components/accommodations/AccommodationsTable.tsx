@@ -103,6 +103,9 @@ const AccommodationsTable: React.FC<AccommodationsTableProps> = ({
       onBlock={(ids) => onBlock(ids[0])}
       onActivate={onActivate}
       onRowClick={(row) => onViewDetails(row.id)}
+      getRowAttributes={(row) => ({
+        'data-is-blocked': row.isBlocked
+      })}
     />
   );
 };
