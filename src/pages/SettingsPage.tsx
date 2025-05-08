@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Settings, Info, AlertTriangle, Database } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -8,13 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DatabaseCleanupDialog from '@/components/DatabaseCleanupDialog';
-
 const SettingsPage = () => {
   const isMobile = useIsMobile();
   const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
-
-  return (
-    <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
+  return <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-hotel-navy">Configurações</h1>
         <p className="text-muted-foreground mt-2">Gerencie as configurações do sistema.</p>
@@ -73,11 +69,7 @@ const SettingsPage = () => {
             <p className="text-sm text-muted-foreground mt-1 mb-3">
               Remove permanentemente dados do sistema. Esta ação não pode ser desfeita.
             </p>
-            <Button 
-              variant="destructive" 
-              className="flex items-center gap-2"
-              onClick={() => setIsCleanupDialogOpen(true)}
-            >
+            <Button variant="destructive" className="flex items-center gap-2" onClick={() => setIsCleanupDialogOpen(true)}>
               <Database className="h-4 w-4" />
               Limpar Banco de Dados
             </Button>
@@ -110,7 +102,7 @@ const SettingsPage = () => {
         <CardContent className={`space-y-2 ${isMobile ? "p-4 pt-0" : ""}`}>
           <div>
             <Label className="text-base">Versão</Label>
-            <p className="text-sm text-muted-foreground">1.0.1</p>
+            <p className="text-sm text-muted-foreground">1.0.2</p>
           </div>
           
           <div>
@@ -125,13 +117,7 @@ const SettingsPage = () => {
         </CardContent>
       </Card>
       
-      <DatabaseCleanupDialog 
-        isOpen={isCleanupDialogOpen} 
-        onOpenChange={setIsCleanupDialogOpen} 
-        onCleanupComplete={() => {}} 
-      />
-    </div>
-  );
+      <DatabaseCleanupDialog isOpen={isCleanupDialogOpen} onOpenChange={setIsCleanupDialogOpen} onCleanupComplete={() => {}} />
+    </div>;
 };
-
 export default SettingsPage;
