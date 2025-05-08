@@ -106,7 +106,7 @@ const AccommodationsTable: React.FC<AccommodationsTableProps> = ({
       getRowAttributes={(rowId) => {
         const accommodation = accommodations.find(acc => acc.id === rowId);
         return {
-          'data-is-blocked': accommodation?.isBlocked ? 'true' : 'false'
+          'data-is-blocked': accommodation ? accommodation.isBlocked.toString() : 'false'
         };
       }}
     />
