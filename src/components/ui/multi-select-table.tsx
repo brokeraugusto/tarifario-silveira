@@ -22,6 +22,7 @@ interface MultiSelectTableProps<T> extends ActionHandlers {
   onRowClick?: (row: T) => void;
   customActions?: CustomAction[];
   getRowAttributes?: (row: T) => Record<string, string>;
+  onSelectedRowsChange?: (ids: string[]) => void; // Add this prop
 }
 
 export default function MultiSelectTable<T>({
@@ -35,18 +36,34 @@ export default function MultiSelectTable<T>({
   onRowClick,
   customActions = [],
   onCustomAction,
-  getRowAttributes
+  getRowAttributes,
+  onSelectedRowsChange
 }: MultiSelectTableProps<T>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
   const [contextMenuRowId, setContextMenuRowId] = React.useState<string | null>(null);
+
+  // Update rowSelection handler to call onSelectedRowsChange when selection changes
+  const handleRowSelectionChange = (newSelection: any) => {
+    setRowSelection(newSelection);
+    
+    if (onSelectedRowsChange) {
+      const selectedIds = Object.keys(newSelection).map(key => {
+        // Find the row with this index and get its ID
+        const rowData = data.find((_, index) => index.toString() === key);
+        return rowData ? getRowId(rowData) : '';
+      }).filter(id => id !== '');
+      
+      onSelectedRowsChange(selectedIds);
+    }
+  };
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: handleRowSelectionChange, // Use our custom handler
     state: {
       rowSelection,
     },
@@ -65,7 +82,10 @@ export default function MultiSelectTable<T>({
   return (
     <div className="space-y-4">
       <ItemActions 
-        selectedIds={Object.keys(rowSelection)}
+        selectedIds={Object.keys(rowSelection).map(key => {
+          const rowData = data.find((_, index) => index.toString() === key);
+          return rowData ? getRowId(rowData) : '';
+        }).filter(id => id !== '')}
         onEdit={onEdit} 
         onDelete={onDelete}
         onBlock={onBlock}

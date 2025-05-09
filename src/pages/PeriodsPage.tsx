@@ -77,6 +77,15 @@ const PeriodsPage: React.FC = () => {
     setSelectedPeriodIds(ids);
     setIsPermanentDeleteDialogOpen(true);
   };
+  const handleDuplicateClick = () => {
+    handleDuplicatePeriods(selectedPeriodIds);
+  };
+  const handleEditClick = () => {
+    handleEditPeriods(selectedPeriodIds);
+  };
+  const handleDeleteClick = () => {
+    handleDeletePeriods(selectedPeriodIds);
+  };
   const confirmDelete = async () => {
     setLoading(true);
     try {
@@ -196,7 +205,7 @@ const PeriodsPage: React.FC = () => {
             <div className="flex gap-2">
               <Button 
                 variant="outline"
-                onClick={handleDuplicatePeriods}
+                onClick={handleDuplicateClick}
                 disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
               >
                 <Copy className="mr-2 h-4 w-4" /> Duplicar
@@ -204,7 +213,7 @@ const PeriodsPage: React.FC = () => {
               
               <Button
                 variant="outline"
-                onClick={() => handleEditPeriods(selectedPeriodIds)}
+                onClick={handleEditClick}
                 disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
               >
                 Editar
@@ -212,7 +221,7 @@ const PeriodsPage: React.FC = () => {
               
               <Button
                 variant="outline"
-                onClick={() => handleDeletePeriods(selectedPeriodIds)}
+                onClick={handleDeleteClick}
                 disabled={selectedPeriodIds.length === 0 || isUpdatingPeriods || loading}
               >
                 <Trash2 className="mr-2 h-4 w-4" /> Excluir
@@ -229,7 +238,7 @@ const PeriodsPage: React.FC = () => {
             columns={periodColumns} 
             getRowId={row => row.id} 
             onEdit={handleEditPeriods} 
-            onDelete={handleDeletePeriods} 
+            onDelete={handleDeletePeriods}
             onSelectedRowsChange={setSelectedPeriodIds}
           />
         </TabsContent>
