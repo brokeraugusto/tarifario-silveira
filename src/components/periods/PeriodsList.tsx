@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Copy, Pencil, Trash2 } from 'lucide-react';
+import { Copy, Pencil, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MultiSelectTable from '@/components/ui/multi-select-table';
 import { ColumnDef } from '@tanstack/react-table';
