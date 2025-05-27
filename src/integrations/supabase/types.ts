@@ -63,6 +63,192 @@ export type Database = {
         }
         Relationships: []
       }
+      areas: {
+        Row: {
+          accommodation_id: string | null
+          area_type: Database["public"]["Enums"]["area_type"]
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          accommodation_id?: string | null
+          area_type: Database["public"]["Enums"]["area_type"]
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          accommodation_id?: string | null
+          area_type?: Database["public"]["Enums"]["area_type"]
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "areas_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          id: string
+          maintenance_order_id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["maintenance_status"]
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          id?: string
+          maintenance_order_id: string
+          notes?: string | null
+          status: Database["public"]["Enums"]["maintenance_status"]
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          id?: string
+          maintenance_order_id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_history_maintenance_order_id_fkey"
+            columns: ["maintenance_order_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_orders: {
+        Row: {
+          actual_hours: number | null
+          area_id: string
+          assigned_to: string | null
+          completed_at: string | null
+          cost: number | null
+          created_at: string
+          description: string
+          estimated_hours: number | null
+          id: string
+          notes: string | null
+          order_number: string
+          priority: Database["public"]["Enums"]["maintenance_priority"]
+          requested_by: string
+          scheduled_date: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["maintenance_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          area_id: string
+          assigned_to?: string | null
+          completed_at?: string | null
+          cost?: number | null
+          created_at?: string
+          description: string
+          estimated_hours?: number | null
+          id?: string
+          notes?: string | null
+          order_number: string
+          priority?: Database["public"]["Enums"]["maintenance_priority"]
+          requested_by: string
+          scheduled_date?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          area_id?: string
+          assigned_to?: string | null
+          completed_at?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string
+          estimated_hours?: number | null
+          id?: string
+          notes?: string | null
+          order_number?: string
+          priority?: Database["public"]["Enums"]["maintenance_priority"]
+          requested_by?: string
+          scheduled_date?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_orders_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_permissions: {
+        Row: {
+          can_create: boolean
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          created_at: string
+          id: string
+          module_name: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          id?: string
+          module_name: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          id?: string
+          module_name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
       price_periods: {
         Row: {
           created_at: string | null
@@ -144,6 +330,39 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -152,7 +371,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      area_type:
+        | "accommodation"
+        | "external_area"
+        | "social_area"
+        | "common_area"
+        | "service_area"
+      maintenance_priority: "low" | "medium" | "high" | "urgent"
+      maintenance_status: "pending" | "in_progress" | "completed" | "cancelled"
+      user_role: "master" | "reception" | "maintenance" | "cleaning" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -267,6 +494,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      area_type: [
+        "accommodation",
+        "external_area",
+        "social_area",
+        "common_area",
+        "service_area",
+      ],
+      maintenance_priority: ["low", "medium", "high", "urgent"],
+      maintenance_status: ["pending", "in_progress", "completed", "cancelled"],
+      user_role: ["master", "reception", "maintenance", "cleaning", "admin"],
+    },
   },
 } as const

@@ -1,0 +1,214 @@
+
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Wrench, Plus, Filter, Calendar, AlertTriangle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getAllMaintenanceOrders, getAllAreas } from '@/integrations/supabase/services/maintenanceService';
+import { MaintenanceOrder, MaintenancePriority, MaintenanceStatus } from '@/types/maintenance';
+
+const MaintenancePage = () => {
+  const isMobile = useIsMobile();
+  const [statusFilter, setStatusFilter] = useState<MaintenanceStatus | 'all'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<MaintenancePriority | 'all'>('all');
+
+  const { data: maintenanceOrders = [], isLoading: loadingOrders } = useQuery({
+    queryKey: ['maintenance-orders'],
+    queryFn: getAllMaintenanceOrders,
+  });
+
+  const { data: areas = [], isLoading: loadingAreas } = useQuery({
+    queryKey: ['areas'],
+    queryFn: getAllAreas,
+  });
+
+  const filteredOrders = maintenanceOrders.filter(order => {
+    if (statusFilter !== 'all' && order.status !== statusFilter) return false;
+    if (priorityFilter !== 'all' && order.priority !== priorityFilter) return false;
+    return true;
+  });
+
+  const getPriorityColor = (priority: MaintenancePriority) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusColor = (status: MaintenanceStatus) => {
+    switch (status) {
+      case 'pending': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  if (loadingOrders || loadingAreas) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hotel-navy mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Carregando ordens de manutenção...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-hotel-navy">Manutenção</h1>
+        <p className="text-muted-foreground mt-2">Gerencie ordens de manutenção e áreas do estabelecimento.</p>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Ordens</CardTitle>
+            <Wrench className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{maintenanceOrders.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {maintenanceOrders.filter(o => o.status === 'pending').length}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
+            <Wrench className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {maintenanceOrders.filter(o => o.status === 'in_progress').length}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Urgentes</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {maintenanceOrders.filter(o => o.priority === 'urgent').length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Actions and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as MaintenanceStatus | 'all')}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+          >
+            <option value="all">Todos os Status</option>
+            <option value="pending">Pendente</option>
+            <option value="in_progress">Em Andamento</option>
+            <option value="completed">Concluído</option>
+            <option value="cancelled">Cancelado</option>
+          </select>
+          
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value as MaintenancePriority | 'all')}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+          >
+            <option value="all">Todas as Prioridades</option>
+            <option value="urgent">Urgente</option>
+            <option value="high">Alta</option>
+            <option value="medium">Média</option>
+            <option value="low">Baixa</option>
+          </select>
+        </div>
+        
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          Nova Ordem de Manutenção
+        </Button>
+      </div>
+
+      {/* Maintenance Orders List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredOrders.map((order) => (
+          <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardHeader className={isMobile ? "p-4" : ""}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-lg">{order.title}</CardTitle>
+                  <CardDescription className="text-sm">
+                    #{order.order_number} • {order.area?.name}
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2 flex-col">
+                  <Badge className={getStatusColor(order.status)}>
+                    {order.status === 'pending' && 'Pendente'}
+                    {order.status === 'in_progress' && 'Em Andamento'}
+                    {order.status === 'completed' && 'Concluído'}
+                    {order.status === 'cancelled' && 'Cancelado'}
+                  </Badge>
+                  <Badge className={getPriorityColor(order.priority)}>
+                    {order.priority === 'urgent' && 'Urgente'}
+                    {order.priority === 'high' && 'Alta'}
+                    {order.priority === 'medium' && 'Média'}
+                    {order.priority === 'low' && 'Baixa'}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className={isMobile ? "p-4 pt-0" : "pt-0"}>
+              <p className="text-sm text-muted-foreground mb-3">{order.description}</p>
+              <div className="flex justify-between items-center text-xs text-muted-foreground">
+                <span>Criado em {new Date(order.created_at).toLocaleDateString('pt-BR')}</span>
+                {order.estimated_hours && (
+                  <span>{order.estimated_hours}h estimadas</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredOrders.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Wrench className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhuma ordem encontrada</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Não há ordens de manutenção que correspondam aos filtros selecionados.
+            </p>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Criar Nova Ordem
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default MaintenancePage;

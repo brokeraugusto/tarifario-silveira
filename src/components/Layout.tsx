@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Bed, Calendar, Settings, Search, Menu, X } from 'lucide-react';
+import { Home, Bed, Calendar, Settings, Search, Menu, X, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -9,18 +10,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import DatabaseCleanupDialog from './DatabaseCleanupDialog';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
-const Layout = ({
-  children
-}: LayoutProps) => {
+
+const Layout = ({ children }: LayoutProps) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
 
   // Close the mobile menu when navigating
   const handleNavigation = () => {
@@ -28,11 +27,15 @@ const Layout = ({
       setIsSidebarOpen(false);
     }
   };
+
   const handleCleanupComplete = () => {
     toast.success("Todos os dados foram removidos com sucesso");
   };
-  return <div className="min-h-screen flex flex-col md:flex-row">
-      {isMobile ? <>
+
+  return (
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {isMobile ? (
+        <>
           <div className="bg-silveira-gray text-white p-4 flex items-center justify-between sticky top-0 z-50">
             <div className="flex items-center">
               <img src="/lovable-uploads/a6911ab3-1a75-4326-9fc0-372d0ab6d779.png" alt="Silveira Eco Village" className="h-10 w-auto" />
@@ -55,41 +58,37 @@ const Layout = ({
                   <nav className="p-4">
                     <ul className="space-y-2">
                       <li>
-                        <NavLink to="/" className={({
-                      isActive
-                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} end onClick={handleNavigation}>
+                        <NavLink to="/" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} end onClick={handleNavigation}>
                           <Home className="w-5 h-5 mr-2" />
                           <span className="text-slate-50">Início</span>
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink to="/search" className={({
-                      isActive
-                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
+                        <NavLink to="/search" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
                           <Search className="w-5 h-5 mr-2" />
                           <span className="text-slate-50">Buscar Acomodações</span>
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink to="/accommodations" className={({
-                      isActive
-                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
+                        <NavLink to="/accommodations" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
                           <Bed className="w-5 h-5 mr-2" />
                           <span className="font-normal text-slate-50">Gerenciar Acomodações</span>
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink to="/periods" className={({
-                      isActive
-                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
+                        <NavLink to="/periods" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
                           <Calendar className="w-5 h-5 mr-2" />
                           <span className="text-slate-50">Períodos e Preços</span>
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink to="/settings" className={({
-                      isActive
-                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
+                        <NavLink to="/maintenance" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
+                          <Wrench className="w-5 h-5 mr-2" />
+                          <span className="text-slate-50">Manutenção</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} onClick={handleNavigation}>
                           <Settings className="w-5 h-5 mr-2" />
                           <span className="text-slate-50">Configurações</span>
                         </NavLink>
@@ -108,7 +107,9 @@ const Layout = ({
           <main className="flex-1 p-4 overflow-x-hidden">
             {children}
           </main>
-        </> : <>
+        </>
+      ) : (
+        <>
           <aside className="bg-silveira-gray text-white min-h-screen w-[250px] fixed left-0 top-0 bottom-0 overflow-y-auto">
             <div className="p-4 flex items-center justify-between border-b border-silveira-green/30">
               <img alt="Silveira Eco Village" src="/lovable-uploads/53dac66f-17e6-433a-8bb7-f777bbe4d70c.png" className="h-8 w-auto object-contain" />
@@ -117,41 +118,37 @@ const Layout = ({
             <nav className="p-4">
               <ul className="space-y-2">
                 <li>
-                  <NavLink to="/" className={({
-                isActive
-              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} end>
+                  <NavLink to="/" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")} end>
                     <Home className="w-5 h-5 mr-2" />
                     <span>Início</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/search" className={({
-                isActive
-              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
+                  <NavLink to="/search" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
                     <Search className="w-5 h-5 mr-2" />
                     <span>Buscar Acomodações</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/accommodations" className={({
-                isActive
-              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
+                  <NavLink to="/accommodations" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
                     <Bed className="w-5 h-5 mr-2" />
                     <span>Gerenciar Acomodações</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/periods" className={({
-                isActive
-              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
+                  <NavLink to="/periods" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
                     <Calendar className="w-5 h-5 mr-2" />
                     <span>Períodos e Preços</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/settings" className={({
-                isActive
-              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
+                  <NavLink to="/maintenance" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
+                    <Wrench className="w-5 h-5 mr-2" />
+                    <span>Manutenção</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-silveira-green text-silveira-gray font-medium" : "hover:bg-silveira-gray/80")}>
                     <Settings className="w-5 h-5 mr-2" />
                     <span>Configurações</span>
                   </NavLink>
@@ -165,9 +162,12 @@ const Layout = ({
           <main className="md:ml-[250px] w-full p-6">
             {children}
           </main>
-        </>}
+        </>
+      )}
       
       <DatabaseCleanupDialog isOpen={isCleanupDialogOpen} onOpenChange={setIsCleanupDialogOpen} onCleanupComplete={handleCleanupComplete} />
-    </div>;
+    </div>
+  );
 };
+
 export default Layout;

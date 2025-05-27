@@ -1,65 +1,3 @@
-export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'Master';
-export type BlockReasonType = 'maintenance' | 'reserved' | 'unavailable' | 'other' | 'Reforma' | 'Manutenção' | 'Locação Mensal' | 'Locação Anual' | 'Outro';
-
-export interface Accommodation {
-  id: string;
-  name: string;
-  roomNumber: string;
-  category: CategoryType;
-  capacity: number;
-  description: string;
-  imageUrl: string;
-  images?: string[];
-  albumUrl?: string; // External album URL
-  isBlocked: boolean;
-  blockReason?: BlockReasonType;
-  blockNote?: string;
-  blockPeriod?: {
-    from: Date;
-    to: Date;
-  };
-}
-
-export interface PricePeriod {
-  id: string;
-  name: string;
-  startDate: Date;
-  endDate: Date;
-  minimumStay?: number;
-  isHoliday?: boolean;
-}
-
-export interface PriceByPeople {
-  id: string;
-  accommodationId: string;
-  periodId: string;
-  people: number;
-  pricePerNight: number;
-  includesBreakfast: boolean;
-}
-
-export interface PriceOption {
-  people: number;
-  withBreakfast: number; 
-  withoutBreakfast: number;
-}
-
-export interface SearchParams {
-  checkIn: Date;
-  checkOut: Date | null;
-  guests: number;
-  includesBreakfast?: boolean;
-}
-
-export interface SearchResult {
-  accommodation: Accommodation;
-  pricePerNight: number;
-  totalPrice: number | null;
-  nights: number | null;
-  isMinStayViolation?: boolean;
-  minimumStay?: number;
-  includesBreakfast: boolean;
-}
 
 export type UserRole = 'master' | 'reception' | 'maintenance' | 'cleaning' | 'admin';
 export type AreaType = 'accommodation' | 'external_area' | 'social_area' | 'common_area' | 'service_area';
@@ -121,4 +59,13 @@ export interface MaintenanceOrder {
   created_at: string;
   updated_at: string;
   area?: Area;
+}
+
+export interface MaintenanceHistory {
+  id: string;
+  maintenance_order_id: string;
+  status: MaintenanceStatus;
+  notes?: string;
+  changed_by: string;
+  created_at: string;
 }
