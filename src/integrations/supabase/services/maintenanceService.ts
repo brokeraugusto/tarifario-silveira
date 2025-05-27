@@ -158,12 +158,19 @@ type CreateMaintenanceOrderInput = {
   scheduled_date?: string;
   estimated_hours?: number;
   notes?: string;
+  order_number?: string; // Made optional since it's auto-generated
 };
 
 export const createMaintenanceOrder = async (order: CreateMaintenanceOrderInput): Promise<MaintenanceOrder> => {
+  // Prepare the data with a placeholder order_number that will be overridden by the trigger
+  const orderData = {
+    ...order,
+    order_number: order.order_number || 'TEMP' // Placeholder that gets replaced by trigger
+  };
+
   const { data, error } = await supabase
     .from('maintenance_orders')
-    .insert(order)
+    .insert(orderData)
     .select(`
       *,
       area:areas(*)
