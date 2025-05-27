@@ -26,15 +26,34 @@ const MaintenancePage = () => {
   const [printPeriod, setPrintPeriod] = useState<'day' | 'week' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const { data: maintenanceOrders = [], isLoading: loadingOrders } = useQuery({
+  const { data: maintenanceOrders = [], isLoading: loadingOrders, error: ordersError } = useQuery({
     queryKey: ['maintenance-orders'],
     queryFn: getAllMaintenanceOrders,
+    staleTime: 30000,
+    retry: 3,
   });
 
-  const { data: areas = [], isLoading: loadingAreas } = useQuery({
+  const { data: areas = [], isLoading: loadingAreas, error: areasError } = useQuery({
     queryKey: ['areas'],
     queryFn: getAllAreas,
+    staleTime: 60000,
+    retry: 3,
   });
+
+  // Show error state if either query failed
+  if (ordersError || areasError) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+          <p className="text-sm text-red-600">Erro ao carregar dados de manutenção</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {ordersError?.message || areasError?.message || 'Erro desconhecido'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const filteredOrders = maintenanceOrders.filter(order => {
     if (statusFilter !== 'all' && order.status !== statusFilter) return false;

@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserPlus, Settings } from 'lucide-react';
+import { Users, UserPlus, Settings, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getAllUserProfiles, updateUserProfile } from '@/integrations/supabase/services/maintenanceService';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,9 +51,11 @@ export default function UserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['user-profiles'],
     queryFn: getAllUserProfiles,
+    staleTime: 30000,
+    retry: 3,
   });
 
   const form = useForm<CreateUserFormData>({
@@ -65,6 +67,8 @@ export default function UserManagement() {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
+      console.log('Creating user with data:', data);
+      
       // Create user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: data.email,
@@ -75,14 +79,20 @@ export default function UserManagement() {
         email_confirm: true,
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
+
+      console.log('User created in auth:', authData);
 
       // Update the user profile with the correct role
       if (authData.user) {
-        await updateUserProfile(authData.user.id, {
+        const updatedProfile = await updateUserProfile(authData.user.id, {
           role: data.role,
           full_name: data.full_name,
         });
+        console.log('Profile updated:', updatedProfile);
       }
 
       return authData;
@@ -97,6 +107,7 @@ export default function UserManagement() {
       setCreateDialogOpen(false);
     },
     onError: (error: any) => {
+      console.error('Error creating user:', error);
       toast({
         title: 'Erro ao criar usuário',
         description: error.message || 'Erro desconhecido',
@@ -107,6 +118,7 @@ export default function UserManagement() {
 
   const toggleUserActiveMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
+      console.log('Toggling user active status:', { userId, isActive });
       return updateUserProfile(userId, { is_active: isActive });
     },
     onSuccess: () => {
@@ -117,6 +129,7 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
     },
     onError: (error) => {
+      console.error('Error toggling user status:', error);
       toast({
         title: 'Erro ao atualizar status',
         description: error instanceof Error ? error.message : 'Erro desconhecido',
@@ -127,6 +140,7 @@ export default function UserManagement() {
 
   const changeUserRoleMutation = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: UserRole }) => {
+      console.log('Changing user role:', { userId, newRole });
       return updateUserProfile(userId, { role: newRole });
     },
     onSuccess: () => {
@@ -137,6 +151,7 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
     },
     onError: (error) => {
+      console.error('Error changing user role:', error);
       toast({
         title: 'Erro ao atualizar função',
         description: error instanceof Error ? error.message : 'Erro desconhecido',
@@ -146,8 +161,23 @@ export default function UserManagement() {
   });
 
   const onSubmit = (data: CreateUserFormData) => {
+    console.log('Form submitted with data:', data);
     createUserMutation.mutate(data);
   };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+          <p className="text-sm text-red-600">Erro ao carregar usuários</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {error instanceof Error ? error.message : 'Erro desconhecido'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -360,6 +390,14 @@ export default function UserManagement() {
               ))}
             </TableBody>
           </Table>
+          
+          {users.length === 0 && (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum usuário encontrado</h3>
+              <p className="text-muted-foreground">Comece criando o primeiro usuário do sistema.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

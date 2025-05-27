@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Clock, User, Calendar, Printer } from 'lucide-react';
+import { MoreHorizontal, Clock, User, Calendar, Printer, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -149,9 +149,11 @@ export default function MaintenanceKanban() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading, error } = useQuery({
     queryKey: ['maintenance-orders'],
     queryFn: getAllMaintenanceOrders,
+    staleTime: 30000,
+    retry: 3,
   });
 
   const updateOrderMutation = useMutation({
@@ -203,6 +205,20 @@ export default function MaintenanceKanban() {
   const handlePrint = () => {
     window.print();
   };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+          <p className="text-sm text-red-600">Erro ao carregar painel Kanban</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {error instanceof Error ? error.message : 'Erro desconhecido'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

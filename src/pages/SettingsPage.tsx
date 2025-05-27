@@ -15,9 +15,23 @@ import UserManagement from '@/components/settings/UserManagement';
 const SettingsPage = () => {
   const isMobile = useIsMobile();
   const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
-  const { data: userProfile } = useUserProfile();
+  const { data: userProfile, isLoading: loadingProfile } = useUserProfile();
 
   const isMasterUser = userProfile?.role === 'master';
+
+  console.log('User profile:', userProfile);
+  console.log('Is master user:', isMasterUser);
+
+  if (loadingProfile) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-hotel-navy mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Carregando configurações...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
@@ -27,7 +41,7 @@ const SettingsPage = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className={`grid w-full ${isMasterUser ? 'grid-cols-2' : 'grid-cols-1'}`}>
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Geral
