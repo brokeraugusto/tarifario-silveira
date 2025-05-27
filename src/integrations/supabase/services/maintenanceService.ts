@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { UserProfile, ModulePermission, Area, MaintenanceOrder, MaintenanceHistory } from '@/types/maintenance';
+import { UserProfile, ModulePermission, Area, MaintenanceOrder, MaintenanceHistory, AreaType } from '@/types/maintenance';
 
 // User Profile Services
 export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
@@ -76,7 +76,7 @@ export const getAllAreas = async (): Promise<Area[]> => {
   return data || [];
 };
 
-export const getAreasByType = async (areaType: string): Promise<Area[]> => {
+export const getAreasByType = async (areaType: AreaType): Promise<Area[]> => {
   const { data, error } = await supabase
     .from('areas')
     .select('*')
@@ -147,7 +147,7 @@ export const getMaintenanceOrderById = async (id: string): Promise<MaintenanceOr
   return data;
 };
 
-export const createMaintenanceOrder = async (order: Omit<MaintenanceOrder, 'id' | 'order_number' | 'created_at' | 'updated_at'>): Promise<MaintenanceOrder> => {
+export const createMaintenanceOrder = async (order: Omit<MaintenanceOrder, 'id' | 'order_number' | 'created_at' | 'updated_at' | 'area'>): Promise<MaintenanceOrder> => {
   const { data, error } = await supabase
     .from('maintenance_orders')
     .insert(order)
