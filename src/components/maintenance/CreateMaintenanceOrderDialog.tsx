@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,10 +66,17 @@ export default function CreateMaintenanceOrderDialog({ children }: CreateMainten
       
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Explicitly construct the order data to ensure proper typing
       const orderData = {
-        ...data,
+        area_id: data.area_id,
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
         requested_by: user.id,
+        assigned_to: data.assigned_to,
         scheduled_date: data.scheduled_date ? format(data.scheduled_date, 'yyyy-MM-dd') : undefined,
+        estimated_hours: data.estimated_hours,
+        notes: data.notes,
       };
 
       const order = await createMaintenanceOrder(orderData);
