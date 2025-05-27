@@ -1,0 +1,73 @@
+
+@media print {
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:break-after-page {
+    break-after: page;
+  }
+
+  .print\:break-before-page {
+    break-before: page;
+  }
+
+  .print\:break-inside-avoid {
+    break-inside: avoid;
+  }
+
+  /* Ensure proper text color for printing */
+  body, * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  /* Specific styles for maintenance print view */
+  .maintenance-print {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Hide unnecessary elements when printing */
+  .no-print,
+  .print\:hidden,
+  nav,
+  header,
+  .sidebar,
+  button,
+  .button {
+    display: none !important;
+  }
+
+  /* Ensure tables print well */
+  table {
+    border-collapse: collapse !important;
+  }
+
+  table, th, td {
+    border: 1px solid #000 !important;
+  }
+
+  /* Kanban cards should stack vertically when printing */
+  .kanban-column {
+    break-inside: avoid;
+    width: 100% !important;
+    margin-bottom: 1cm;
+  }
+
+  .kanban-card {
+    break-inside: avoid;
+    margin-bottom: 0.5cm;
+    border: 1px solid #000 !important;
+    padding: 0.5cm !important;
+  }
+}
