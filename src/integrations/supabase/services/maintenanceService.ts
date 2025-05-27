@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile, ModulePermission, Area, MaintenanceOrder, MaintenanceHistory, AreaType } from '@/types/maintenance';
 
@@ -147,7 +146,21 @@ export const getMaintenanceOrderById = async (id: string): Promise<MaintenanceOr
   return data;
 };
 
-export const createMaintenanceOrder = async (order: Omit<MaintenanceOrder, 'id' | 'order_number' | 'created_at' | 'updated_at' | 'area'>): Promise<MaintenanceOrder> => {
+// Define a more specific type for creating maintenance orders
+type CreateMaintenanceOrderInput = {
+  area_id: string;
+  title: string;
+  description: string;
+  priority: MaintenanceOrder['priority'];
+  status?: MaintenanceOrder['status'];
+  requested_by: string;
+  assigned_to?: string;
+  scheduled_date?: string;
+  estimated_hours?: number;
+  notes?: string;
+};
+
+export const createMaintenanceOrder = async (order: CreateMaintenanceOrderInput): Promise<MaintenanceOrder> => {
   const { data, error } = await supabase
     .from('maintenance_orders')
     .insert(order)
