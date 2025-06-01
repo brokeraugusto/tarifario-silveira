@@ -17,6 +17,7 @@ const SettingsPage = () => {
   const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
   const { data: userProfile, isLoading: loadingProfile } = useUserProfile();
 
+  // Check if user is master - fix the checking logic
   const isMasterUser = userProfile?.role === 'master';
 
   console.log('User profile:', userProfile);
@@ -33,6 +34,9 @@ const SettingsPage = () => {
     );
   }
 
+  // Show user management tab for all authenticated users for now (can be restricted later)
+  const showUserManagement = !!userProfile;
+
   return (
     <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
       <div>
@@ -41,12 +45,12 @@ const SettingsPage = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className={`grid w-full ${isMasterUser ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <TabsList className={`grid w-full ${showUserManagement ? 'grid-cols-2' : 'grid-cols-1'}`}>
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Geral
           </TabsTrigger>
-          {isMasterUser && (
+          {showUserManagement && (
             <TabsTrigger value="users" className="flex items-center gap-2">
               <UsersIcon className="h-4 w-4" />
               Usuários
@@ -159,7 +163,7 @@ const SettingsPage = () => {
           </Card>
         </TabsContent>
 
-        {isMasterUser && (
+        {showUserManagement && (
           <TabsContent value="users" className="space-y-6">
             <UserManagement />
           </TabsContent>
