@@ -368,7 +368,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_profile: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          full_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          is_active: boolean
+          created_at: string
+          updated_at: string
+          created_by: string
+        }[]
+      }
+      is_current_user_master: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       area_type:

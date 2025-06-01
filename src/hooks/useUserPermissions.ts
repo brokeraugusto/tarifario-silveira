@@ -8,6 +8,10 @@ export const useUserProfile = () => {
     queryFn: getCurrentUserProfile,
     staleTime: 300000, // 5 minutes
     retry: 2,
+    // Add error handling to gracefully handle any remaining RLS issues
+    onError: (error) => {
+      console.error('Error fetching user profile:', error);
+    }
   });
 };
 
@@ -17,6 +21,9 @@ export const useUserPermissions = () => {
     queryFn: () => getUserPermissions(''),
     staleTime: 300000, // 5 minutes
     retry: 2,
+    onError: (error) => {
+      console.error('Error fetching user permissions:', error);
+    }
   });
 };
 
@@ -26,5 +33,8 @@ export const useModulePermission = (moduleName: string, permission: 'view' | 'cr
     queryFn: () => hasModulePermission(moduleName, permission),
     staleTime: 300000, // 5 minutes
     retry: 2,
+    onError: (error) => {
+      console.error('Error checking module permission:', error);
+    }
   });
 };
