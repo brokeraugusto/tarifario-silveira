@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Settings, Info, AlertTriangle, Database, Users as UsersIcon } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,17 @@ import UserManagement from '@/components/settings/UserManagement';
 const SettingsPage = () => {
   const isMobile = useIsMobile();
   const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
-  const { data: userProfile, isLoading: loadingProfile } = useUserProfile();
+  const { data: userProfile, isLoading: loadingProfile, error } = useUserProfile();
 
-  // Check if user is master - fix the checking logic
+  console.log('User profile in settings:', userProfile);
+  console.log('Loading profile:', loadingProfile);
+  console.log('Profile error:', error);
+
+  // Check if user is master or admin - show user management for these roles
+  const canManageUsers = userProfile?.role === 'master' || userProfile?.role === 'admin';
   const isMasterUser = userProfile?.role === 'master';
 
-  console.log('User profile:', userProfile);
+  console.log('Can manage users:', canManageUsers);
   console.log('Is master user:', isMasterUser);
 
   if (loadingProfile) {
@@ -34,8 +39,19 @@ const SettingsPage = () => {
     );
   }
 
-  // Show user management tab for all authenticated users for now (can be restricted later)
-  const showUserManagement = !!userProfile;
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+          <p className="text-sm text-red-600">Erro ao carregar configurações</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {error instanceof Error ? error.message : 'Erro desconhecido'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
@@ -45,12 +61,12 @@ const SettingsPage = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className={`grid w-full ${showUserManagement ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2' : 'grid-cols-1'}`}>
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Geral
           </TabsTrigger>
-          {showUserManagement && (
+          {canManageUsers && (
             <TabsTrigger value="users" className="flex items-center gap-2">
               <UsersIcon className="h-4 w-4" />
               Usuários
@@ -163,7 +179,7 @@ const SettingsPage = () => {
           </Card>
         </TabsContent>
 
-        {showUserManagement && (
+        {canManageUsers && (
           <TabsContent value="users" className="space-y-6">
             <UserManagement />
           </TabsContent>

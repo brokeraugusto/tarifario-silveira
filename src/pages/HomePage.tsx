@@ -40,13 +40,13 @@ const HomePage = () => {
         </div>
       </div>
       
-      {/* Statistics Cards */}
+      {/* Statistics Cards - Real data from database */}
       <div>
         <h3 className="text-lg md:text-xl font-semibold text-hotel-navy mb-4">Visão Geral do Sistema</h3>
         <StatisticsCards />
       </div>
       
-      {/* Performance Charts */}
+      {/* Performance Charts - Real data from database */}
       <div>
         <h3 className="text-lg md:text-xl font-semibold text-hotel-navy mb-4">Gráficos de Acompanhamento</h3>
         <PerformanceCharts />
