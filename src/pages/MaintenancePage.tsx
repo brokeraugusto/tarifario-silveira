@@ -1,20 +1,25 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Wrench, Plus, Filter, Calendar, AlertTriangle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Wrench, Plus, Filter, Calendar, AlertTriangle, Eye, CheckCircle, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getAllMaintenanceOrders, getAllAreas } from '@/integrations/supabase/services/maintenanceService';
+import { toast } from 'sonner';
+import { getAllMaintenanceOrders, getAllAreas, updateMaintenanceOrder } from '@/integrations/supabase/services/maintenanceService';
 import { MaintenanceOrder, MaintenancePriority, MaintenanceStatus } from '@/types/maintenance';
 
 const MaintenancePage = () => {
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<MaintenanceStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<MaintenancePriority | 'all'>('all');
+  const [selectedOrder, setSelectedOrder] = useState<MaintenanceOrder | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
-  const { data: maintenanceOrders = [], isLoading: loadingOrders } = useQuery({
+  const { data: maintenanceOrders = [], isLoading: loadingOrders, refetch } = useQuery({
     queryKey: ['maintenance-orders'],
     queryFn: getAllMaintenanceOrders,
   });
@@ -22,6 +27,20 @@ const MaintenancePage = () => {
   const { data: areas = [], isLoading: loadingAreas } = useQuery({
     queryKey: ['areas'],
     queryFn: getAllAreas,
+  });
+
+  const updateOrderMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<MaintenanceOrder> }) => 
+      updateMaintenanceOrder(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance-orders'] });
+      toast.success('Ordem de manutenção atualizada com sucesso');
+      setIsDetailDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error updating maintenance order:', error);
+      toast.error('Erro ao atualizar ordem de manutenção');
+    },
   });
 
   const filteredOrders = maintenanceOrders.filter(order => {
@@ -48,6 +67,24 @@ const MaintenancePage = () => {
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const handleOrderClick = (order: MaintenanceOrder) => {
+    setSelectedOrder(order);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleStatusUpdate = (newStatus: MaintenanceStatus) => {
+    if (!selectedOrder) return;
+    
+    updateOrderMutation.mutate({
+      id: selectedOrder.id,
+      updates: { 
+        status: newStatus,
+        ...(newStatus === 'in_progress' && { started_at: new Date().toISOString() }),
+        ...(newStatus === 'completed' && { completed_at: new Date().toISOString() })
+      }
+    });
   };
 
   if (loadingOrders || loadingAreas) {
@@ -144,26 +181,21 @@ const MaintenancePage = () => {
             <option value="low">Baixa</option>
           </select>
         </div>
-        
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nova Ordem de Manutenção
-        </Button>
       </div>
 
       {/* Maintenance Orders List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredOrders.map((order) => (
-          <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer">
+          <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleOrderClick(order)}>
             <CardHeader className={isMobile ? "p-4" : ""}>
               <div className="flex justify-between items-start">
-                <div>
+                <div className="flex-1">
                   <CardTitle className="text-lg">{order.title}</CardTitle>
                   <CardDescription className="text-sm">
                     #{order.order_number} • {order.area?.name}
                   </CardDescription>
                 </div>
-                <div className="flex gap-2 flex-col">
+                <div className="flex gap-2 flex-col ml-2">
                   <Badge className={getStatusColor(order.status)}>
                     {order.status === 'pending' && 'Pendente'}
                     {order.status === 'in_progress' && 'Em Andamento'}
@@ -180,7 +212,7 @@ const MaintenancePage = () => {
               </div>
             </CardHeader>
             <CardContent className={isMobile ? "p-4 pt-0" : "pt-0"}>
-              <p className="text-sm text-muted-foreground mb-3">{order.description}</p>
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{order.description}</p>
               <div className="flex justify-between items-center text-xs text-muted-foreground">
                 <span>Criado em {new Date(order.created_at).toLocaleDateString('pt-BR')}</span>
                 {order.estimated_hours && (
@@ -200,13 +232,132 @@ const MaintenancePage = () => {
             <p className="text-muted-foreground text-center mb-4">
               Não há ordens de manutenção que correspondam aos filtros selecionados.
             </p>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Criar Nova Ordem
-            </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Order Details Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Detalhes da Ordem #{selectedOrder?.order_number}
+            </DialogTitle>
+            <DialogDescription>
+              Visualize e gerencie esta ordem de manutenção
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <Badge className={`${getStatusColor(selectedOrder.status)} mt-1 block w-fit`}>
+                    {selectedOrder.status === 'pending' && 'Pendente'}
+                    {selectedOrder.status === 'in_progress' && 'Em Andamento'}
+                    {selectedOrder.status === 'completed' && 'Concluído'}
+                    {selectedOrder.status === 'cancelled' && 'Cancelado'}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Prioridade</label>
+                  <Badge className={`${getPriorityColor(selectedOrder.priority)} mt-1 block w-fit`}>
+                    {selectedOrder.priority === 'urgent' && 'Urgente'}
+                    {selectedOrder.priority === 'high' && 'Alta'}
+                    {selectedOrder.priority === 'medium' && 'Média'}
+                    {selectedOrder.priority === 'low' && 'Baixa'}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Título</label>
+                <p className="text-sm text-muted-foreground mt-1">{selectedOrder.title}</p>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Descrição</label>
+                <p className="text-sm text-muted-foreground mt-1">{selectedOrder.description}</p>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Área</label>
+                <p className="text-sm text-muted-foreground mt-1">{selectedOrder.area?.name}</p>
+              </div>
+              
+              {selectedOrder.notes && (
+                <div>
+                  <label className="text-sm font-medium">Observações</label>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedOrder.notes}</p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Criado em</label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {new Date(selectedOrder.created_at).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+                {selectedOrder.estimated_hours && (
+                  <div>
+                    <label className="text-sm font-medium">Horas Estimadas</label>
+                    <p className="text-sm text-muted-foreground mt-1">{selectedOrder.estimated_hours}h</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
+              Fechar
+            </Button>
+            
+            {selectedOrder?.status === 'pending' && (
+              <Button 
+                onClick={() => handleStatusUpdate('in_progress')}
+                disabled={updateOrderMutation.isPending}
+              >
+                Iniciar Manutenção
+              </Button>
+            )}
+            
+            {selectedOrder?.status === 'in_progress' && (
+              <>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleStatusUpdate('cancelled')}
+                  disabled={updateOrderMutation.isPending}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={() => handleStatusUpdate('completed')}
+                  disabled={updateOrderMutation.isPending}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Concluir
+                </Button>
+              </>
+            )}
+            
+            {(selectedOrder?.status === 'completed' || selectedOrder?.status === 'cancelled') && 
+             selectedOrder?.status !== 'pending' && (
+              <Button 
+                variant="outline"
+                onClick={() => handleStatusUpdate('pending')}
+                disabled={updateOrderMutation.isPending}
+              >
+                Reabrir
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

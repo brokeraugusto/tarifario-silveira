@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bed, Calendar, ArrowRight } from 'lucide-react';
+import { Search, Bed, Calendar, ArrowRight, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
+
 const FeatureCard = ({
   icon,
   title,
@@ -36,6 +38,7 @@ const FeatureCard = ({
       </CardContent>
     </Card>;
 };
+
 const HomePage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -61,13 +64,16 @@ const HomePage = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <FeatureCard icon={<Search className="h-5 w-5 text-white" />} title="Buscar Acomodações" description="Encontre acomodações disponíveis com base na data, período e número de hóspedes." linkTo="/search" linkText="Ir para busca" />
         
         <FeatureCard icon={<Bed className="h-5 w-5 text-white" />} title="Gerenciar Acomodações" description="Cadastre, edite e exclua acomodações do sistema." linkTo="/accommodations" linkText="Gerenciar acomodações" />
         
         <FeatureCard icon={<Calendar className="h-5 w-5 text-white" />} title="Períodos e Preços" description="Configure períodos sazonais e defina preços por acomodação e número de pessoas." linkTo="/periods" linkText="Configurar preços" />
+        
+        <FeatureCard icon={<Wrench className="h-5 w-5 text-white" />} title="Manutenção" description="Gerencie ordens de manutenção e monitore o status das acomodações." linkTo="/maintenance" linkText="Ver manutenção" />
       </div>
     </div>;
 };
+
 export default HomePage;
