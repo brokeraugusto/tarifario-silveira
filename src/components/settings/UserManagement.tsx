@@ -16,7 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, UserPlus, Settings, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getAllUserProfiles, updateUserProfile } from '@/integrations/supabase/services/maintenanceService';
+import { updateUserProfile } from '@/integrations/supabase/services/maintenanceService';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/maintenance';
 
@@ -51,9 +51,28 @@ export default function UserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Use the new security definer function to get all user profiles
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['user-profiles'],
-    queryFn: getAllUserProfiles,
+    queryFn: async () => {
+      try {
+        console.log('Fetching all user profiles...');
+        
+        const { data, error } = await supabase
+          .rpc('get_all_user_profiles');
+        
+        if (error) {
+          console.error('Error fetching user profiles:', error);
+          throw error;
+        }
+        
+        console.log('User profiles fetched:', data);
+        return data || [];
+      } catch (error) {
+        console.error('Error in getAllUserProfiles:', error);
+        throw error;
+      }
+    },
     staleTime: 30000,
     retry: 3,
   });

@@ -7,6 +7,8 @@ export const useUserProfile = () => {
     queryKey: ['user-profile'],
     queryFn: async () => {
       try {
+        console.log('Fetching current user profile...');
+        
         // Use the security definer function directly
         const { data, error } = await supabase
           .rpc('get_current_user_profile');
@@ -16,6 +18,7 @@ export const useUserProfile = () => {
           throw error;
         }
         
+        console.log('User profile fetched:', data?.[0]);
         return data?.[0] || null;
       } catch (error) {
         console.error('User profile query error:', error);
@@ -23,7 +26,7 @@ export const useUserProfile = () => {
       }
     },
     staleTime: 300000, // 5 minutes
-    retry: 1, // Reduce retries to avoid infinite loops
+    retry: 1,
     retryDelay: 1000,
   });
 
@@ -35,17 +38,21 @@ export const useUserPermissions = () => {
     queryKey: ['user-permissions'],
     queryFn: async () => {
       try {
-        // Get user profile first
-        const { data: userProfile, error: profileError } = await supabase
-          .rpc('get_current_user_profile');
+        console.log('Fetching user permissions...');
         
-        if (profileError) {
-          console.error('Error fetching user profile for permissions:', profileError);
-          throw profileError;
+        // Get current user role using the security definer function
+        const { data: currentRole, error: roleError } = await supabase
+          .rpc('get_current_user_role_safe');
+        
+        if (roleError) {
+          console.error('Error fetching user role:', roleError);
+          throw roleError;
         }
         
-        if (!userProfile?.[0]) {
-          console.log('No user profile found');
+        console.log('Current user role:', currentRole);
+        
+        if (!currentRole) {
+          console.log('No user role found');
           return [];
         }
 
@@ -53,13 +60,14 @@ export const useUserPermissions = () => {
         const { data, error } = await supabase
           .from('module_permissions')
           .select('*')
-          .eq('role', userProfile[0].role);
+          .eq('role', currentRole);
         
         if (error) {
           console.error('Error fetching permissions:', error);
           throw error;
         }
         
+        console.log('Permissions fetched:', data);
         return data || [];
       } catch (error) {
         console.error('User permissions query error:', error);
@@ -67,7 +75,7 @@ export const useUserPermissions = () => {
       }
     },
     staleTime: 300000, // 5 minutes
-    retry: 1, // Reduce retries to avoid infinite loops
+    retry: 1,
     retryDelay: 1000,
   });
 
@@ -79,17 +87,19 @@ export const useModulePermission = (moduleName: string, permission: 'view' | 'cr
     queryKey: ['module-permission', moduleName, permission],
     queryFn: async () => {
       try {
-        // Get user profile first
-        const { data: userProfile, error: profileError } = await supabase
-          .rpc('get_current_user_profile');
+        console.log('Checking module permission:', { moduleName, permission });
         
-        if (profileError) {
-          console.error('Error fetching user profile for module permission:', profileError);
-          throw profileError;
+        // Get current user role using the security definer function
+        const { data: currentRole, error: roleError } = await supabase
+          .rpc('get_current_user_role_safe');
+        
+        if (roleError) {
+          console.error('Error fetching user role for module permission:', roleError);
+          throw roleError;
         }
         
-        if (!userProfile?.[0]) {
-          console.log('No user profile found for module permission');
+        if (!currentRole) {
+          console.log('No user role found for module permission');
           return false;
         }
 
@@ -98,7 +108,7 @@ export const useModulePermission = (moduleName: string, permission: 'view' | 'cr
           .from('module_permissions')
           .select('*')
           .eq('module_name', moduleName)
-          .eq('role', userProfile[0].role);
+          .eq('role', currentRole);
         
         if (error) {
           console.error('Error checking module permission:', error);
@@ -111,20 +121,24 @@ export const useModulePermission = (moduleName: string, permission: 'view' | 'cr
           return false;
         }
         
+        let hasPermission = false;
         switch (permission) {
-          case 'view': return modulePermission.can_view;
-          case 'create': return modulePermission.can_create;
-          case 'edit': return modulePermission.can_edit;
-          case 'delete': return modulePermission.can_delete;
-          default: return false;
+          case 'view': hasPermission = modulePermission.can_view; break;
+          case 'create': hasPermission = modulePermission.can_create; break;
+          case 'edit': hasPermission = modulePermission.can_edit; break;
+          case 'delete': hasPermission = modulePermission.can_delete; break;
+          default: hasPermission = false;
         }
+        
+        console.log('Module permission result:', hasPermission);
+        return hasPermission;
       } catch (error) {
         console.error('Module permission query error:', error);
         throw error;
       }
     },
     staleTime: 300000, // 5 minutes
-    retry: 1, // Reduce retries to avoid infinite loops
+    retry: 1,
     retryDelay: 1000,
   });
 

@@ -368,6 +368,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_all_user_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          full_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          is_active: boolean
+          created_at: string
+          updated_at: string
+          created_by: string
+        }[]
+      }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -381,7 +394,15 @@ export type Database = {
           created_by: string
         }[]
       }
+      get_current_user_role_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       is_current_user_master: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_user_admin_or_master: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
