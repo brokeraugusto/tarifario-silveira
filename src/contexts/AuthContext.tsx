@@ -18,34 +18,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Definir o listener de alteração de autenticação
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        console.log('Auth state changed:', { session });
         setSession(session);
         setUser(session?.user || null);
         setLoading(false);
       }
     );
 
-    // Verificar a sessão atual
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user || null);
-      setLoading(false);
-    });
+    // Check for existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        console.log('Initial session:', { session });
+        setSession(session);
+        setUser(session?.user || null);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setLoading(false);
+      }
+    };
 
-    // Limpar listener ao desmontar
+    initializeAuth();
+
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      }
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    }
+  };
+
+  const value = {
+    session,
+    user,
+    loading,
+    signOut
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

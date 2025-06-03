@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, MapPin } from 'lucide-react';
@@ -27,7 +26,8 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
     code: '',
     area_type: 'common' as AreaType,
     description: '',
-    location: ''
+    location: '',
+    is_active: true
   });
 
   const queryClient = useQueryClient();
@@ -97,7 +97,8 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
       code: area.code,
       area_type: area.area_type,
       description: area.description || '',
-      location: area.location || ''
+      location: area.location || '',
+      is_active: area.is_active
     });
     setIsFormOpen(true);
   };
@@ -116,7 +117,8 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
       code: '',
       area_type: 'common' as AreaType,
       description: '',
-      location: ''
+      location: '',
+      is_active: true
     });
   };
 
