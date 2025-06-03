@@ -345,8 +345,7 @@ const MaintenancePage = () => {
               </>
             )}
             
-            {(selectedOrder?.status === 'completed' || selectedOrder?.status === 'cancelled') && 
-             selectedOrder?.status !== 'pending' && (
+            {(selectedOrder?.status === 'completed' || selectedOrder?.status === 'cancelled') && (
               <Button 
                 variant="outline"
                 onClick={() => handleStatusUpdate('pending')}
