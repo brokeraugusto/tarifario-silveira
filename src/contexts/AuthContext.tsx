@@ -12,15 +12,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state changed:', { session });
         setSession(session);
         setUser(session?.user || null);
@@ -30,18 +34,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session
     const initializeAuth = async () => {
+      if (!mounted) return;
+      
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Error getting session:', error);
         }
-        console.log('Initial session:', { session });
-        setSession(session);
-        setUser(session?.user || null);
-        setLoading(false);
+        
+        if (mounted) {
+          console.log('Initial session:', { session });
+          setSession(session);
+          setUser(session?.user || null);
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -49,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Cleanup subscription
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
