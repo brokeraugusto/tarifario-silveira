@@ -1,15 +1,17 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Wrench, Plus, Filter, Calendar, AlertTriangle, Eye, CheckCircle, X } from 'lucide-react';
+import { Wrench, Plus, Filter, Calendar, AlertTriangle, Eye, CheckCircle, X, LayoutGrid, List } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { getAllMaintenanceOrders, getAllAreas, updateMaintenanceOrder } from '@/integrations/supabase/services/maintenanceService';
 import { MaintenanceOrder, MaintenancePriority, MaintenanceStatus } from '@/types/maintenance';
+import CreateMaintenanceOrderDialog from '@/components/maintenance/CreateMaintenanceOrderDialog';
+import MaintenanceKanbanBoard from '@/components/maintenance/MaintenanceKanbanBoard';
 
 const MaintenancePage = () => {
   const isMobile = useIsMobile();
@@ -18,6 +20,8 @@ const MaintenancePage = () => {
   const [priorityFilter, setPriorityFilter] = useState<MaintenancePriority | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<MaintenanceOrder | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const { data: maintenanceOrders = [], isLoading: loadingOrders, refetch } = useQuery({
     queryKey: ['maintenance-orders'],
@@ -181,48 +185,79 @@ const MaintenancePage = () => {
             <option value="low">Baixa</option>
           </select>
         </div>
+        
+        <div className="flex gap-2">
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('kanban')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Ordem
+          </Button>
+        </div>
       </div>
 
-      {/* Maintenance Orders List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredOrders.map((order) => (
-          <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleOrderClick(order)}>
-            <CardHeader className={isMobile ? "p-4" : ""}>
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="text-lg">{order.title}</CardTitle>
-                  <CardDescription className="text-sm">
-                    #{order.order_number} • {order.area?.name}
-                  </CardDescription>
+      {/* Main Content */}
+      {viewMode === 'kanban' ? (
+        <MaintenanceKanbanBoard 
+          orders={filteredOrders} 
+          onOrderClick={handleOrderClick}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredOrders.map((order) => (
+            <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleOrderClick(order)}>
+              <CardHeader className={isMobile ? "p-4" : ""}>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{order.title}</CardTitle>
+                    <CardDescription className="text-sm">
+                      #{order.order_number} • {order.area?.name}
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2 flex-col ml-2">
+                    <Badge className={getStatusColor(order.status)}>
+                      {order.status === 'pending' && 'Pendente'}
+                      {order.status === 'in_progress' && 'Em Andamento'}
+                      {order.status === 'completed' && 'Concluído'}
+                      {order.status === 'cancelled' && 'Cancelado'}
+                    </Badge>
+                    <Badge className={getPriorityColor(order.priority)}>
+                      {order.priority === 'urgent' && 'Urgente'}
+                      {order.priority === 'high' && 'Alta'}
+                      {order.priority === 'medium' && 'Média'}
+                      {order.priority === 'low' && 'Baixa'}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex gap-2 flex-col ml-2">
-                  <Badge className={getStatusColor(order.status)}>
-                    {order.status === 'pending' && 'Pendente'}
-                    {order.status === 'in_progress' && 'Em Andamento'}
-                    {order.status === 'completed' && 'Concluído'}
-                    {order.status === 'cancelled' && 'Cancelado'}
-                  </Badge>
-                  <Badge className={getPriorityColor(order.priority)}>
-                    {order.priority === 'urgent' && 'Urgente'}
-                    {order.priority === 'high' && 'Alta'}
-                    {order.priority === 'medium' && 'Média'}
-                    {order.priority === 'low' && 'Baixa'}
-                  </Badge>
+              </CardHeader>
+              <CardContent className={isMobile ? "p-4 pt-0" : "pt-0"}>
+                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{order.description}</p>
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>Criado em {new Date(order.created_at).toLocaleDateString('pt-BR')}</span>
+                  {order.estimated_hours && (
+                    <span>{order.estimated_hours}h estimadas</span>
+                  )}
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className={isMobile ? "p-4 pt-0" : "pt-0"}>
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{order.description}</p>
-              <div className="flex justify-between items-center text-xs text-muted-foreground">
-                <span>Criado em {new Date(order.created_at).toLocaleDateString('pt-BR')}</span>
-                {order.estimated_hours && (
-                  <span>{order.estimated_hours}h estimadas</span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {filteredOrders.length === 0 && (
         <Card>
@@ -235,6 +270,12 @@ const MaintenancePage = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Create Order Dialog */}
+      <CreateMaintenanceOrderDialog
+        isOpen={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
 
       {/* Order Details Dialog */}
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
