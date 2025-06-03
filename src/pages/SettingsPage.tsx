@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Settings, Info, AlertTriangle, Database } from 'lucide-react';
+import { Settings, Info, AlertTriangle, Database, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -7,10 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DatabaseCleanupDialog from '@/components/DatabaseCleanupDialog';
+import UserManagementDialog from '@/components/settings/UserManagementDialog';
+
 const SettingsPage = () => {
   const isMobile = useIsMobile();
   const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
-  return <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
+  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
+
+  return (
+    <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-hotel-navy">Configurações</h1>
         <p className="text-muted-foreground mt-2">Gerencie as configurações do sistema.</p>
@@ -49,6 +55,34 @@ const SettingsPage = () => {
               <p className="text-sm text-muted-foreground">Alternar entre modo claro e escuro (em breve)</p>
             </div>
             <Switch id="dark-mode" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className={isMobile ? "p-4" : ""}>
+          <CardTitle className="flex items-center">
+            <Users className="mr-2 h-5 w-5" />
+            Gerenciamento de Usuários
+          </CardTitle>
+          <CardDescription>
+            Gerencie usuários e níveis de permissão do sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent className={`space-y-4 ${isMobile ? "p-4 pt-0" : ""}`}>
+          <div>
+            <Label className="text-base font-medium">Usuários e Permissões</Label>
+            <p className="text-sm text-muted-foreground mt-1 mb-3">
+              Adicione, edite e gerencie usuários do sistema e seus níveis de acesso.
+            </p>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => setIsUserManagementOpen(true)}
+            >
+              <Users className="h-4 w-4" />
+              Gerenciar Usuários
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -117,7 +151,18 @@ const SettingsPage = () => {
         </CardContent>
       </Card>
       
-      <DatabaseCleanupDialog isOpen={isCleanupDialogOpen} onOpenChange={setIsCleanupDialogOpen} onCleanupComplete={() => {}} />
-    </div>;
+      <DatabaseCleanupDialog 
+        isOpen={isCleanupDialogOpen} 
+        onOpenChange={setIsCleanupDialogOpen} 
+        onCleanupComplete={() => {}} 
+      />
+      
+      <UserManagementDialog 
+        isOpen={isUserManagementOpen} 
+        onOpenChange={setIsUserManagementOpen} 
+      />
+    </div>
+  );
 };
+
 export default SettingsPage;
