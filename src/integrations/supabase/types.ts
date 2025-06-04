@@ -66,7 +66,7 @@ export type Database = {
       areas: {
         Row: {
           accommodation_id: string | null
-          area_type: Database["public"]["Enums"]["area_type"]
+          area_type: Database["public"]["Enums"]["area_type"] | null
           code: string
           created_at: string
           description: string | null
@@ -78,7 +78,7 @@ export type Database = {
         }
         Insert: {
           accommodation_id?: string | null
-          area_type: Database["public"]["Enums"]["area_type"]
+          area_type?: Database["public"]["Enums"]["area_type"] | null
           code: string
           created_at?: string
           description?: string | null
@@ -90,7 +90,7 @@ export type Database = {
         }
         Update: {
           accommodation_id?: string | null
-          area_type?: Database["public"]["Enums"]["area_type"]
+          area_type?: Database["public"]["Enums"]["area_type"] | null
           code?: string
           created_at?: string
           description?: string | null
@@ -410,10 +410,10 @@ export type Database = {
     Enums: {
       area_type:
         | "accommodation"
-        | "external_area"
-        | "social_area"
-        | "common_area"
-        | "service_area"
+        | "common"
+        | "maintenance"
+        | "restaurant"
+        | "recreation"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "pending" | "in_progress" | "completed" | "cancelled"
       user_role: "master" | "reception" | "maintenance" | "cleaning" | "admin"
@@ -534,10 +534,10 @@ export const Constants = {
     Enums: {
       area_type: [
         "accommodation",
-        "external_area",
-        "social_area",
-        "common_area",
-        "service_area",
+        "common",
+        "maintenance",
+        "restaurant",
+        "recreation",
       ],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["pending", "in_progress", "completed", "cancelled"],

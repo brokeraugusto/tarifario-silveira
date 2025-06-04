@@ -1,3 +1,4 @@
+
 export type CategoryType = 'Standard' | 'Luxo' | 'Super Luxo' | 'Master';
 export type BlockReasonType = 'maintenance' | 'reserved' | 'unavailable' | 'other' | 'Reforma' | 'Manutenção' | 'Locação Mensal' | 'Locação Anual' | 'Outro';
 
@@ -61,8 +62,9 @@ export interface SearchResult {
   includesBreakfast: boolean;
 }
 
+// Re-export maintenance types for consistency
 export type UserRole = 'master' | 'reception' | 'maintenance' | 'cleaning' | 'admin';
-export type AreaType = 'accommodation' | 'external_area' | 'social_area' | 'common_area' | 'service_area';
+export type AreaType = 'accommodation' | 'common' | 'maintenance' | 'restaurant' | 'recreation';
 export type MaintenanceStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'urgent';
 

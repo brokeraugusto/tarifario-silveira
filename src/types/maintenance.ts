@@ -1,6 +1,6 @@
 
 export type UserRole = 'master' | 'reception' | 'maintenance' | 'cleaning' | 'admin';
-export type AreaType = 'accommodation' | 'external_area' | 'social_area' | 'common_area' | 'service_area';
+export type AreaType = 'accommodation' | 'common' | 'maintenance' | 'restaurant' | 'recreation';
 export type MaintenanceStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 export type MaintenancePriority = 'low' | 'medium' | 'high' | 'urgent';
 

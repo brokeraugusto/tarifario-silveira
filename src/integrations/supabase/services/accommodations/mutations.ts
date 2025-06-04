@@ -35,6 +35,24 @@ export const createAccommodation = async (accommodation: AccommodationCreate): P
     }
 
     console.log('Successfully created accommodation:', data);
+    
+    // Create corresponding area for the accommodation
+    const { error: areaError } = await supabase
+      .from('areas')
+      .insert({
+        name: data.name,
+        code: data.room_number,
+        area_type: 'accommodation',
+        accommodation_id: data.id,
+        description: `Área da acomodação ${data.name}`,
+        is_active: true
+      });
+
+    if (areaError) {
+      console.error('Error creating area for accommodation:', areaError);
+      // Continue anyway, the accommodation was created
+    }
+
     return accommodationMapper.fromDatabase(data);
   } catch (error) {
     console.error('Unexpected error in createAccommodation:', error);
@@ -64,6 +82,24 @@ export const updateAccommodation = async (id: string, updates: AccommodationUpda
       return null;
     }
 
+    // Update corresponding area if accommodation name changed
+    if (updates.name || updates.roomNumber) {
+      const { error: areaError } = await supabase
+        .from('areas')
+        .update({
+          name: data.name,
+          code: data.room_number,
+          description: `Área da acomodação ${data.name}`
+        })
+        .eq('accommodation_id', id)
+        .eq('area_type', 'accommodation');
+
+      if (areaError) {
+        console.error('Error updating area for accommodation:', areaError);
+        // Continue anyway, the accommodation was updated
+      }
+    }
+
     console.log('Successfully updated accommodation:', data);
     return accommodationMapper.fromDatabase(data);
   } catch (error) {
@@ -84,6 +120,17 @@ export const deleteAccommodation = async (id: string): Promise<boolean> => {
 
     if (pricesError) {
       console.error('Error deleting related prices:', pricesError);
+      return false;
+    }
+
+    // Delete related areas (this will cascade to maintenance orders)
+    const { error: areasError } = await supabase
+      .from('areas')
+      .delete()
+      .eq('accommodation_id', id);
+
+    if (areasError) {
+      console.error('Error deleting related areas:', areasError);
       return false;
     }
     
