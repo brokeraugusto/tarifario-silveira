@@ -1,4 +1,3 @@
-
 import { supabase } from '../client';
 import { 
   MaintenanceOrder, 
@@ -39,6 +38,32 @@ export const getAllUserProfiles = async (): Promise<UserProfile[]> => {
   } catch (error) {
     console.error('Error in getAllUserProfiles:', error);
     return [];
+  }
+};
+
+export const updateUserProfile = async (id: string, updates: Partial<UserProfile>): Promise<UserProfile | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update({
+        full_name: updates.full_name,
+        email: updates.email,
+        role: updates.role,
+        is_active: updates.is_active
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user profile:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in updateUserProfile:', error);
+    return null;
   }
 };
 
