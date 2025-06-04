@@ -2,7 +2,7 @@
 import { supabase } from '../client';
 import { SearchParams, SearchResult, Accommodation, PricePeriod } from '@/types';
 import { accommodationMapper } from './accommodations/mapper';
-import { isDateInRange, addDays, differenceInDays } from 'date-fns';
+import { isWithinInterval, addDays, differenceInDays } from 'date-fns';
 
 export const searchAvailableAccommodations = async (params: SearchParams): Promise<SearchResult[]> => {
   try {
@@ -112,7 +112,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
       for (let currentDate = new Date(checkIn); currentDate < checkOut; currentDate = addDays(currentDate, 1)) {
         // Find the period that contains this date
         const activePeriod = periods.find(period =>
-          isDateInRange(currentDate, { start: period.startDate, end: period.endDate })
+          isWithinInterval(currentDate, { start: period.startDate, end: period.endDate })
         );
 
         if (!activePeriod) {
@@ -175,3 +175,6 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
     return [];
   }
 };
+
+// Export the function with the expected name for backward compatibility
+export const searchAccommodations = searchAvailableAccommodations;

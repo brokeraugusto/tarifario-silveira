@@ -66,8 +66,8 @@ export const getAvailableAccommodations = async (): Promise<Accommodation[]> => 
           blockReason: accommodationData.block_reason as any,
           blockNote: accommodationData.block_note || undefined,
           blockPeriod: accommodationData.block_period ? {
-            from: new Date(accommodationData.block_period.from),
-            to: new Date(accommodationData.block_period.to)
+            from: new Date((accommodationData.block_period as any).from),
+            to: new Date((accommodationData.block_period as any).to)
           } : undefined
         };
         
@@ -166,10 +166,14 @@ export const createMaintenanceOrderForBlocking = async (
     const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id || '00000000-0000-0000-0000-000000000000';
 
+    // Generate order number
+    const orderNumber = `MNT-${Date.now()}`;
+
     // Create maintenance order
     const { data, error } = await supabase
       .from('maintenance_orders')
       .insert({
+        order_number: orderNumber,
         area_id: area.id,
         title,
         description,

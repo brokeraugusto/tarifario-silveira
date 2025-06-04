@@ -1,7 +1,7 @@
 
 import { differenceInDays } from 'date-fns';
 import { SearchParams, SearchResult } from '@/types';
-import { searchAccommodations as findAccommodationsInPeriod } from '@/integrations/supabase/services/searchService';
+import { searchAvailableAccommodations } from '@/integrations/supabase/services/searchService';
 
 export const validateSearchParams = (params: SearchParams): string | null => {
   if (!params.checkIn) {
@@ -18,7 +18,7 @@ export const searchAccommodations = async (
   maxMinStay?: number;
   hasMinStayViolations?: boolean;
 }> => {
-  const results = await findAccommodationsInPeriod(searchParams);
+  const results = await searchAvailableAccommodations(searchParams);
   
   if (!forceSearch && searchParams.checkOut) {
     const days = differenceInDays(searchParams.checkOut, searchParams.checkIn);
