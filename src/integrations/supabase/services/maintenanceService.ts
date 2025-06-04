@@ -1,25 +1,25 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { UserProfile, ModulePermission, Area, MaintenanceOrder, MaintenanceHistory, AreaType } from '@/types/maintenance';
+import { supabase } from '../client';
+import { 
+  MaintenanceOrder, 
+  Area, 
+  UserProfile, 
+  MaintenancePriority, 
+  MaintenanceStatus,
+  AreaType 
+} from '@/types/maintenance';
 
-// User Profile Services
+// User profile functions
 export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('get_current_user_profile');
     
     if (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Error getting current user profile:', error);
       return null;
     }
     
-    return data;
+    return data?.[0] || null;
   } catch (error) {
     console.error('Error in getCurrentUserProfile:', error);
     return null;
@@ -28,13 +28,10 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
 
 export const getAllUserProfiles = async (): Promise<UserProfile[]> => {
   try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .order('full_name');
+    const { data, error } = await supabase.rpc('get_all_user_profiles');
     
     if (error) {
-      console.error('Error fetching all user profiles:', error);
+      console.error('Error getting all user profiles:', error);
       return [];
     }
     
@@ -45,83 +42,20 @@ export const getAllUserProfiles = async (): Promise<UserProfile[]> => {
   }
 };
 
-export const updateUserProfile = async (id: string, updates: Partial<UserProfile>): Promise<UserProfile | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error updating user profile:', error);
-      return null;
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error in updateUserProfile:', error);
-    return null;
-  }
-};
-
-// Module Permissions Services
-export const getUserPermissions = async (userId: string): Promise<ModulePermission[]> => {
-  try {
-    const userProfile = await getCurrentUserProfile();
-    if (!userProfile) return [];
-
-    const { data, error } = await supabase
-      .from('module_permissions')
-      .select('*')
-      .eq('role', userProfile.role);
-    
-    if (error) {
-      console.error('Error fetching user permissions:', error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (error) {
-    console.error('Error in getUserPermissions:', error);
-    return [];
-  }
-};
-
-export const hasModulePermission = async (moduleName: string, permission: 'view' | 'create' | 'edit' | 'delete'): Promise<boolean> => {
-  try {
-    const permissions = await getUserPermissions('');
-    const modulePermission = permissions.find(p => p.module_name === moduleName);
-    
-    if (!modulePermission) return true; // Default to true for now
-    
-    switch (permission) {
-      case 'view': return modulePermission.can_view;
-      case 'create': return modulePermission.can_create;
-      case 'edit': return modulePermission.can_edit;
-      case 'delete': return modulePermission.can_delete;
-      default: return false;
-    }
-  } catch (error) {
-    console.error('Error in hasModulePermission:', error);
-    return true; // Default to true on error
-  }
-};
-
-// Areas Services
+// Area management functions
 export const getAllAreas = async (): Promise<Area[]> => {
   try {
     const { data, error } = await supabase
       .from('areas')
       .select('*')
+      .eq('is_active', true)
       .order('name');
-    
+
     if (error) {
       console.error('Error fetching areas:', error);
       return [];
     }
-    
+
     return data || [];
   } catch (error) {
     console.error('Error in getAllAreas:', error);
@@ -129,39 +63,27 @@ export const getAllAreas = async (): Promise<Area[]> => {
   }
 };
 
-export const getAreasByType = async (areaType: AreaType): Promise<Area[]> => {
+export const createArea = async (areaData: Omit<Area, 'id' | 'created_at' | 'updated_at'>): Promise<Area | null> => {
   try {
     const { data, error } = await supabase
       .from('areas')
-      .select('*')
-      .eq('area_type', areaType)
-      .order('name');
-    
-    if (error) {
-      console.error('Error fetching areas by type:', error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (error) {
-    console.error('Error in getAreasByType:', error);
-    return [];
-  }
-};
-
-export const createArea = async (area: Omit<Area, 'id' | 'created_at' | 'updated_at'>): Promise<Area | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('areas')
-      .insert(area)
+      .insert({
+        name: areaData.name,
+        code: areaData.code,
+        area_type: areaData.area_type,
+        description: areaData.description,
+        location: areaData.location,
+        is_active: areaData.is_active,
+        accommodation_id: areaData.accommodation_id
+      })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating area:', error);
       return null;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error in createArea:', error);
@@ -173,16 +95,24 @@ export const updateArea = async (id: string, updates: Partial<Area>): Promise<Ar
   try {
     const { data, error } = await supabase
       .from('areas')
-      .update(updates)
+      .update({
+        name: updates.name,
+        code: updates.code,
+        area_type: updates.area_type,
+        description: updates.description,
+        location: updates.location,
+        is_active: updates.is_active,
+        accommodation_id: updates.accommodation_id
+      })
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error updating area:', error);
       return null;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error in updateArea:', error);
@@ -192,16 +122,32 @@ export const updateArea = async (id: string, updates: Partial<Area>): Promise<Ar
 
 export const deleteArea = async (id: string): Promise<boolean> => {
   try {
+    // Check if area has active maintenance orders
+    const { data: orders, error: ordersError } = await supabase
+      .from('maintenance_orders')
+      .select('id')
+      .eq('area_id', id)
+      .in('status', ['pending', 'in_progress']);
+
+    if (ordersError) {
+      console.error('Error checking maintenance orders:', ordersError);
+      return false;
+    }
+
+    if (orders && orders.length > 0) {
+      throw new Error('Cannot delete area with active maintenance orders');
+    }
+
     const { error } = await supabase
       .from('areas')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
       console.error('Error deleting area:', error);
       return false;
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error in deleteArea:', error);
@@ -209,7 +155,7 @@ export const deleteArea = async (id: string): Promise<boolean> => {
   }
 };
 
-// Maintenance Orders Services
+// Maintenance order functions
 export const getAllMaintenanceOrders = async (): Promise<MaintenanceOrder[]> => {
   try {
     const { data, error } = await supabase
@@ -219,12 +165,12 @@ export const getAllMaintenanceOrders = async (): Promise<MaintenanceOrder[]> => 
         area:areas(*)
       `)
       .order('created_at', { ascending: false });
-    
+
     if (error) {
       console.error('Error fetching maintenance orders:', error);
       return [];
     }
-    
+
     return data || [];
   } catch (error) {
     console.error('Error in getAllMaintenanceOrders:', error);
@@ -232,66 +178,47 @@ export const getAllMaintenanceOrders = async (): Promise<MaintenanceOrder[]> => 
   }
 };
 
-export const getMaintenanceOrderById = async (id: string): Promise<MaintenanceOrder | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('maintenance_orders')
-      .select(`
-        *,
-        area:areas(*)
-      `)
-      .eq('id', id)
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error fetching maintenance order:', error);
-      return null;
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error in getMaintenanceOrderById:', error);
-    return null;
-  }
-};
-
-// Define a more specific type for creating maintenance orders
-type CreateMaintenanceOrderInput = {
-  area_id: string;
+export const createMaintenanceOrder = async (orderData: {
   title: string;
   description: string;
-  priority: MaintenanceOrder['priority'];
-  status?: MaintenanceOrder['status'];
+  area_id: string;
+  priority: MaintenancePriority;
   requested_by: string;
   assigned_to?: string;
   scheduled_date?: string;
   estimated_hours?: number;
   notes?: string;
-  order_number?: string; // Made optional since it's auto-generated
-};
-
-export const createMaintenanceOrder = async (order: CreateMaintenanceOrderInput): Promise<MaintenanceOrder | null> => {
+}): Promise<MaintenanceOrder | null> => {
   try {
-    // Prepare the data with a placeholder order_number that will be overridden by the trigger
-    const orderData = {
-      ...order,
-      order_number: order.order_number || 'TEMP' // Placeholder that gets replaced by trigger
-    };
+    // Generate order number
+    const orderNumber = `MNT-${Date.now()}`;
 
     const { data, error } = await supabase
       .from('maintenance_orders')
-      .insert(orderData)
+      .insert({
+        order_number: orderNumber,
+        title: orderData.title,
+        description: orderData.description,
+        area_id: orderData.area_id,
+        priority: orderData.priority,
+        requested_by: orderData.requested_by,
+        assigned_to: orderData.assigned_to,
+        scheduled_date: orderData.scheduled_date,
+        estimated_hours: orderData.estimated_hours,
+        notes: orderData.notes,
+        status: 'pending'
+      })
       .select(`
         *,
         area:areas(*)
       `)
       .single();
-    
+
     if (error) {
       console.error('Error creating maintenance order:', error);
       return null;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error in createMaintenanceOrder:', error);
@@ -299,23 +226,40 @@ export const createMaintenanceOrder = async (order: CreateMaintenanceOrderInput)
   }
 };
 
-export const updateMaintenanceOrder = async (id: string, updates: Partial<MaintenanceOrder>): Promise<MaintenanceOrder | null> => {
+export const updateMaintenanceOrder = async (
+  id: string, 
+  updates: Partial<MaintenanceOrder>
+): Promise<MaintenanceOrder | null> => {
   try {
     const { data, error } = await supabase
       .from('maintenance_orders')
-      .update(updates)
+      .update({
+        title: updates.title,
+        description: updates.description,
+        area_id: updates.area_id,
+        priority: updates.priority,
+        status: updates.status,
+        assigned_to: updates.assigned_to,
+        scheduled_date: updates.scheduled_date,
+        started_at: updates.started_at,
+        completed_at: updates.completed_at,
+        estimated_hours: updates.estimated_hours,
+        actual_hours: updates.actual_hours,
+        cost: updates.cost,
+        notes: updates.notes
+      })
       .eq('id', id)
       .select(`
         *,
         area:areas(*)
       `)
       .single();
-    
+
     if (error) {
       console.error('Error updating maintenance order:', error);
       return null;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error in updateMaintenanceOrder:', error);
@@ -329,56 +273,15 @@ export const deleteMaintenanceOrder = async (id: string): Promise<boolean> => {
       .from('maintenance_orders')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
       console.error('Error deleting maintenance order:', error);
       return false;
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error in deleteMaintenanceOrder:', error);
     return false;
-  }
-};
-
-// Maintenance History Services
-export const getMaintenanceHistory = async (orderId: string): Promise<MaintenanceHistory[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('maintenance_history')
-      .select('*')
-      .eq('maintenance_order_id', orderId)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching maintenance history:', error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (error) {
-    console.error('Error in getMaintenanceHistory:', error);
-    return [];
-  }
-};
-
-export const addMaintenanceHistory = async (history: Omit<MaintenanceHistory, 'id' | 'created_at'>): Promise<MaintenanceHistory | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('maintenance_history')
-      .insert(history)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error adding maintenance history:', error);
-      return null;
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error in addMaintenanceHistory:', error);
-    return null;
   }
 };

@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { getAllAreas, createArea, updateArea, deleteArea } from '@/integrations/supabase/services/maintenanceService';
+import { ensureAreasForAccommodations } from '@/integrations/supabase/services/maintenanceIntegration';
 import { Area, AreaType } from '@/types/maintenance';
 
 interface AreasManagementDialogProps {
@@ -33,11 +34,20 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
 
   const queryClient = useQueryClient();
 
-  const { data: areas = [], isLoading } = useQuery({
+  const { data: areas = [], isLoading, refetch } = useQuery({
     queryKey: ['areas'],
     queryFn: getAllAreas,
     enabled: isOpen,
   });
+
+  // Ensure areas exist for accommodations when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      ensureAreasForAccommodations().then(() => {
+        refetch();
+      });
+    }
+  }, [isOpen, refetch]);
 
   const createAreaMutation = useMutation({
     mutationFn: createArea,
@@ -48,7 +58,7 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
     },
     onError: (error) => {
       console.error('Error creating area:', error);
-      toast.error('Erro ao criar área');
+      toast.error('Erro ao criar área. Verifique se o código não está duplicado.');
     },
   });
 
@@ -74,12 +84,21 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
     },
     onError: (error) => {
       console.error('Error deleting area:', error);
-      toast.error('Erro ao remover área');
+      if (error.message?.includes('active maintenance orders')) {
+        toast.error('Não é possível excluir área com ordens de manutenção ativas');
+      } else {
+        toast.error('Erro ao remover área');
+      }
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.code) {
+      toast.error('Nome e código são obrigatórios');
+      return;
+    }
     
     if (editingArea) {
       updateAreaMutation.mutate({
@@ -123,6 +142,13 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
     });
   };
 
+  const handleRefreshAreas = () => {
+    ensureAreasForAccommodations().then(() => {
+      refetch();
+      toast.success('Áreas atualizadas com sucesso');
+    });
+  };
+
   const getAreaTypeLabel = (type: AreaType) => {
     const labels = {
       accommodation: 'Acomodação',
@@ -161,10 +187,20 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">Áreas Cadastradas</h3>
-            <Button onClick={() => setIsFormOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Área
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleRefreshAreas}
+                disabled={isLoading}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Sincronizar
+              </Button>
+              <Button onClick={() => setIsFormOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Área
+              </Button>
+            </div>
           </div>
 
           {isLoading ? (
@@ -191,13 +227,15 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
                         >
                           <Edit2 className="h-3 w-3" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(area.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        {area.area_type !== 'accommodation' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(area.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardHeader>

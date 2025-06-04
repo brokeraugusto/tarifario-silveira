@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Wrench, Plus, Filter, Calendar, AlertTriangle, Eye, CheckCircle, X, LayoutGrid, List } from 'lucide-react';
+import { Wrench, Plus, Filter, Calendar, AlertTriangle, Eye, CheckCircle, X, LayoutGrid, List, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 import { getAllMaintenanceOrders, getAllAreas, updateMaintenanceOrder } from '@/integrations/supabase/services/maintenanceService';
 import { MaintenanceOrder, MaintenancePriority, MaintenanceStatus } from '@/types/maintenance';
 import CreateMaintenanceOrderDialog from '@/components/maintenance/CreateMaintenanceOrderDialog';
+import AreasManagementDialog from '@/components/maintenance/AreasManagementDialog';
 import MaintenanceKanbanBoard from '@/components/maintenance/MaintenanceKanbanBoard';
 
 const MaintenancePage = () => {
@@ -21,6 +23,7 @@ const MaintenancePage = () => {
   const [selectedOrder, setSelectedOrder] = useState<MaintenanceOrder | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isAreasDialogOpen, setIsAreasDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const { data: maintenanceOrders = [], isLoading: loadingOrders, refetch } = useQuery({
@@ -147,12 +150,12 @@ const MaintenancePage = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Urgentes</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total de Áreas</CardTitle>
+            <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {maintenanceOrders.filter(o => o.priority === 'urgent').length}
+            <div className="text-2xl font-bold text-green-600">
+              {areas.length}
             </div>
           </CardContent>
         </Card>
@@ -203,6 +206,14 @@ const MaintenancePage = () => {
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={() => setIsAreasDialogOpen(true)}
+          >
+            <MapPin className="h-4 w-4 mr-2" />
+            Gerenciar Áreas
+          </Button>
           
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -275,6 +286,12 @@ const MaintenancePage = () => {
       <CreateMaintenanceOrderDialog
         isOpen={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+      />
+
+      {/* Areas Management Dialog */}
+      <AreasManagementDialog
+        isOpen={isAreasDialogOpen}
+        onOpenChange={setIsAreasDialogOpen}
       />
 
       {/* Order Details Dialog */}

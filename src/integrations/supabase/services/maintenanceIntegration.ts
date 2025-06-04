@@ -196,3 +196,60 @@ export const createMaintenanceOrderForBlocking = async (
     return null;
   }
 };
+
+// Ensure areas exist for all accommodations
+export const ensureAreasForAccommodations = async (): Promise<void> => {
+  try {
+    // Get all accommodations
+    const { data: accommodations, error: accommodationsError } = await supabase
+      .from('accommodations')
+      .select('id, name, room_number');
+
+    if (accommodationsError || !accommodations) {
+      console.error('Error fetching accommodations:', accommodationsError);
+      return;
+    }
+
+    // Get existing areas for accommodations
+    const { data: existingAreas, error: areasError } = await supabase
+      .from('areas')
+      .select('accommodation_id')
+      .eq('area_type', 'accommodation')
+      .not('accommodation_id', 'is', null);
+
+    if (areasError) {
+      console.error('Error fetching existing areas:', areasError);
+      return;
+    }
+
+    const existingAccommodationIds = new Set(
+      existingAreas?.map(area => area.accommodation_id) || []
+    );
+
+    // Create areas for accommodations that don't have them
+    const areasToCreate = accommodations
+      .filter(acc => !existingAccommodationIds.has(acc.id))
+      .map(acc => ({
+        name: acc.name,
+        code: acc.room_number,
+        area_type: 'accommodation' as const,
+        accommodation_id: acc.id,
+        description: `Área da acomodação ${acc.name}`,
+        is_active: true
+      }));
+
+    if (areasToCreate.length > 0) {
+      const { error: insertError } = await supabase
+        .from('areas')
+        .insert(areasToCreate);
+
+      if (insertError) {
+        console.error('Error creating areas for accommodations:', insertError);
+      } else {
+        console.log(`Created ${areasToCreate.length} areas for accommodations`);
+      }
+    }
+  } catch (error) {
+    console.error('Error in ensureAreasForAccommodations:', error);
+  }
+};

@@ -1,3 +1,4 @@
+
 import { supabase } from '../../client';
 import { Accommodation, BlockReasonType } from '@/types';
 import { accommodationMapper } from './mapper';
@@ -82,7 +83,7 @@ export const updateAccommodation = async (id: string, updates: AccommodationUpda
       return null;
     }
 
-    // Update corresponding area if accommodation name changed
+    // Update corresponding area if accommodation name or room number changed
     if (updates.name || updates.roomNumber) {
       const { error: areaError } = await supabase
         .from('areas')
@@ -226,6 +227,23 @@ export const duplicateAccommodation = async (id: string, newName: string): Promi
     if (createError || !newAccommodationData) {
       console.error('Error creating duplicated accommodation:', createError);
       return null;
+    }
+    
+    // Create corresponding area for the new accommodation
+    const { error: areaError } = await supabase
+      .from('areas')
+      .insert({
+        name: newAccommodationData.name,
+        code: newAccommodationData.room_number,
+        area_type: 'accommodation',
+        accommodation_id: newAccommodationData.id,
+        description: `Área da acomodação ${newAccommodationData.name}`,
+        is_active: true
+      });
+
+    if (areaError) {
+      console.error('Error creating area for duplicated accommodation:', areaError);
+      // Continue anyway, the accommodation was created
     }
     
     // Get prices associated with the original accommodation
