@@ -2,6 +2,7 @@
 import { supabase } from '../client';
 import { SearchParams, SearchResult, Accommodation, PricePeriod } from '@/types';
 import { accommodationMapper } from './accommodations/mapper';
+import { getCompatiblePrices } from './categoryPriceService';
 import { isWithinInterval, addDays, differenceInDays } from 'date-fns';
 
 export const searchAvailableAccommodations = async (params: SearchParams): Promise<SearchResult[]> => {
@@ -66,25 +67,6 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
       isHoliday: period.is_holiday
     }));
 
-    // Get all relevant prices for these accommodations and periods
-    const accommodationIds = accommodationsData.map(acc => acc.id);
-    const periodIds = periodsData.map(period => period.id);
-
-    const { data: pricesData, error: pricesError } = await supabase
-      .from('prices_by_people')
-      .select('*')
-      .in('accommodation_id', accommodationIds)
-      .in('period_id', periodIds)
-      .eq('people', guests)
-      .eq('includes_breakfast', includesBreakfast);
-
-    if (pricesError) {
-      console.error('Error fetching prices:', pricesError);
-      return [];
-    }
-
-    console.log(`Found ${pricesData?.length || 0} price entries`);
-
     const results: SearchResult[] = [];
 
     for (const accommodationData of accommodationsData) {
@@ -108,7 +90,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
       let isMinStayViolation = false;
       let minimumStay = 1;
 
-      // Calculate price for each night
+      // Calculate price for each night using the new category-based system
       for (let currentDate = new Date(checkIn); currentDate < checkOut; currentDate = addDays(currentDate, 1)) {
         // Find the period that contains this date
         const activePeriod = periods.find(period =>
@@ -121,25 +103,43 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           break;
         }
 
-        // Check minimum stay requirement
+        // Check minimum stay requirement from the period
         if (activePeriod.minimumStay && nights < activePeriod.minimumStay) {
           isMinStayViolation = true;
-          minimumStay = activePeriod.minimumStay;
+          minimumStay = Math.max(minimumStay, activePeriod.minimumStay);
         }
 
-        // Find the price for this accommodation, period, and guest count
-        const priceEntry = pricesData?.find(price =>
-          price.accommodation_id === accommodation.id &&
-          price.period_id === activePeriod.id
-        );
+        // Get compatible prices for this accommodation's category
+        try {
+          const compatiblePrices = await getCompatiblePrices(
+            accommodation.category,
+            accommodation.capacity,
+            activePeriod.id,
+            guests
+          );
 
-        if (!priceEntry) {
-          console.log(`No price found for accommodation ${accommodation.name} in period ${activePeriod.name}`);
+          if (compatiblePrices.length === 0) {
+            console.log(`No compatible prices found for accommodation ${accommodation.name} in period ${activePeriod.name}`);
+            canCalculatePrice = false;
+            break;
+          }
+
+          // For now, use PIX prices as default (you can modify this logic based on payment preference)
+          const pixPrice = compatiblePrices.find(p => p.paymentMethod === 'pix');
+          const priceToUse = pixPrice || compatiblePrices[0];
+
+          // Check minimum stay from the price entry
+          if (priceToUse.minNights && nights < priceToUse.minNights) {
+            isMinStayViolation = true;
+            minimumStay = Math.max(minimumStay, priceToUse.minNights);
+          }
+
+          totalPrice += Number(priceToUse.pricePerNight);
+        } catch (error) {
+          console.error(`Error getting prices for accommodation ${accommodation.name}:`, error);
           canCalculatePrice = false;
           break;
         }
-
-        totalPrice += Number(priceEntry.price_per_night);
       }
 
       if (canCalculatePrice) {

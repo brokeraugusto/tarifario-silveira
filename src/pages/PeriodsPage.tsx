@@ -8,8 +8,10 @@ import PeriodDialog from '@/components/PeriodDialog';
 import CategoryPriceDialog from '@/components/CategoryPriceDialog';
 import DuplicateDialog from '@/components/DuplicateDialog';
 import CategoryPricesList from '@/components/CategoryPricesList';
+import CategoryPriceManagement from '@/components/periods/CategoryPriceManagement';
+import PeriodSelector from '@/components/periods/PeriodSelector';
 import { duplicatePricePeriod } from '@/integrations/supabase/services/periodService';
-import { CategoryType } from '@/types';
+import { CategoryType, PricePeriod } from '@/types';
 import usePeriods from '@/hooks/usePeriods';
 import PeriodsList from '@/components/periods/PeriodsList';
 import CategoryPricesGrid from '@/components/periods/CategoryPricesGrid';
@@ -44,6 +46,7 @@ const PeriodsPage: React.FC = () => {
   const [currentCategory, setCurrentCategory] = useState<CategoryType | null>(null);
   const [isCategoryPriceDialogOpen, setIsCategoryPriceDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("periods");
+  const [selectedPeriodForPricing, setSelectedPeriodForPricing] = useState<PricePeriod | null>(null);
 
   const handleOpenCategoryPrice = (category: CategoryType) => {
     setCurrentCategory(category);
@@ -85,7 +88,8 @@ const PeriodsPage: React.FC = () => {
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
           <TabsTrigger value="periods">Períodos</TabsTrigger>
-          <TabsTrigger value="prices">Preços por Categoria</TabsTrigger>
+          <TabsTrigger value="category-prices">Preços por Categoria</TabsTrigger>
+          <TabsTrigger value="prices">Preços por Categoria (Grid)</TabsTrigger>
           <TabsTrigger value="prices-list">Lista de Preços</TabsTrigger>
         </TabsList>
         
@@ -101,6 +105,16 @@ const PeriodsPage: React.FC = () => {
             isUpdatingPeriods={isUpdatingPeriods}
             loading={loading}
           />
+        </TabsContent>
+        
+        <TabsContent value="category-prices" className="space-y-6 mt-4">
+          <PeriodSelector
+            periods={periods}
+            selectedPeriod={selectedPeriodForPricing}
+            onPeriodChange={setSelectedPeriodForPricing}
+            loading={loading}
+          />
+          <CategoryPriceManagement selectedPeriod={selectedPeriodForPricing} />
         </TabsContent>
         
         <TabsContent value="prices" className="space-y-6 mt-4">

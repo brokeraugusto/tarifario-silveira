@@ -282,6 +282,50 @@ export type Database = {
         }
         Relationships: []
       }
+      prices_by_category_and_people: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          min_nights: number | null
+          number_of_people: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          period_id: string
+          price_per_night: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          min_nights?: number | null
+          number_of_people: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          period_id: string
+          price_per_night: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          min_nights?: number | null
+          number_of_people?: number
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          period_id?: string
+          price_per_night?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prices_by_category_and_people_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "price_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prices_by_people: {
         Row: {
           accommodation_id: string | null
@@ -381,6 +425,23 @@ export type Database = {
           created_by: string
         }[]
       }
+      get_compatible_prices: {
+        Args: {
+          p_category: string
+          p_capacity: number
+          p_period_id: string
+          p_guests: number
+        }
+        Returns: {
+          id: string
+          category: string
+          number_of_people: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          period_id: string
+          price_per_night: number
+          min_nights: number
+        }[]
+      }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -416,6 +477,7 @@ export type Database = {
         | "recreation"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "pending" | "in_progress" | "completed" | "cancelled"
+      payment_method: "pix" | "credit_card"
       user_role: "master" | "reception" | "maintenance" | "cleaning" | "admin"
     }
     CompositeTypes: {
@@ -541,6 +603,7 @@ export const Constants = {
       ],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["pending", "in_progress", "completed", "cancelled"],
+      payment_method: ["pix", "credit_card"],
       user_role: ["master", "reception", "maintenance", "cleaning", "admin"],
     },
   },
