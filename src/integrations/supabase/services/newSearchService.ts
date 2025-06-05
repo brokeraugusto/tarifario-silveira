@@ -94,6 +94,17 @@ export const searchWithNewPricing = async (
       // Calculate total price
       const totalPrice = nights ? priceRule.price_per_night * nights : null;
 
+      // Type guard for block_period
+      const parseBlockPeriod = (blockPeriod: any): { from: Date; to: Date } | undefined => {
+        if (blockPeriod && typeof blockPeriod === 'object' && 'from' in blockPeriod && 'to' in blockPeriod) {
+          return {
+            from: new Date(blockPeriod.from),
+            to: new Date(blockPeriod.to)
+          };
+        }
+        return undefined;
+      };
+
       const result: NewSearchResult = {
         accommodation: {
           id: accommodation.id,
@@ -108,10 +119,7 @@ export const searchWithNewPricing = async (
           isBlocked: accommodation.is_blocked || false,
           blockReason: accommodation.block_reason as any,
           blockNote: accommodation.block_note || undefined,
-          blockPeriod: accommodation.block_period ? {
-            from: new Date(accommodation.block_period.from),
-            to: new Date(accommodation.block_period.to)
-          } : undefined
+          blockPeriod: parseBlockPeriod(accommodation.block_period)
         },
         pricePerNight: Number(priceRule.price_per_night),
         totalPrice,

@@ -82,7 +82,7 @@ export const getCompatiblePrices = async (
   capacity: number,
   periodId: string,
   guests: number
-): Promise<CategoryPrice[]> => {
+): Promise<Omit<CategoryPrice, 'created_at' | 'updated_at'>[]> => {
   try {
     const { data, error } = await supabase.rpc('get_compatible_prices', {
       p_category: category,

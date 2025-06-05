@@ -104,12 +104,26 @@ const CategoryPriceForm: React.FC<CategoryPriceFormProps> = ({
       let result;
 
       if (editingPrice) {
-        result = await updateCategoryPrice(editingPrice.id, values);
+        result = await updateCategoryPrice(editingPrice.id, {
+          category: values.category,
+          number_of_people: values.number_of_people,
+          payment_method: values.payment_method,
+          period_id: values.period_id,
+          price_per_night: values.price_per_night,
+          min_nights: values.min_nights,
+        });
         if (result) {
           toast.success('Regra de preço atualizada com sucesso');
         }
       } else {
-        result = await createCategoryPrice(values);
+        result = await createCategoryPrice({
+          category: values.category,
+          number_of_people: values.number_of_people,
+          payment_method: values.payment_method,
+          period_id: values.period_id,
+          price_per_night: values.price_per_night,
+          min_nights: values.min_nights,
+        });
         if (result) {
           toast.success('Regra de preço criada com sucesso');
         }
