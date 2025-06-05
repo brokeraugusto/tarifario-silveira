@@ -1,13 +1,15 @@
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PeriodDialog from '@/components/PeriodDialog';
 import CategoryPriceDialog from '@/components/CategoryPriceDialog';
 import DuplicateDialog from '@/components/DuplicateDialog';
 import CategoryPricesList from '@/components/CategoryPricesList';
+import CategoryPriceManagementDialog from '@/components/pricing/CategoryPriceManagementDialog';
 import { duplicatePricePeriod } from '@/integrations/supabase/services/periodService';
 import { CategoryType } from '@/types';
 import usePeriods from '@/hooks/usePeriods';
@@ -43,6 +45,7 @@ const PeriodsPage: React.FC = () => {
 
   const [currentCategory, setCurrentCategory] = useState<CategoryType | null>(null);
   const [isCategoryPriceDialogOpen, setIsCategoryPriceDialogOpen] = useState(false);
+  const [isCategoryPriceManagementOpen, setIsCategoryPriceManagementOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("periods");
 
   const handleOpenCategoryPrice = (category: CategoryType) => {
@@ -87,6 +90,7 @@ const PeriodsPage: React.FC = () => {
           <TabsTrigger value="periods">Períodos</TabsTrigger>
           <TabsTrigger value="prices">Preços por Categoria</TabsTrigger>
           <TabsTrigger value="prices-list">Lista de Preços</TabsTrigger>
+          <TabsTrigger value="new-pricing">Nova Precificação</TabsTrigger>
         </TabsList>
         
         <TabsContent value="periods" className="space-y-4 mt-4">
@@ -110,6 +114,35 @@ const PeriodsPage: React.FC = () => {
         <TabsContent value="prices-list" className="space-y-6 mt-4">
           <CategoryPricesList />
         </TabsContent>
+        
+        <TabsContent value="new-pricing" className="space-y-6 mt-4">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold">Sistema de Precificação por Categoria</h3>
+                <p className="text-sm text-muted-foreground">
+                  Configure preços específicos por categoria, número de pessoas e método de pagamento.
+                </p>
+              </div>
+              <Button onClick={() => setIsCategoryPriceManagementOpen(true)}>
+                <Settings className="mr-2 h-4 w-4" />
+                Gerenciar Preços
+              </Button>
+            </div>
+            
+            <div className="rounded-lg border p-6">
+              <h4 className="font-medium mb-2">Recursos do Novo Sistema:</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Preços específicos por categoria de acomodação</li>
+                <li>• Diferenciação por número de pessoas (1-6)</li>
+                <li>• Preços diferentes para PIX e Cartão de Crédito</li>
+                <li>• Configuração de estadia mínima por regra</li>
+                <li>• Respeita a capacidade máxima de cada acomodação</li>
+                <li>• Integração com períodos existentes</li>
+              </ul>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
       
       <PeriodDialog 
@@ -124,6 +157,11 @@ const PeriodsPage: React.FC = () => {
         isOpen={isCategoryPriceDialogOpen} 
         onOpenChange={setIsCategoryPriceDialogOpen} 
         onUpdate={handleCategoryPriceUpdate} 
+      />
+      
+      <CategoryPriceManagementDialog
+        isOpen={isCategoryPriceManagementOpen}
+        onOpenChange={setIsCategoryPriceManagementOpen}
       />
       
       {periodToDuplicate && (
