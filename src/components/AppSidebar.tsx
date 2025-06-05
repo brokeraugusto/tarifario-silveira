@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Home, 
@@ -22,7 +21,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { UserMenu } from '@/components/UserMenu';
+import UserMenu from '@/components/UserMenu';
 
 const menuItems = [
   {
