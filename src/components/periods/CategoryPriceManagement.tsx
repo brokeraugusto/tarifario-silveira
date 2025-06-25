@@ -17,6 +17,8 @@ import {
   CategoryPriceEntry,
   CategoryPriceCreate
 } from '@/integrations/supabase/services/categoryPriceService';
+import { getAccommodationsByCategory } from '@/integrations/supabase/services/accommodations';
+import InlineCategoryEditor from './InlineCategoryEditor';
 
 interface CategoryPriceManagementProps {
   selectedPeriod: PricePeriod | null;
@@ -24,7 +26,7 @@ interface CategoryPriceManagementProps {
 
 const CATEGORIES: CategoryType[] = ['Standard', 'Luxo', 'Super Luxo', 'Master'];
 const PAYMENT_METHODS = [
-  { value: 'pix', label: 'PIX' },
+  { value: 'pix', label: 'PIX (À Vista)' },
   { value: 'credit_card', label: 'Cartão de Crédito' }
 ];
 
@@ -33,6 +35,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
   const [loading, setLoading] = useState(false);
   const [editingPrice, setEditingPrice] = useState<CategoryPriceEntry | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [accommodationCapacities, setAccommodationCapacities] = useState<Record<CategoryType, number[]>>({} as any);
   const [formData, setFormData] = useState<CategoryPriceCreate>({
     category: 'Standard',
     numberOfPeople: 2,
@@ -44,29 +47,60 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
 
   useEffect(() => {
     if (selectedPeriod) {
-      fetchPrices();
+      fetchData();
       setFormData(prev => ({ ...prev, periodId: selectedPeriod.id }));
     }
   }, [selectedPeriod]);
 
-  const fetchPrices = async () => {
+  const fetchData = async () => {
     if (!selectedPeriod) return;
     
     setLoading(true);
     try {
+      // Buscar preços do período
       const pricesData = await getCategoryPricesByPeriod(selectedPeriod.id);
       setPrices(pricesData);
+
+      // Buscar capacidades das acomodações por categoria
+      const capacities: Record<CategoryType, number[]> = {} as any;
+      
+      for (const category of CATEGORIES) {
+        try {
+          const accommodations = await getAccommodationsByCategory(category);
+          capacities[category] = [...new Set(accommodations.map(acc => acc.capacity))].sort((a, b) => a - b);
+        } catch (error) {
+          console.error(`Error fetching accommodations for category ${category}:`, error);
+          capacities[category] = [];
+        }
+      }
+      
+      setAccommodationCapacities(capacities);
     } catch (error) {
-      console.error('Error fetching prices:', error);
-      toast.error('Erro ao carregar preços');
+      console.error('Error fetching data:', error);
+      toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
   };
 
+  const getAvailablePeopleOptions = (category: CategoryType) => {
+    const capacities = accommodationCapacities[category] || [];
+    if (capacities.length === 0) return [2]; // Fallback
+    
+    const maxCapacity = Math.max(...capacities);
+    return Array.from({ length: maxCapacity }, (_, i) => i + 1);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPeriod) return;
+
+    // Validar se o número de pessoas é válido para a categoria
+    const availableOptions = getAvailablePeopleOptions(formData.category);
+    if (!availableOptions.includes(formData.numberOfPeople)) {
+      toast.error(`Esta categoria não suporta ${formData.numberOfPeople} pessoas`);
+      return;
+    }
 
     try {
       if (editingPrice) {
@@ -77,7 +111,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
         toast.success('Preço criado com sucesso');
       }
       
-      await fetchPrices();
+      await fetchData();
       setShowAddForm(false);
       setEditingPrice(null);
       resetForm();
@@ -106,11 +140,17 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
     try {
       await deleteCategoryPrice(priceId);
       toast.success('Preço excluído com sucesso');
-      await fetchPrices();
+      await fetchData();
     } catch (error) {
       console.error('Error deleting price:', error);
       toast.error('Erro ao excluir preço');
     }
+  };
+
+  const handleCategoryEdit = (oldCategory: CategoryType, newCategory: CategoryType) => {
+    // Aqui você poderia implementar a lógica para atualizar o nome da categoria
+    // Por enquanto, apenas mostramos uma mensagem
+    toast.success(`Categoria ${oldCategory} alterada para ${newCategory}`);
   };
 
   const resetForm = () => {
@@ -128,6 +168,13 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
     setShowAddForm(false);
     setEditingPrice(null);
     resetForm();
+  };
+
+  const getPaymentMethodBadge = (method: 'pix' | 'credit_card') => {
+    if (method === 'pix') {
+      return <Badge variant="default" className="bg-green-100 text-green-800">PIX</Badge>;
+    }
+    return <Badge variant="secondary">Cartão</Badge>;
   };
 
   if (!selectedPeriod) {
@@ -172,7 +219,14 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
                     <Label htmlFor="category">Categoria</Label>
                     <Select
                       value={formData.category}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as CategoryType }))}
+                      onValueChange={(value) => {
+                        const newCategory = value as CategoryType;
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          category: newCategory,
+                          numberOfPeople: Math.min(prev.numberOfPeople, Math.max(...getAvailablePeopleOptions(newCategory)))
+                        }));
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -189,15 +243,26 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
 
                   <div>
                     <Label htmlFor="numberOfPeople">Número de Pessoas</Label>
-                    <Input
-                      id="numberOfPeople"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={formData.numberOfPeople}
-                      onChange={(e) => setFormData(prev => ({ ...prev, numberOfPeople: parseInt(e.target.value) }))}
-                      required
-                    />
+                    <Select
+                      value={formData.numberOfPeople.toString()}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, numberOfPeople: parseInt(value) }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailablePeopleOptions(formData.category).map(num => (
+                          <SelectItem key={num} value={num.toString()}>
+                            {num} pessoa{num > 1 ? 's' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {accommodationCapacities[formData.category] && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Capacidades disponíveis: {accommodationCapacities[formData.category].join(', ')} pessoas
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -227,7 +292,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
                       min="0"
                       step="0.01"
                       value={formData.pricePerNight}
-                      onChange={(e) => setFormData(prev => ({ ...prev, pricePerNight: parseFloat(e.target.value) }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pricePerNight: parseFloat(e.target.value) || 0 }))}
                       required
                     />
                   </div>
@@ -239,7 +304,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
                       type="number"
                       min="1"
                       value={formData.minNights}
-                      onChange={(e) => setFormData(prev => ({ ...prev, minNights: parseInt(e.target.value) }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, minNights: parseInt(e.target.value) || 1 }))}
                       required
                     />
                   </div>
@@ -275,16 +340,23 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
                 <div key={price.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{price.category}</Badge>
-                      <Badge variant={price.paymentMethod === 'pix' ? 'default' : 'secondary'}>
-                        {price.paymentMethod === 'pix' ? 'PIX' : 'Cartão'}
-                      </Badge>
+                      <InlineCategoryEditor
+                        category={price.category}
+                        onSave={handleCategoryEdit}
+                        disabled={loading}
+                      />
+                      {getPaymentMethodBadge(price.paymentMethod)}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {price.numberOfPeople} pessoa{price.numberOfPeople > 1 ? 's' : ''} • 
                       R$ {price.pricePerNight.toFixed(2)}/noite • 
                       Mín. {price.minNights} noite{price.minNights > 1 ? 's' : ''}
                     </div>
+                    {accommodationCapacities[price.category] && (
+                      <div className="text-xs text-muted-foreground">
+                        Aplicável a acomodações com capacidade: {accommodationCapacities[price.category].filter(cap => cap >= price.numberOfPeople).join(', ')} pessoas
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Button

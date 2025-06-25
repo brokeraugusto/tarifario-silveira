@@ -82,22 +82,43 @@ export const getCompatiblePrices = async (
 
 export const createCategoryPrice = async (priceData: CategoryPriceCreate): Promise<CategoryPriceEntry> => {
   try {
+    // Validar dados antes de inserir
+    if (!priceData.category || !priceData.periodId) {
+      throw new Error('Categoria e período são obrigatórios');
+    }
+
+    if (priceData.numberOfPeople <= 0) {
+      throw new Error('Número de pessoas deve ser maior que zero');
+    }
+
+    if (priceData.pricePerNight <= 0) {
+      throw new Error('Preço por noite deve ser maior que zero');
+    }
+
+    const insertData = {
+      category: priceData.category,
+      number_of_people: priceData.numberOfPeople,
+      payment_method: priceData.paymentMethod,
+      period_id: priceData.periodId,
+      price_per_night: priceData.pricePerNight,
+      min_nights: priceData.minNights || 1
+    };
+
+    console.log('Creating category price with data:', insertData);
+
     const { data, error } = await supabase
       .from('prices_by_category_and_people')
-      .insert({
-        category: priceData.category,
-        number_of_people: priceData.numberOfPeople,
-        payment_method: priceData.paymentMethod,
-        period_id: priceData.periodId,
-        price_per_night: priceData.pricePerNight,
-        min_nights: priceData.minNights || 1
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (error) {
       console.error('Error creating category price:', error);
       throw error;
+    }
+
+    if (!data) {
+      throw new Error('Nenhum dado retornado após criação do preço');
     }
 
     return mapFromDatabase(data);
@@ -112,14 +133,20 @@ export const updateCategoryPrice = async (
   priceData: Partial<CategoryPriceCreate>
 ): Promise<CategoryPriceEntry> => {
   try {
+    if (!id) {
+      throw new Error('ID é obrigatório para atualização');
+    }
+
     const updateData: any = {};
     
     if (priceData.category) updateData.category = priceData.category;
     if (priceData.numberOfPeople) updateData.number_of_people = priceData.numberOfPeople;
     if (priceData.paymentMethod) updateData.payment_method = priceData.paymentMethod;
     if (priceData.periodId) updateData.period_id = priceData.periodId;
-    if (priceData.pricePerNight) updateData.price_per_night = priceData.pricePerNight;
+    if (priceData.pricePerNight !== undefined) updateData.price_per_night = priceData.pricePerNight;
     if (priceData.minNights !== undefined) updateData.min_nights = priceData.minNights;
+
+    console.log('Updating category price with data:', updateData);
 
     const { data, error } = await supabase
       .from('prices_by_category_and_people')
@@ -133,6 +160,10 @@ export const updateCategoryPrice = async (
       throw error;
     }
 
+    if (!data) {
+      throw new Error('Nenhum dado retornado após atualização do preço');
+    }
+
     return mapFromDatabase(data);
   } catch (error) {
     console.error('Error in updateCategoryPrice:', error);
@@ -142,6 +173,10 @@ export const updateCategoryPrice = async (
 
 export const deleteCategoryPrice = async (id: string): Promise<void> => {
   try {
+    if (!id) {
+      throw new Error('ID é obrigatório para exclusão');
+    }
+
     const { error } = await supabase
       .from('prices_by_category_and_people')
       .delete()
@@ -158,16 +193,25 @@ export const deleteCategoryPrice = async (id: string): Promise<void> => {
 };
 
 export const getCategoryPricesByPeriod = async (periodId: string): Promise<CategoryPriceEntry[]> => {
+  if (!periodId) {
+    throw new Error('ID do período é obrigatório');
+  }
   return getCategoryPrices(periodId);
 };
 
 // Helper function to map database records to our interface
-const mapFromDatabase = (data: any): CategoryPriceEntry => ({
-  id: data.id,
-  category: data.category as CategoryType,
-  numberOfPeople: data.number_of_people,
-  paymentMethod: data.payment_method as 'pix' | 'credit_card',
-  periodId: data.period_id,
-  pricePerNight: Number(data.price_per_night),
-  minNights: data.min_nights || 1
-});
+const mapFromDatabase = (data: any): CategoryPriceEntry => {
+  if (!data) {
+    throw new Error('Dados inválidos retornados do banco de dados');
+  }
+
+  return {
+    id: data.id,
+    category: data.category as CategoryType,
+    numberOfPeople: data.number_of_people,
+    paymentMethod: data.payment_method as 'pix' | 'credit_card',
+    periodId: data.period_id,
+    pricePerNight: Number(data.price_per_night),
+    minNights: data.min_nights || 1
+  };
+};
