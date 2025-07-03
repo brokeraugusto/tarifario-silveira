@@ -1,12 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { CategoryType, PricePeriod } from '@/types';
 import { 
@@ -18,17 +14,14 @@ import {
   CategoryPriceCreate
 } from '@/integrations/supabase/services/categoryPriceService';
 import { getAccommodationsByCategory } from '@/integrations/supabase/services/accommodations';
-import InlineCategoryEditor from './InlineCategoryEditor';
+import CategoryPriceForm from './CategoryPriceForm';
+import CategoryPriceList from './CategoryPriceList';
 
 interface CategoryPriceManagementProps {
   selectedPeriod: PricePeriod | null;
 }
 
 const CATEGORIES: CategoryType[] = ['Standard', 'Luxo', 'Super Luxo', 'Master'];
-const PAYMENT_METHODS = [
-  { value: 'pix', label: 'PIX (À Vista)' },
-  { value: 'credit_card', label: 'Cartão de Crédito' }
-];
 
 const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selectedPeriod }) => {
   const [prices, setPrices] = useState<CategoryPriceEntry[]>([]);
@@ -170,13 +163,6 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
     resetForm();
   };
 
-  const getPaymentMethodBadge = (method: 'pix' | 'credit_card') => {
-    if (method === 'pix') {
-      return <Badge variant="default" className="bg-green-100 text-green-800">PIX</Badge>;
-    }
-    return <Badge variant="secondary">Cartão</Badge>;
-  };
-
   if (!selectedPeriod) {
     return (
       <Card>
@@ -207,177 +193,25 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
         </CardHeader>
         <CardContent>
           {showAddForm && (
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {editingPrice ? 'Editar Preço' : 'Novo Preço'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="category">Categoria</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) => {
-                        const newCategory = value as CategoryType;
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          category: newCategory,
-                          numberOfPeople: Math.min(prev.numberOfPeople, Math.max(...getAvailablePeopleOptions(newCategory)))
-                        }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(category => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="numberOfPeople">Número de Pessoas</Label>
-                    <Select
-                      value={formData.numberOfPeople.toString()}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, numberOfPeople: parseInt(value) }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getAvailablePeopleOptions(formData.category).map(num => (
-                          <SelectItem key={num} value={num.toString()}>
-                            {num} pessoa{num > 1 ? 's' : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {accommodationCapacities[formData.category] && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Capacidades disponíveis: {accommodationCapacities[formData.category].join(', ')} pessoas
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="paymentMethod">Método de Pagamento</Label>
-                    <Select
-                      value={formData.paymentMethod}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value as 'pix' | 'credit_card' }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PAYMENT_METHODS.map(method => (
-                          <SelectItem key={method.value} value={method.value}>
-                            {method.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="pricePerNight">Preço por Noite (R$)</Label>
-                    <Input
-                      id="pricePerNight"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.pricePerNight}
-                      onChange={(e) => setFormData(prev => ({ ...prev, pricePerNight: parseFloat(e.target.value) || 0 }))}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="minNights">Mínimo de Noites</Label>
-                    <Input
-                      id="minNights"
-                      type="number"
-                      min="1"
-                      value={formData.minNights}
-                      onChange={(e) => setFormData(prev => ({ ...prev, minNights: parseInt(e.target.value) || 1 }))}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-span-2 flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={handleCancel}>
-                      <X className="w-4 h-4 mr-2" />
-                      Cancelar
-                    </Button>
-                    <Button type="submit">
-                      <Save className="w-4 h-4 mr-2" />
-                      {editingPrice ? 'Atualizar' : 'Salvar'}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+            <CategoryPriceForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              editingPrice={editingPrice}
+              accommodationCapacities={accommodationCapacities}
+              getAvailablePeopleOptions={getAvailablePeopleOptions}
+            />
           )}
 
-          {loading ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Carregando preços...</p>
-            </div>
-          ) : prices.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                Nenhum preço configurado para este período
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {prices.map((price) => (
-                <div key={price.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <InlineCategoryEditor
-                        category={price.category}
-                        onSave={handleCategoryEdit}
-                        disabled={loading}
-                      />
-                      {getPaymentMethodBadge(price.paymentMethod)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {price.numberOfPeople} pessoa{price.numberOfPeople > 1 ? 's' : ''} • 
-                      R$ {price.pricePerNight.toFixed(2)}/noite • 
-                      Mín. {price.minNights} noite{price.minNights > 1 ? 's' : ''}
-                    </div>
-                    {accommodationCapacities[price.category] && (
-                      <div className="text-xs text-muted-foreground">
-                        Aplicável a acomodações com capacidade: {accommodationCapacities[price.category].filter(cap => cap >= price.numberOfPeople).join(', ')} pessoas
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(price)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(price.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <CategoryPriceList
+            prices={prices}
+            accommodationCapacities={accommodationCapacities}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onCategoryEdit={handleCategoryEdit}
+            loading={loading}
+          />
         </CardContent>
       </Card>
     </div>
