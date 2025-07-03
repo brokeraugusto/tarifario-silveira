@@ -50,6 +50,40 @@ export const getCategoryPricesByPeriod = async (periodId: string): Promise<Categ
   }
 };
 
+export const getCompatiblePrices = async (
+  category: CategoryType,
+  capacity: number,
+  periodId: string,
+  guests: number
+): Promise<CategoryPriceEntry[]> => {
+  try {
+    const { data, error } = await supabase.rpc('get_compatible_prices', {
+      p_category: category,
+      p_capacity: capacity,
+      p_period_id: periodId,
+      p_guests: guests
+    });
+
+    if (error) {
+      console.error('Error fetching compatible prices:', error);
+      return [];
+    }
+
+    return data.map((item: any) => ({
+      id: item.id,
+      category: item.category as CategoryType,
+      numberOfPeople: item.number_of_people,
+      paymentMethod: item.payment_method,
+      periodId: item.period_id,
+      pricePerNight: Number(item.price_per_night),
+      minNights: item.min_nights || 1
+    }));
+  } catch (error) {
+    console.error('Error in getCompatiblePrices:', error);
+    return [];
+  }
+};
+
 export const createCategoryPrice = async (data: CategoryPriceCreate): Promise<CategoryPriceEntry | null> => {
   try {
     const { data: result, error } = await supabase
