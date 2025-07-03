@@ -32,15 +32,29 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
   loading
 }) => {
   const handleDuplicateClick = () => {
-    handleDuplicatePeriods(selectedPeriodIds);
+    console.log('Duplicate button clicked with selected periods:', selectedPeriodIds);
+    if (selectedPeriodIds.length === 1) {
+      handleDuplicatePeriods(selectedPeriodIds);
+    }
   };
   
   const handleEditClick = () => {
-    handleEditPeriods(selectedPeriodIds);
+    console.log('Edit button clicked with selected periods:', selectedPeriodIds);
+    if (selectedPeriodIds.length === 1) {
+      handleEditPeriods(selectedPeriodIds);
+    }
   };
   
   const handleDeleteClick = () => {
-    handleDeletePeriods(selectedPeriodIds);
+    console.log('Delete button clicked with selected periods:', selectedPeriodIds);
+    if (selectedPeriodIds.length > 0) {
+      handleDeletePeriods(selectedPeriodIds);
+    }
+  };
+
+  const handleAddClick = () => {
+    console.log('Add Period button clicked');
+    handleAddPeriod();
   };
 
   const periodColumns: ColumnDef<PricePeriod>[] = [
@@ -89,6 +103,7 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
             variant="outline"
             onClick={handleDuplicateClick}
             disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
+            title={selectedPeriodIds.length !== 1 ? "Selecione exatamente um período para duplicar" : "Duplicar período selecionado"}
           >
             <Copy className="mr-2 h-4 w-4" /> Duplicar
           </Button>
@@ -97,6 +112,7 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
             variant="outline"
             onClick={handleEditClick}
             disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
+            title={selectedPeriodIds.length !== 1 ? "Selecione exatamente um período para editar" : "Editar período selecionado"}
           >
             <Pencil className="mr-2 h-4 w-4" /> Editar
           </Button>
@@ -105,12 +121,17 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
             variant="outline"
             onClick={handleDeleteClick}
             disabled={selectedPeriodIds.length === 0 || isUpdatingPeriods || loading}
+            title={selectedPeriodIds.length === 0 ? "Selecione pelo menos um período para excluir" : `Excluir ${selectedPeriodIds.length} período(s) selecionado(s)`}
           >
             <Trash2 className="mr-2 h-4 w-4" /> Excluir
           </Button>
         </div>
         
-        <Button onClick={handleAddPeriod}>
+        <Button 
+          onClick={handleAddClick}
+          disabled={isUpdatingPeriods || loading}
+          title="Adicionar novo período"
+        >
           <Plus className="mr-2 h-4 w-4" /> Novo Período
         </Button>
       </div>
