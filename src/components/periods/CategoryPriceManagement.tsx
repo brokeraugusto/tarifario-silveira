@@ -88,7 +88,6 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
     e.preventDefault();
     if (!selectedPeriod) return;
 
-    // Validar se o número de pessoas é válido para a categoria
     const availableOptions = getAvailablePeopleOptions(formData.category);
     if (!availableOptions.includes(formData.numberOfPeople)) {
       toast.error(`Esta categoria não suporta ${formData.numberOfPeople} pessoas`);
@@ -104,7 +103,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
         toast.success('Preço criado com sucesso');
       }
       
-      await fetchData();
+      await fetchData(); // Refresh dados
       setShowAddForm(false);
       setEditingPrice(null);
       resetForm();
@@ -133,17 +132,16 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
     try {
       await deleteCategoryPrice(priceId);
       toast.success('Preço excluído com sucesso');
-      await fetchData();
+      await fetchData(); // Refresh dados
     } catch (error) {
       console.error('Error deleting price:', error);
       toast.error('Erro ao excluir preço');
     }
   };
 
-  const handleCategoryEdit = (oldCategory: CategoryType, newCategory: CategoryType) => {
-    // Aqui você poderia implementar a lógica para atualizar o nome da categoria
-    // Por enquanto, apenas mostramos uma mensagem
-    toast.success(`Categoria ${oldCategory} alterada para ${newCategory}`);
+  const handleCategoryEdit = async (oldCategory: CategoryType, newCategory: CategoryType) => {
+    // Refresh dados após edição da categoria
+    await fetchData();
   };
 
   const resetForm = () => {

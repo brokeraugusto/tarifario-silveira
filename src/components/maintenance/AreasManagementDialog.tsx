@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, MapPin, RefreshCw } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,6 +55,7 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
       queryClient.invalidateQueries({ queryKey: ['areas'] });
       toast.success('Área criada com sucesso');
       handleCloseForm();
+      refetch(); // Força refresh imediato
     },
     onError: (error) => {
       console.error('Error creating area:', error);
@@ -69,6 +70,7 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
       queryClient.invalidateQueries({ queryKey: ['areas'] });
       toast.success('Área atualizada com sucesso');
       handleCloseForm();
+      refetch(); // Força refresh imediato
     },
     onError: (error) => {
       console.error('Error updating area:', error);
@@ -81,6 +83,7 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['areas'] });
       toast.success('Área removida com sucesso');
+      refetch(); // Força refresh imediato
     },
     onError: (error) => {
       console.error('Error deleting area:', error);
@@ -142,11 +145,15 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
     });
   };
 
-  const handleRefreshAreas = () => {
-    ensureAreasForAccommodations().then(() => {
-      refetch();
+  const handleRefreshAreas = async () => {
+    try {
+      await ensureAreasForAccommodations();
+      await refetch();
       toast.success('Áreas atualizadas com sucesso');
-    });
+    } catch (error) {
+      console.error('Error refreshing areas:', error);
+      toast.error('Erro ao atualizar áreas');
+    }
   };
 
   const getAreaTypeLabel = (type: AreaType) => {
@@ -186,7 +193,7 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
 
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Áreas Cadastradas</h3>
+            <h3 className="text-lg font-medium">Áreas Cadastradas ({areas.length})</h3>
             <div className="flex gap-2">
               <Button
                 variant="outline"

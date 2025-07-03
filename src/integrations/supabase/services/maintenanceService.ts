@@ -1,3 +1,4 @@
+
 import { supabase } from '../client';
 import { 
   MaintenanceOrder, 
@@ -106,13 +107,13 @@ export const createArea = async (areaData: Omit<Area, 'id' | 'created_at' | 'upd
 
     if (error) {
       console.error('Error creating area:', error);
-      return null;
+      throw error;
     }
 
     return data;
   } catch (error) {
     console.error('Error in createArea:', error);
-    return null;
+    throw error;
   }
 };
 
@@ -176,7 +177,7 @@ export const deleteArea = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Error in deleteArea:', error);
-    return false;
+    throw error;
   }
 };
 

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { CategoryType } from '@/types';
+import { updateCategoryName } from '@/integrations/supabase/services/categoryPriceService';
+import { toast } from 'sonner';
 
 interface InlineCategoryEditorProps {
   category: CategoryType;
@@ -19,10 +21,27 @@ const InlineCategoryEditor: React.FC<InlineCategoryEditorProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(category);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editValue && editValue !== category) {
-      onSave(category, editValue as CategoryType);
+      setIsLoading(true);
+      try {
+        const success = await updateCategoryName(category, editValue as CategoryType);
+        if (success) {
+          onSave(category, editValue as CategoryType);
+          toast.success(`Categoria alterada de "${category}" para "${editValue}"`);
+        } else {
+          toast.error('Erro ao alterar categoria');
+          setEditValue(category); // Reverter em caso de erro
+        }
+      } catch (error) {
+        console.error('Error updating category:', error);
+        toast.error('Erro ao alterar categoria');
+        setEditValue(category);
+      } finally {
+        setIsLoading(false);
+      }
     }
     setIsEditing(false);
   };
@@ -58,12 +77,25 @@ const InlineCategoryEditor: React.FC<InlineCategoryEditorProps> = ({
             if (e.key === 'Enter') handleSave();
             if (e.key === 'Escape') handleCancel();
           }}
+          disabled={isLoading}
           autoFocus
         />
-        <Button size="sm" variant="ghost" onClick={handleSave} className="h-8 w-8 p-0">
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={handleSave} 
+          className="h-8 w-8 p-0"
+          disabled={isLoading}
+        >
           <Check className="h-3 w-3 text-green-600" />
         </Button>
-        <Button size="sm" variant="ghost" onClick={handleCancel} className="h-8 w-8 p-0">
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={handleCancel} 
+          className="h-8 w-8 p-0"
+          disabled={isLoading}
+        >
           <X className="h-3 w-3 text-red-600" />
         </Button>
       </div>
@@ -79,6 +111,7 @@ const InlineCategoryEditor: React.FC<InlineCategoryEditorProps> = ({
           variant="ghost"
           onClick={() => setIsEditing(true)}
           className="h-6 w-6 p-0"
+          disabled={isLoading}
         >
           <Pencil className="h-3 w-3" />
         </Button>

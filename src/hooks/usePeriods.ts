@@ -65,11 +65,6 @@ export const usePeriods = () => {
     setSelectedPeriodIds(ids);
     setIsDeleteDialogOpen(true);
   };
-  
-  const handlePermanentDeletePeriods = (ids: string[]) => {
-    setSelectedPeriodIds(ids);
-    setIsPermanentDeleteDialogOpen(true);
-  };
 
   const confirmDelete = async () => {
     setLoading(true);
@@ -78,7 +73,7 @@ export const usePeriods = () => {
         await deletePricePeriod(id);
       }
       toast.success(`${selectedPeriodIds.length} período(s) excluído(s) com sucesso`);
-      fetchPeriods();
+      await fetchPeriods(); // Refresh após delete
     } catch (error) {
       console.error("Error deleting periods:", error);
       toast.error("Erro ao excluir períodos");
@@ -92,12 +87,11 @@ export const usePeriods = () => {
   const confirmPermanentDelete = async () => {
     setLoading(true);
     try {
-      // Perform a hard delete or permanent deletion
       for (const id of selectedPeriodIds) {
         await deletePricePeriod(id);
       }
       toast.success(`${selectedPeriodIds.length} período(s) excluído(s) permanentemente`);
-      fetchPeriods();
+      await fetchPeriods(); // Refresh após delete permanente
     } catch (error) {
       console.error("Error permanently deleting periods:", error);
       toast.error("Erro ao excluir permanentemente períodos");
@@ -108,9 +102,10 @@ export const usePeriods = () => {
     }
   };
 
-  const handlePeriodSuccess = () => {
+  const handlePeriodSuccess = async () => {
     setIsPeriodDialogOpen(false);
-    fetchPeriods();
+    await fetchPeriods(); // Refresh imediato após criação/edição
+    setSelectedPeriodIds([]); // Limpar seleções
   };
 
   return {
@@ -133,7 +128,6 @@ export const usePeriods = () => {
     handleEditPeriods,
     handleDuplicatePeriods,
     handleDeletePeriods,
-    handlePermanentDeletePeriods,
     confirmDelete,
     confirmPermanentDelete,
     handlePeriodSuccess,
