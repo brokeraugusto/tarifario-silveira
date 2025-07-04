@@ -157,10 +157,8 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
           isHoliday: values.isHoliday
         });
         
-        if (result) {
-          console.log('Period updated successfully:', result);
-          toast.success("Período atualizado com sucesso");
-        }
+        console.log('Update result:', result);
+        toast.success("Período atualizado com sucesso");
       } else {
         console.log("Creating new period:", values);
         
@@ -172,19 +170,14 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
           isHoliday: values.isHoliday
         });
         
-        if (result) {
-          console.log('Period created successfully:', result);
-          toast.success("Período criado com sucesso");
-        }
+        console.log('Create result:', result);
+        toast.success("Período criado com sucesso");
       }
       
       if (result) {
         form.reset();
         onOpenChange(false);
         onSuccess();
-      } else {
-        console.error('Failed to save period - no result returned');
-        toast.error("Erro ao salvar período");
       }
     } catch (error) {
       console.error("Error saving period:", error);

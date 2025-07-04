@@ -1,4 +1,3 @@
-
 import { supabase } from '../../client';
 import { PricePeriod } from '@/types';
 import { toISODateString } from './dateUtils';
@@ -30,15 +29,15 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
 
     if (error) {
       console.error('Error creating price period:', error);
-      return null;
+      throw error;
     }
     
     if (!data) {
       console.error('No data returned after creating price period');
-      return null;
+      throw new Error('No data returned from database');
     }
 
-    return {
+    const result = {
       id: data.id,
       name: data.name,
       // Parse dates with proper timezone handling
@@ -47,9 +46,12 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
       isHoliday: data.is_holiday || false,
       minimumStay: data.minimum_stay || 1
     };
+
+    console.log('Successfully created period:', result);
+    return result;
   } catch (error) {
-    console.error('Unexpected error in createPricePeriod:', error);
-    return null;
+    console.error('Error in createPricePeriod:', error);
+    throw error;
   }
 };
 
@@ -58,6 +60,8 @@ export const createPricePeriod = async (period: Omit<PricePeriod, 'id'>): Promis
  */
 export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod>): Promise<PricePeriod | null> => {
   try {
+    console.log('Updating price period:', id, updates);
+    
     const dbUpdates: any = {};
     
     if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -66,6 +70,8 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
     if (updates.isHoliday !== undefined) dbUpdates.is_holiday = updates.isHoliday;
     if (updates.minimumStay !== undefined) dbUpdates.minimum_stay = updates.minimumStay;
     
+    console.log('Database updates:', dbUpdates);
+    
     const { data, error } = await supabase
       .from('price_periods')
       .update(dbUpdates)
@@ -73,12 +79,17 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
       .select()
       .single();
 
-    if (error || !data) {
+    if (error) {
       console.error('Error updating price period:', error);
-      return null;
+      throw error;
     }
 
-    return {
+    if (!data) {
+      console.error('No data returned after updating price period');
+      throw new Error('No data returned from database');
+    }
+
+    const result = {
       id: data.id,
       name: data.name,
       // Parse dates with proper timezone handling
@@ -87,9 +98,12 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
       isHoliday: data.is_holiday || false,
       minimumStay: data.minimum_stay || 1
     };
+
+    console.log('Successfully updated period:', result);
+    return result;
   } catch (error) {
-    console.error('Unexpected error in updatePricePeriod:', error);
-    return null;
+    console.error('Error in updatePricePeriod:', error);
+    throw error;
   }
 };
 
@@ -98,6 +112,8 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
  */
 export const deletePricePeriod = async (id: string): Promise<boolean> => {
   try {
+    console.log('Deleting price period:', id);
+    
     // First delete all related prices to prevent foreign key constraint issues
     const { error: pricesError } = await supabase
       .from('prices_by_people')
@@ -106,7 +122,7 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
 
     if (pricesError) {
       console.error('Error deleting related prices:', pricesError);
-      return false;
+      throw pricesError;
     }
 
     // Then delete the period
@@ -117,13 +133,14 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
 
     if (error) {
       console.error('Error deleting price period:', error);
-      return false;
+      throw error;
     }
 
+    console.log('Successfully deleted period:', id);
     return true;
   } catch (error) {
-    console.error('Unexpected error in deletePricePeriod:', error);
-    return false;
+    console.error('Error in deletePricePeriod:', error);
+    throw error;
   }
 };
 
