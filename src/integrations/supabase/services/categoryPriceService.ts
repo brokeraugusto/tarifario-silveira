@@ -175,7 +175,6 @@ export const deleteCategoryPrice = async (id: string): Promise<boolean> => {
   }
 };
 
-// Nova função para atualizar categoria em todos os preços
 export const updateCategoryName = async (oldCategory: CategoryType, newCategory: CategoryType): Promise<boolean> => {
   try {
     const { error } = await supabase

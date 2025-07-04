@@ -50,11 +50,9 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
     
     setLoading(true);
     try {
-      // Buscar preços do período
       const pricesData = await getCategoryPricesByPeriod(selectedPeriod.id);
       setPrices(pricesData);
 
-      // Buscar capacidades das acomodações por categoria
       const capacities: Record<CategoryType, number[]> = {} as any;
       
       for (const category of CATEGORIES) {
@@ -78,7 +76,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
 
   const getAvailablePeopleOptions = (category: CategoryType) => {
     const capacities = accommodationCapacities[category] || [];
-    if (capacities.length === 0) return [2]; // Fallback
+    if (capacities.length === 0) return [2];
     
     const maxCapacity = Math.max(...capacities);
     return Array.from({ length: maxCapacity }, (_, i) => i + 1);
@@ -103,7 +101,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
         toast.success('Preço criado com sucesso');
       }
       
-      await fetchData(); // Refresh dados
+      await fetchData();
       setShowAddForm(false);
       setEditingPrice(null);
       resetForm();
@@ -132,7 +130,7 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
     try {
       await deleteCategoryPrice(priceId);
       toast.success('Preço excluído com sucesso');
-      await fetchData(); // Refresh dados
+      await fetchData();
     } catch (error) {
       console.error('Error deleting price:', error);
       toast.error('Erro ao excluir preço');
@@ -140,7 +138,6 @@ const CategoryPriceManagement: React.FC<CategoryPriceManagementProps> = ({ selec
   };
 
   const handleCategoryEdit = async (oldCategory: CategoryType, newCategory: CategoryType) => {
-    // Refresh dados após edição da categoria
     await fetchData();
   };
 

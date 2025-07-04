@@ -33,7 +33,7 @@ const InlineCategoryEditor: React.FC<InlineCategoryEditorProps> = ({
           toast.success(`Categoria alterada de "${category}" para "${editValue}"`);
         } else {
           toast.error('Erro ao alterar categoria');
-          setEditValue(category); // Reverter em caso de erro
+          setEditValue(category);
         }
       } catch (error) {
         console.error('Error updating category:', error);

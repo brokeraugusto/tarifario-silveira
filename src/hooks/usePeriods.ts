@@ -73,7 +73,7 @@ export const usePeriods = () => {
         await deletePricePeriod(id);
       }
       toast.success(`${selectedPeriodIds.length} período(s) excluído(s) com sucesso`);
-      await fetchPeriods(); // Refresh após delete
+      await fetchPeriods();
     } catch (error) {
       console.error("Error deleting periods:", error);
       toast.error("Erro ao excluir períodos");
@@ -91,7 +91,7 @@ export const usePeriods = () => {
         await deletePricePeriod(id);
       }
       toast.success(`${selectedPeriodIds.length} período(s) excluído(s) permanentemente`);
-      await fetchPeriods(); // Refresh após delete permanente
+      await fetchPeriods();
     } catch (error) {
       console.error("Error permanently deleting periods:", error);
       toast.error("Erro ao excluir permanentemente períodos");
@@ -104,8 +104,8 @@ export const usePeriods = () => {
 
   const handlePeriodSuccess = async () => {
     setIsPeriodDialogOpen(false);
-    await fetchPeriods(); // Refresh imediato após criação/edição
-    setSelectedPeriodIds([]); // Limpar seleções
+    await fetchPeriods();
+    setSelectedPeriodIds([]);
   };
 
   return {
