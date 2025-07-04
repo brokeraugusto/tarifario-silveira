@@ -131,6 +131,7 @@ export const usePeriods = () => {
     isDuplicateDialogOpen,
     setIsDuplicateDialogOpen,
     periodToDuplicate,
+    setPeriodToDuplicate,
     isUpdatingPeriods,
     handleAddPeriod,
     handleEditPeriods,

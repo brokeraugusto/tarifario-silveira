@@ -32,6 +32,7 @@ const PeriodsPage: React.FC = () => {
     isDuplicateDialogOpen,
     setIsDuplicateDialogOpen,
     periodToDuplicate,
+    setPeriodToDuplicate,
     isUpdatingPeriods,
     handleAddPeriod,
     handleEditPeriods,
