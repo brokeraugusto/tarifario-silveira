@@ -22,7 +22,7 @@ interface MultiSelectTableProps<T> extends ActionHandlers {
   onRowClick?: (row: T) => void;
   customActions?: CustomAction[];
   getRowAttributes?: (row: T) => Record<string, string>;
-  onSelectedRowsChange?: (ids: string[]) => void; // Add this prop
+  onSelectedRowsChange?: (ids: string[]) => void;
 }
 
 export default function MultiSelectTable<T>({
@@ -43,34 +43,50 @@ export default function MultiSelectTable<T>({
   const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
   const [contextMenuRowId, setContextMenuRowId] = React.useState<string | null>(null);
 
-  // Update rowSelection handler to call onSelectedRowsChange when selection changes
-  const handleRowSelectionChange = (newSelection: any) => {
+  // Handler atualizado para calcular IDs corretamente
+  const handleRowSelectionChange = React.useCallback((newSelection: any) => {
+    console.log('Row selection changing:', newSelection);
     setRowSelection(newSelection);
     
     if (onSelectedRowsChange) {
-      const selectedIds = Object.keys(newSelection).map(key => {
-        // Find the row with this index and get its ID
-        const rowData = data.find((_, index) => index.toString() === key);
-        return rowData ? getRowId(rowData) : '';
-      }).filter(id => id !== '');
+      // Converter índices de seleção para IDs reais
+      const selectedIds = Object.keys(newSelection)
+        .filter(key => newSelection[key]) // Apenas selecionados (valor true)
+        .map(index => {
+          const rowData = data[parseInt(index)];
+          return rowData ? getRowId(rowData) : '';
+        })
+        .filter(id => id !== '');
       
+      console.log('Calculated selected IDs:', selectedIds);
       onSelectedRowsChange(selectedIds);
     }
-  };
+  }, [data, getRowId, onSelectedRowsChange]);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onRowSelectionChange: handleRowSelectionChange, // Use our custom handler
+    onRowSelectionChange: handleRowSelectionChange,
     state: {
       rowSelection,
     },
-    getRowId,
+    getRowId: (row, index) => index.toString(), // Usar índice como ID interno da tabela
     getSortedRowModel: getSortedRowModel(),
     enableSorting: true,
   });
+
+  // Calcular IDs selecionados para os botões de ação
+  const selectedIds = React.useMemo(() => {
+    return Object.keys(rowSelection)
+      .filter(key => rowSelection[key])
+      .map(index => {
+        const rowData = data[parseInt(index)];
+        return rowData ? getRowId(rowData) : '';
+      })
+      .filter(id => id !== '');
+  }, [rowSelection, data, getRowId]);
 
   // Context menu handler
   const handleContextMenu = (rowId: string, e: React.MouseEvent) => {
@@ -82,10 +98,7 @@ export default function MultiSelectTable<T>({
   return (
     <div className="space-y-4">
       <ItemActions 
-        selectedIds={Object.keys(rowSelection).map(key => {
-          const rowData = data.find((_, index) => index.toString() === key);
-          return rowData ? getRowId(rowData) : '';
-        }).filter(id => id !== '')}
+        selectedIds={selectedIds}
         onEdit={onEdit} 
         onDelete={onDelete}
         onBlock={onBlock}
@@ -103,7 +116,7 @@ export default function MultiSelectTable<T>({
           />
           <TableBodyComponent
             rows={table.getRowModel().rows}
-            getRowId={getRowId}
+            getRowId={(row) => getRowId(row)} // Usar o getRowId original para exibição
             onRowClick={onRowClick}
             handleContextMenu={handleContextMenu}
             columns={columns.length}

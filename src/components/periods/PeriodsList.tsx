@@ -37,8 +37,6 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
     console.log('Duplicate button clicked with selected periods:', selectedPeriodIds);
     if (selectedPeriodIds.length === 1) {
       handleDuplicatePeriods(selectedPeriodIds);
-    } else {
-      console.log('Invalid selection for duplicate - need exactly 1');
     }
   };
   
@@ -46,8 +44,6 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
     console.log('Edit button clicked with selected periods:', selectedPeriodIds);
     if (selectedPeriodIds.length === 1) {
       handleEditPeriods(selectedPeriodIds);
-    } else {
-      console.log('Invalid selection for edit - need exactly 1');
     }
   };
   
@@ -55,14 +51,18 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
     console.log('Delete button clicked with selected periods:', selectedPeriodIds);
     if (selectedPeriodIds.length > 0) {
       handleDeletePeriods(selectedPeriodIds);
-    } else {
-      console.log('Invalid selection for delete - need at least 1');
     }
   };
 
   const handleAddClick = () => {
     console.log('Add Period button clicked');
     handleAddPeriod();
+  };
+
+  // Callback para quando a seleção mudar na tabela
+  const handleSelectionChange = (ids: string[]) => {
+    console.log('Selection changed in table:', ids);
+    setSelectedPeriodIds(ids);
   };
 
   const periodColumns: ColumnDef<PricePeriod>[] = [
@@ -172,7 +172,7 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
           getRowId={row => row.id} 
           onEdit={handleEditPeriods} 
           onDelete={handleDeletePeriods}
-          onSelectedRowsChange={setSelectedPeriodIds}
+          onSelectedRowsChange={handleSelectionChange}
         />
       )}
     </div>
