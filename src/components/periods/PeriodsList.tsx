@@ -21,8 +21,8 @@ interface PeriodsListProps {
 }
 
 const PeriodsList: React.FC<PeriodsListProps> = ({
-  periods,
-  selectedPeriodIds,
+  periods = [],
+  selectedPeriodIds = [],
   setSelectedPeriodIds,
   handleEditPeriods,
   handleDeletePeriods,
@@ -31,10 +31,14 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
   isUpdatingPeriods,
   loading
 }) => {
+  console.log('PeriodsList render - periods:', periods.length, 'selected:', selectedPeriodIds.length);
+
   const handleDuplicateClick = () => {
     console.log('Duplicate button clicked with selected periods:', selectedPeriodIds);
     if (selectedPeriodIds.length === 1) {
       handleDuplicatePeriods(selectedPeriodIds);
+    } else {
+      console.log('Invalid selection for duplicate - need exactly 1');
     }
   };
   
@@ -42,6 +46,8 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
     console.log('Edit button clicked with selected periods:', selectedPeriodIds);
     if (selectedPeriodIds.length === 1) {
       handleEditPeriods(selectedPeriodIds);
+    } else {
+      console.log('Invalid selection for edit - need exactly 1');
     }
   };
   
@@ -49,6 +55,8 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
     console.log('Delete button clicked with selected periods:', selectedPeriodIds);
     if (selectedPeriodIds.length > 0) {
       handleDeletePeriods(selectedPeriodIds);
+    } else {
+      console.log('Invalid selection for delete - need at least 1');
     }
   };
 
@@ -95,15 +103,29 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
     }
   ];
 
+  const isButtonsDisabled = loading || isUpdatingPeriods;
+  const isDuplicateDisabled = isButtonsDisabled || selectedPeriodIds.length !== 1;
+  const isEditDisabled = isButtonsDisabled || selectedPeriodIds.length !== 1;
+  const isDeleteDisabled = isButtonsDisabled || selectedPeriodIds.length === 0;
+
+  console.log('Button states:', {
+    isButtonsDisabled,
+    isDuplicateDisabled,
+    isEditDisabled,
+    isDeleteDisabled,
+    selectedCount: selectedPeriodIds.length
+  });
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <div className="flex gap-2">
           <Button 
             variant="outline"
             onClick={handleDuplicateClick}
-            disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
-            title={selectedPeriodIds.length !== 1 ? "Selecione exatamente um período para duplicar" : "Duplicar período selecionado"}
+            disabled={isDuplicateDisabled}
+            title={isDuplicateDisabled ? "Selecione exatamente um período para duplicar" : "Duplicar período selecionado"}
+            className="bg-white hover:bg-gray-50"
           >
             <Copy className="mr-2 h-4 w-4" /> Duplicar
           </Button>
@@ -111,8 +133,9 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
           <Button
             variant="outline"
             onClick={handleEditClick}
-            disabled={selectedPeriodIds.length !== 1 || isUpdatingPeriods || loading}
-            title={selectedPeriodIds.length !== 1 ? "Selecione exatamente um período para editar" : "Editar período selecionado"}
+            disabled={isEditDisabled}
+            title={isEditDisabled ? "Selecione exatamente um período para editar" : "Editar período selecionado"}
+            className="bg-white hover:bg-gray-50"
           >
             <Pencil className="mr-2 h-4 w-4" /> Editar
           </Button>
@@ -120,8 +143,9 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
           <Button
             variant="outline"
             onClick={handleDeleteClick}
-            disabled={selectedPeriodIds.length === 0 || isUpdatingPeriods || loading}
-            title={selectedPeriodIds.length === 0 ? "Selecione pelo menos um período para excluir" : `Excluir ${selectedPeriodIds.length} período(s) selecionado(s)`}
+            disabled={isDeleteDisabled}
+            title={isDeleteDisabled ? "Selecione pelo menos um período para excluir" : `Excluir ${selectedPeriodIds.length} período(s) selecionado(s)`}
+            className="bg-white hover:bg-gray-50"
           >
             <Trash2 className="mr-2 h-4 w-4" /> Excluir
           </Button>
@@ -129,21 +153,28 @@ const PeriodsList: React.FC<PeriodsListProps> = ({
         
         <Button 
           onClick={handleAddClick}
-          disabled={isUpdatingPeriods || loading}
+          disabled={isButtonsDisabled}
           title="Adicionar novo período"
+          className="bg-primary hover:bg-primary/90"
         >
           <Plus className="mr-2 h-4 w-4" /> Novo Período
         </Button>
       </div>
       
-      <MultiSelectTable 
-        data={periods} 
-        columns={periodColumns} 
-        getRowId={row => row.id} 
-        onEdit={handleEditPeriods} 
-        onDelete={handleDeletePeriods}
-        onSelectedRowsChange={setSelectedPeriodIds}
-      />
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Carregando períodos...</p>
+        </div>
+      ) : (
+        <MultiSelectTable 
+          data={periods} 
+          columns={periodColumns} 
+          getRowId={row => row.id} 
+          onEdit={handleEditPeriods} 
+          onDelete={handleDeletePeriods}
+          onSelectedRowsChange={setSelectedPeriodIds}
+        />
+      )}
     </div>
   );
 };

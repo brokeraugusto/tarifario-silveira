@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -74,34 +75,43 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
   });
   
   useEffect(() => {
-    if (periodId && isOpen) {
-      fetchPeriod(periodId);
-    } else if (editPeriod) {
-      setCurrentPeriod(editPeriod);
-      form.reset({
-        name: editPeriod.name,
-        startDate: new Date(editPeriod.startDate),
-        endDate: new Date(editPeriod.endDate),
-        minimumStay: editPeriod.minimumStay || 1,
-        isHoliday: editPeriod.isHoliday || false,
-      });
-    } else {
-      form.reset({
-        name: '',
-        startDate: new Date(),
-        endDate: new Date(),
-        minimumStay: 1,
-        isHoliday: false,
-      });
+    if (isOpen) {
+      console.log('Dialog opened with:', { periodId, editPeriod });
+      
+      if (periodId && !editPeriod) {
+        fetchPeriod(periodId);
+      } else if (editPeriod) {
+        console.log('Setting form with editPeriod:', editPeriod);
+        setCurrentPeriod(editPeriod);
+        form.reset({
+          name: editPeriod.name,
+          startDate: new Date(editPeriod.startDate),
+          endDate: new Date(editPeriod.endDate),
+          minimumStay: editPeriod.minimumStay || 1,
+          isHoliday: editPeriod.isHoliday || false,
+        });
+      } else {
+        console.log('Resetting form for new period');
+        setCurrentPeriod(null);
+        form.reset({
+          name: '',
+          startDate: new Date(),
+          endDate: new Date(),
+          minimumStay: 1,
+          isHoliday: false,
+        });
+      }
     }
-  }, [isOpen, editPeriod, periodId]);
+  }, [isOpen, editPeriod, periodId, form]);
 
   const fetchPeriod = async (id: string) => {
     try {
+      console.log('Fetching period with id:', id);
       const periods = await getAllPricePeriods();
       const period = periods.find(p => p.id === id);
       
       if (period) {
+        console.log('Found period:', period);
         setCurrentPeriod(period);
         form.reset({
           name: period.name,
@@ -110,6 +120,9 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
           minimumStay: period.minimumStay || 1,
           isHoliday: period.isHoliday || false,
         });
+      } else {
+        console.error('Period not found:', id);
+        toast.error("Período não encontrado");
       }
     } catch (error) {
       console.error("Error fetching period:", error);
@@ -132,7 +145,6 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
     try {
       let result;
       
-      // We'll now rely on the service function to handle dates correctly
       if (currentPeriod || periodId) {
         const id = periodId || currentPeriod?.id || '';
         console.log(`Updating period with id ${id}:`, values);
@@ -146,6 +158,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
         });
         
         if (result) {
+          console.log('Period updated successfully:', result);
           toast.success("Período atualizado com sucesso");
         }
       } else {
@@ -160,15 +173,17 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
         });
         
         if (result) {
+          console.log('Period created successfully:', result);
           toast.success("Período criado com sucesso");
-          console.log("Created period:", result);
         }
       }
       
       if (result) {
         form.reset();
+        onOpenChange(false);
         onSuccess();
       } else {
+        console.error('Failed to save period - no result returned');
         toast.error("Erro ao salvar período");
       }
     } catch (error) {
@@ -179,13 +194,21 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
     }
   };
 
+  const handleClose = () => {
+    if (!loading) {
+      form.reset();
+      setCurrentPeriod(null);
+      onOpenChange(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px] bg-white">
         <DialogHeader>
-          <DialogTitle>{editPeriod ? 'Editar Período' : 'Novo Período'}</DialogTitle>
+          <DialogTitle>{editPeriod || currentPeriod ? 'Editar Período' : 'Novo Período'}</DialogTitle>
           <DialogDescription>
-            {editPeriod 
+            {editPeriod || currentPeriod
               ? 'Edite as informações do período existente.' 
               : 'Adicione um novo período para definição de preços.'}
           </DialogDescription>
@@ -204,6 +227,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                       placeholder="Ex: Alta Temporada, Natal, Carnaval" 
                       {...field} 
                       disabled={loading}
+                      className="bg-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -224,7 +248,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                           <Button
                             variant="outline"
                             className={cn(
-                              "pl-3 text-left font-normal",
+                              "pl-3 text-left font-normal bg-white",
                               !field.value && "text-muted-foreground"
                             )}
                             disabled={loading}
@@ -238,7 +262,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -265,7 +289,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                           <Button
                             variant="outline"
                             className={cn(
-                              "pl-3 text-left font-normal",
+                              "pl-3 text-left font-normal bg-white",
                               !field.value && "text-muted-foreground"
                             )}
                             disabled={loading}
@@ -279,7 +303,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -306,9 +330,10 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
                       type="number"
                       min={1} 
                       {...field}
-                      onChange={e => field.onChange(parseInt(e.target.value))}
+                      onChange={e => field.onChange(parseInt(e.target.value) || 1)}
                       value={field.value}
                       disabled={loading}
+                      className="bg-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -320,7 +345,7 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
               control={form.control}
               name="isHoliday"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 bg-white">
                   <div className="space-y-0.5">
                     <FormLabel>Período de Feriado/Especial</FormLabel>
                     <p className="text-sm text-muted-foreground">
@@ -342,13 +367,18 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => onOpenChange(false)}
+                onClick={handleClose}
                 disabled={loading}
+                className="bg-white hover:bg-gray-50"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Processando..." : editPeriod ? "Atualizar Período" : "Salvar Período"}
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {loading ? "Processando..." : (editPeriod || currentPeriod) ? "Atualizar Período" : "Salvar Período"}
               </Button>
             </DialogFooter>
           </form>

@@ -25,21 +25,24 @@ export const usePeriods = () => {
     try {
       const data = await getAllPricePeriods();
       console.log('Fetched periods:', data);
-      setPeriods(data);
+      setPeriods(data || []);
     } catch (error) {
       console.error("Error fetching periods:", error);
       toast.error("Erro ao buscar períodos");
+      setPeriods([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddPeriod = () => {
+    console.log('Opening add period dialog');
     setEditingPeriodId(null);
     setIsPeriodDialogOpen(true);
   };
   
   const handleEditPeriods = (ids: string[]) => {
+    console.log('Edit periods called with:', ids);
     if (ids.length === 1) {
       setEditingPeriodId(ids[0]);
       setIsPeriodDialogOpen(true);
@@ -49,6 +52,7 @@ export const usePeriods = () => {
   };
   
   const handleDuplicatePeriods = (ids: string[]) => {
+    console.log('Duplicate periods called with:', ids);
     if (ids.length === 1) {
       const periodId = ids[0];
       const period = periods.find(p => p.id === periodId);
@@ -62,6 +66,7 @@ export const usePeriods = () => {
   };
   
   const handleDeletePeriods = (ids: string[]) => {
+    console.log('Delete periods called with:', ids);
     setSelectedPeriodIds(ids);
     setIsDeleteDialogOpen(true);
   };
@@ -103,9 +108,12 @@ export const usePeriods = () => {
   };
 
   const handlePeriodSuccess = async () => {
+    console.log('Period success callback triggered');
     setIsPeriodDialogOpen(false);
+    setEditingPeriodId(null);
     await fetchPeriods();
     setSelectedPeriodIds([]);
+    toast.success("Operação realizada com sucesso");
   };
 
   return {
