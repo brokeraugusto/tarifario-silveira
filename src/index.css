@@ -5,44 +5,44 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 40%;
+    --background: 0 0% 98%;
+    --foreground: 210 12% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 40%;
+    --card-foreground: 210 12% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 40%;
+    --popover-foreground: 210 12% 16%;
 
-    --primary: 0 0% 30%;
+    --primary: 84 55% 45%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 84 55% 75%;
-    --secondary-foreground: 0 0% 30%;
+    --secondary: 84 30% 88%;
+    --secondary-foreground: 84 55% 25%;
 
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 84 15% 94%;
+    --muted-foreground: 210 12% 45%;
 
-    --accent: 84 55% 75%;
-    --accent-foreground: 0 0% 30%;
+    --accent: 84 55% 50%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 84 55% 75%;
+    --border: 84 15% 85%;
+    --input: 84 15% 85%;
+    --ring: 84 55% 45%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 30%;
+    --sidebar-background: 84 55% 25%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 84 55% 75%;
-    --sidebar-primary-foreground: 0 0% 30%;
-    --sidebar-accent: 0 0% 25%;
-    --sidebar-accent-foreground: 84 55% 75%;
-    --sidebar-border: 0 0% 25%;
-    --sidebar-ring: 84 55% 75%;
+    --sidebar-primary: 84 55% 65%;
+    --sidebar-primary-foreground: 84 55% 15%;
+    --sidebar-accent: 84 55% 20%;
+    --sidebar-accent-foreground: 84 55% 80%;
+    --sidebar-border: 84 55% 30%;
+    --sidebar-ring: 84 55% 65%;
   }
 
   .dark {

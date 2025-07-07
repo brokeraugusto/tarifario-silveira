@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, Coffee, Trash2, ExternalLink, Copy } from 'lucide-react';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [proceedWithBooking, setProceedWithBooking] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [selectedPriceType, setSelectedPriceType] = useState<'pix' | 'card' | null>(null);
   
   useEffect(() => {
     if (!isOpen) {
@@ -124,8 +126,38 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
       text += `*Álbum de fotos:* ${accommodation.albumUrl}\n\n`;
     }
     
-    // Add price information if available
-    if (pricePerNight > 0) {
+    // Add price information based on selected type
+    const pixPrice = result?.pixPrice || 0;
+    const cardPrice = result?.cardPrice || 0;
+    const pixTotal = result?.pixTotalPrice;
+    const cardTotal = result?.cardTotalPrice;
+    
+    if (pixPrice > 0 && cardPrice > 0) {
+      if (selectedPriceType === 'pix') {
+        text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
+        if (nights !== null && nights > 0 && pixTotal !== null) {
+          text += `*Número de diárias:* ${nights}\n`;
+          text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
+        }
+      } else if (selectedPriceType === 'card') {
+        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+        if (nights !== null && nights > 0 && cardTotal !== null) {
+          text += `*Número de diárias:* ${nights}\n`;
+          text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
+        }
+      } else {
+        text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
+        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+        if (nights !== null && nights > 0) {
+          if (pixTotal !== null) {
+            text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
+          }
+          if (cardTotal !== null) {
+            text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
+          }
+        }
+      }
+    } else if (pricePerNight > 0) {
       text += `*Valor da diária:* R$ ${pricePerNight.toFixed(2)}\n`;
       
       if (nights !== null && nights > 0) {
@@ -294,28 +326,105 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
         
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Preços</h3>
-          <div className="space-y-1">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Diária:</span>
-              <span>R$ {pricePerNight.toFixed(2)}</span>
-            </div>
-            
-            {nights !== null && nights > 0 && (
-              <>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Período:</span>
-                  <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
+          
+          {result?.pixPrice && result?.cardPrice ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div className={cn(
+                  "p-3 rounded-lg border cursor-pointer transition-colors",
+                  selectedPriceType === 'pix' 
+                    ? "border-hotel-green bg-green-50" 
+                    : "border-border hover:bg-muted"
+                )}
+                onClick={() => setSelectedPriceType('pix')}
+                >
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-hotel-green">PIX</div>
+                    <div className="text-lg font-bold">R$ {result.pixPrice.toFixed(2)}</div>
+                    <div className="text-xs text-muted-foreground">por noite</div>
+                  </div>
                 </div>
                 
-                {totalPrice !== null && (
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>Total:</span>
-                    <span>R$ {totalPrice.toFixed(2)}</span>
-                  </div>
+                <div className={cn(
+                  "p-3 rounded-lg border cursor-pointer transition-colors",
+                  selectedPriceType === 'card' 
+                    ? "border-hotel-navy bg-blue-50" 
+                    : "border-border hover:bg-muted"
                 )}
-              </>
-            )}
-          </div>
+                onClick={() => setSelectedPriceType('card')}
+                >
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-hotel-navy">Cartão</div>
+                    <div className="text-lg font-bold">R$ {result.cardPrice.toFixed(2)}</div>
+                    <div className="text-xs text-muted-foreground">por noite</div>
+                  </div>
+                </div>
+              </div>
+              
+              {nights !== null && nights > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Período:</span>
+                    <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
+                  </div>
+                  
+                  {selectedPriceType === 'pix' && result.pixTotalPrice !== null && (
+                    <div className="flex justify-between text-lg font-semibold text-hotel-green">
+                      <span>Total PIX:</span>
+                      <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
+                  {selectedPriceType === 'card' && result.cardTotalPrice !== null && (
+                    <div className="flex justify-between text-lg font-semibold text-hotel-navy">
+                      <span>Total Cartão:</span>
+                      <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
+                  {!selectedPriceType && (
+                    <div className="space-y-1">
+                      {result.pixTotalPrice !== null && (
+                        <div className="flex justify-between text-lg font-semibold text-hotel-green">
+                          <span>Total PIX:</span>
+                          <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {result.cardTotalPrice !== null && (
+                        <div className="flex justify-between text-lg font-semibold text-hotel-navy">
+                          <span>Total Cartão:</span>
+                          <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Diária:</span>
+                <span>R$ {pricePerNight.toFixed(2)}</span>
+              </div>
+              
+              {nights !== null && nights > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Período:</span>
+                    <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
+                  </div>
+                  
+                  {totalPrice !== null && (
+                    <div className="flex justify-between text-lg font-semibold">
+                      <span>Total:</span>
+                      <span>R$ {totalPrice.toFixed(2)}</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
       </>
     );

@@ -17,15 +17,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Standard':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-secondary text-secondary-foreground';
       case 'Luxo':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-accent text-accent-foreground';
       case 'Super Luxo':
-        return 'bg-amber-100 text-amber-800';
+        return 'bg-primary text-primary-foreground';
       case 'Master':
-        return 'bg-emerald-100 text-emerald-800';
+        return 'bg-hotel-green text-white';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -38,7 +38,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
           <Card 
             key={result.accommodation.id} 
             className={cn(
-              result.isMinStayViolation ? 'border-amber-400' : '',
+              result.isMinStayViolation ? 'border-amber-500 bg-amber-50' : '',
               'hover:shadow-lg transition-shadow cursor-pointer'
             )}
             onClick={() => onAccommodationClick(result)}
@@ -82,10 +82,24 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
               <Separator className="my-4" />
               
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Diária:</span>
-                  <span className="font-medium">R$ {result.pricePerNight.toFixed(2)}</span>
-                </div>
+                {result.pixPrice && result.cardPrice ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">PIX:</span>
+                      <span className="font-medium text-hotel-green">R$ {result.pixPrice.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Cartão:</span>
+                      <span className="font-medium text-hotel-navy">R$ {result.cardPrice.toFixed(2)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Diária:</span>
+                    <span className="font-medium">R$ {result.pricePerNight.toFixed(2)}</span>
+                  </div>
+                )}
                 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Café da manhã:</span>
@@ -100,17 +114,32 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
                 )}
                 
                 {result.totalPrice !== null && (
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>Total:</span>
-                    <span>R$ {result.totalPrice.toFixed(2)}</span>
-                  </div>
+                  <>
+                    {result.pixTotalPrice && result.cardTotalPrice ? (
+                      <>
+                        <div className="flex justify-between text-lg font-semibold text-hotel-green">
+                          <span>Total PIX:</span>
+                          <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-lg font-semibold text-hotel-navy">
+                          <span>Total Cartão:</span>
+                          <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-lg font-semibold">
+                        <span>Total:</span>
+                        <span>R$ {result.totalPrice.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </CardContent>
             
             {result.isMinStayViolation && (
               <CardFooter className="pt-0">
-                <Alert className="w-full bg-amber-50 text-amber-800 border-amber-200">
+                <Alert className="w-full bg-amber-50 border-amber-200">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
                     Requer estadia mínima de {result.minimumStay} {result.minimumStay === 1 ? 'diária' : 'diárias'}.

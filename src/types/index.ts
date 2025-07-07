@@ -60,6 +60,10 @@ export interface SearchResult {
   isMinStayViolation?: boolean;
   minimumStay?: number;
   includesBreakfast: boolean;
+  pixPrice?: number;
+  cardPrice?: number;
+  pixTotalPrice?: number | null;
+  cardTotalPrice?: number | null;
 }
 
 // Re-export maintenance types for consistency
