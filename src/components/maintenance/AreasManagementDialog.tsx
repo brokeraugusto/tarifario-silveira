@@ -169,11 +169,11 @@ const AreasManagementDialog = ({ isOpen, onOpenChange }: AreasManagementDialogPr
 
   const getAreaTypeColor = (type: AreaType) => {
     const colors = {
-      accommodation: 'bg-blue-100 text-blue-800',
-      common: 'bg-gray-100 text-gray-800',
-      maintenance: 'bg-orange-100 text-orange-800',
-      restaurant: 'bg-green-100 text-green-800',
-      recreation: 'bg-purple-100 text-purple-800'
+      accommodation: 'bg-primary/10 text-primary',
+      common: 'bg-muted text-muted-foreground',
+      maintenance: 'bg-destructive/10 text-destructive',
+      restaurant: 'bg-accent/10 text-accent',
+      recreation: 'bg-secondary text-secondary-foreground'
     };
     return colors[type] || 'bg-gray-100 text-gray-800';
   };

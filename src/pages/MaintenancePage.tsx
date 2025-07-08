@@ -68,9 +68,9 @@ const MaintenancePage = () => {
 
   const getStatusColor = (status: MaintenanceStatus) => {
     switch (status) {
-      case 'pending': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending': return 'bg-muted text-muted-foreground border-border';
+      case 'in_progress': return 'bg-primary/10 text-primary border-primary/20';
+      case 'completed': return 'bg-accent/10 text-accent border-accent/20';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -142,7 +142,7 @@ const MaintenancePage = () => {
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-primary">
               {maintenanceOrders.filter(o => o.status === 'in_progress').length}
             </div>
           </CardContent>

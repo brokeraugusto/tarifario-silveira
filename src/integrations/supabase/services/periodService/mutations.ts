@@ -77,10 +77,15 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
       .from('price_periods')
       .select('id')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (checkError || !existingData) {
-      console.error('Period not found:', id, checkError);
+    if (checkError) {
+      console.error('Error checking period existence:', checkError);
+      throw checkError;
+    }
+
+    if (!existingData) {
+      console.error('Period not found:', id);
       throw new Error('Período não encontrado para atualização');
     }
     
@@ -89,7 +94,7 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
       .update(dbUpdates)
       .eq('id', id)
       .select()
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error updating price period:', error);
@@ -97,8 +102,8 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
     }
 
     if (!data) {
-      console.error('No data returned after updating price period');
-      throw new Error('No data returned from database');
+      console.error('No data returned after updating price period - this should not happen');
+      throw new Error('Erro interno: nenhum dado retornado após atualização');
     }
 
     const result = {
@@ -131,11 +136,16 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
       .from('price_periods')
       .select('id')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (checkError || !existingPeriod) {
-      console.error('Period not found for deletion:', id, checkError);
-      throw new Error('Período não encontrado para exclusão');
+    if (checkError) {
+      console.error('Error checking period for deletion:', checkError);
+      return false;
+    }
+
+    if (!existingPeriod) {
+      console.error('Period not found for deletion:', id);
+      return false;
     }
 
     // Delete all related prices to prevent foreign key constraint issues

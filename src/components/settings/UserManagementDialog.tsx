@@ -104,10 +104,10 @@ const UserManagementDialog = ({ isOpen, onOpenChange }: UserManagementDialogProp
 
   const getRoleColor = (role: UserProfile['role']) => {
     const colors = {
-      master: 'bg-purple-100 text-purple-800',
-      admin: 'bg-red-100 text-red-800',
-      maintenance: 'bg-orange-100 text-orange-800',
-      reception: 'bg-blue-100 text-blue-800'
+      master: 'bg-primary text-primary-foreground',
+      admin: 'bg-destructive/10 text-destructive',
+      maintenance: 'bg-secondary text-secondary-foreground',
+      reception: 'bg-accent/10 text-accent'
     };
     return colors[role] || 'bg-gray-100 text-gray-800';
   };

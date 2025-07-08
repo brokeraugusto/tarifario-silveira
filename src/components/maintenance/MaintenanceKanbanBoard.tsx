@@ -77,8 +77,8 @@ const MaintenanceKanbanBoard = ({ orders, onOrderClick }: MaintenanceKanbanBoard
     { 
       id: 'in_progress' as MaintenanceStatus, 
       title: 'Em Andamento', 
-      color: 'bg-blue-50 border-blue-200',
-      headerColor: 'text-blue-700'
+      color: 'bg-primary/5 border-primary/20',
+      headerColor: 'text-primary'
     },
     { 
       id: 'completed' as MaintenanceStatus, 

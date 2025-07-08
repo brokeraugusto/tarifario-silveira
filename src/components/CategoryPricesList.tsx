@@ -58,11 +58,11 @@ const CategoryPricesList: React.FC<CategoryPricesListProps> = ({ initialCategory
   const getCategoryColor = (cat: CategoryType) => {
     switch (cat) {
       case 'Standard':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-secondary text-secondary-foreground';
       case 'Luxo':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-primary/10 text-primary';
       case 'Super Luxo':
-        return 'bg-amber-100 text-amber-800';
+        return 'bg-accent/10 text-accent';
       case 'Master':
         return 'bg-green-100 text-green-800';
       default:
