@@ -135,39 +135,39 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     if (pixPrice > 0 && cardPrice > 0) {
       if (selectedPriceType === 'pix') {
         text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
-        if (nights !== null && nights > 0 && pixTotal !== null) {
-          text += `*Número de diárias:* ${nights}\n`;
-          text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
-        }
-      } else if (selectedPriceType === 'card') {
-        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
-        if (nights !== null && nights > 0 && cardTotal !== null) {
-          text += `*Número de diárias:* ${nights}\n`;
-          text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
-        }
-      } else {
-        text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
-        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
-        if (nights !== null && nights > 0) {
-          if (pixTotal !== null) {
-            text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
+              if (nights !== null && nights > 0 && pixTotal !== null) {
+                text += `*Número de diárias:* ${nights}\n`;
+                text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
+              }
+            } else if (selectedPriceType === 'card') {
+              text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+              if (nights !== null && nights > 0 && cardTotal !== null) {
+                text += `*Número de diárias:* ${nights}\n`;
+                text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
+              }
+            } else {
+              text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
+              text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+              if (nights !== null && nights > 0) {
+                if (pixTotal !== null) {
+                  text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
+                }
+                if (cardTotal !== null) {
+                  text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
+                }
+              }
+            }
+          } else if (result?.pricePerNight && result.pricePerNight > 0) {
+            text += `*Valor da diária:* R$ ${result.pricePerNight.toFixed(2)}\n`;
+            
+            if (nights !== null && nights > 0) {
+              text += `*Número de diárias:* ${nights}\n`;
+              
+              if (result.totalPrice !== null) {
+                text += `*Valor total:* R$ ${result.totalPrice.toFixed(2)}\n`;
+              }
+            }
           }
-          if (cardTotal !== null) {
-            text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
-          }
-        }
-      }
-    } else if (pricePerNight > 0) {
-      text += `*Valor da diária:* R$ ${pricePerNight.toFixed(2)}\n`;
-      
-      if (nights !== null && nights > 0) {
-        text += `*Número de diárias:* ${nights}\n`;
-        
-        if (totalPrice !== null) {
-          text += `*Valor total:* R$ ${totalPrice.toFixed(2)}\n`;
-        }
-      }
-    }
     
     navigator.clipboard.writeText(text)
       .then(() => toast.success("Informações copiadas para o clipboard"))
@@ -186,15 +186,33 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
       text += `*Álbum de fotos:* ${accommodation.albumUrl}\n\n`;
     }
     
-    // Add price information if available
-    if (pricePerNight > 0) {
-      text += `*Valor da diária:* R$ ${pricePerNight.toFixed(2)}\n`;
+    // Add price information based on available data
+    const pixPrice = result?.pixPrice || 0;
+    const cardPrice = result?.cardPrice || 0;
+    const pixTotal = result?.pixTotalPrice;
+    const cardTotal = result?.cardTotalPrice;
+    
+    if (pixPrice > 0 && cardPrice > 0) {
+      text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
+      text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+      
+      if (nights !== null && nights > 0) {
+        text += `*Número de diárias:* ${nights}\n`;
+        if (pixTotal !== null) {
+          text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
+        }
+        if (cardTotal !== null) {
+          text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
+        }
+      }
+    } else if (result?.pricePerNight && result.pricePerNight > 0) {
+      text += `*Valor da diária:* R$ ${result.pricePerNight.toFixed(2)}\n`;
       
       if (nights !== null && nights > 0) {
         text += `*Número de diárias:* ${nights}\n`;
         
-        if (totalPrice !== null) {
-          text += `*Valor total:* R$ ${totalPrice.toFixed(2)}\n`;
+        if (result.totalPrice !== null) {
+          text += `*Valor total:* R$ ${result.totalPrice.toFixed(2)}\n`;
         }
       }
     }

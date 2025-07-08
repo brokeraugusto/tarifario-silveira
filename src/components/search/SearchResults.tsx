@@ -82,7 +82,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
               <Separator className="my-4" />
               
               <div className="space-y-2">
-                {result.pixPrice && result.cardPrice ? (
+                {result.pixPrice && result.cardPrice && result.pixPrice > 0 && result.cardPrice > 0 ? (
                   <>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">PIX:</span>
@@ -94,10 +94,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
                       <span className="font-medium text-hotel-navy">R$ {result.cardPrice.toFixed(2)}</span>
                     </div>
                   </>
-                ) : (
+                ) : result.pricePerNight > 0 ? (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Diária:</span>
                     <span className="font-medium">R$ {result.pricePerNight.toFixed(2)}</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preço:</span>
+                    <span className="font-medium text-muted-foreground">Consulte</span>
                   </div>
                 )}
                 

@@ -129,7 +129,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           const pixPrice = compatiblePrices.find(p => p.paymentMethod === 'pix');
           const cardPrice = compatiblePrices.find(p => p.paymentMethod === 'credit_card');
 
-          if (pixPrice) {
+          if (pixPrice && pixPrice.pricePerNight > 0) {
             // Check minimum stay from the PIX price entry
             if (pixPrice.minNights && nights < pixPrice.minNights) {
               isMinStayViolation = true;
@@ -138,7 +138,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
             totalPixPrice += Number(pixPrice.pricePerNight);
           }
 
-          if (cardPrice) {
+          if (cardPrice && cardPrice.pricePerNight > 0) {
             // Check minimum stay from the card price entry
             if (cardPrice.minNights && nights < cardPrice.minNights) {
               isMinStayViolation = true;
@@ -148,14 +148,16 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           }
 
           // If no specific price found, use the first available
-          if (!pixPrice && !cardPrice) {
+          if ((!pixPrice || pixPrice.pricePerNight <= 0) && (!cardPrice || cardPrice.pricePerNight <= 0)) {
             const priceToUse = compatiblePrices[0];
-            if (priceToUse.minNights && nights < priceToUse.minNights) {
-              isMinStayViolation = true;
-              minimumStay = Math.max(minimumStay, priceToUse.minNights);
+            if (priceToUse && priceToUse.pricePerNight > 0) {
+              if (priceToUse.minNights && nights < priceToUse.minNights) {
+                isMinStayViolation = true;
+                minimumStay = Math.max(minimumStay, priceToUse.minNights);
+              }
+              totalPixPrice += Number(priceToUse.pricePerNight);
+              totalCardPrice += Number(priceToUse.pricePerNight);
             }
-            totalPixPrice += Number(priceToUse.pricePerNight);
-            totalCardPrice += Number(priceToUse.pricePerNight);
           }
         } catch (error) {
           console.error(`Error getting prices for accommodation ${accommodation.name}:`, error);

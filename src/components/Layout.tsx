@@ -1,15 +1,15 @@
 
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Bed, Calendar, Settings, Search, Menu, X, Wrench, MapPin, ChevronDown, ChevronRight } from 'lucide-react';
+import { Home, Bed, Calendar, Settings, Search, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import UserMenu from './UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
 import DatabaseCleanupDialog from './DatabaseCleanupDialog';
 import AreasManagementDialog from './maintenance/AreasManagementDialog';
+import MaintenanceSubmenu from './layout/MaintenanceSubmenu';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 
@@ -36,46 +36,6 @@ const Layout = ({ children }: LayoutProps) => {
     toast.success("Todos os dados foram removidos com sucesso");
   };
 
-  const MaintenanceSubmenu = ({ isMobile = false }) => (
-    <Collapsible open={isMaintenanceOpen} onOpenChange={setIsMaintenanceOpen}>
-      <CollapsibleTrigger className={cn(
-        "flex items-center justify-between w-full p-2 rounded-md transition-colors",
-        "hover:bg-hotel-gray/20 text-white"
-      )}>
-        <div className="flex items-center">
-          <Wrench className="w-5 h-5 mr-2" />
-          <span>Manutenção</span>
-        </div>
-        {isMaintenanceOpen ? (
-          <ChevronDown className="w-4 h-4" />
-        ) : (
-          <ChevronRight className="w-4 h-4" />
-        )}
-      </CollapsibleTrigger>
-      <CollapsibleContent className="ml-4 space-y-1">
-        <NavLink 
-          to="/maintenance" 
-          className={({ isActive }) => cn(
-            "flex items-center p-2 rounded-md transition-colors text-sm",
-            isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20 text-white"
-          )} 
-          onClick={handleNavigation}
-        >
-          <span className="ml-6">Ordens de Serviço</span>
-        </NavLink>
-        <button
-          className="flex items-center p-2 rounded-md transition-colors text-sm hover:bg-hotel-gray/20 text-white w-full text-left"
-          onClick={() => {
-            setIsAreasDialogOpen(true);
-            if (isMobile) handleNavigation();
-          }}
-        >
-          <MapPin className="w-4 h-4 mr-2 ml-6" />
-          <span>Gerenciar Áreas</span>
-        </button>
-      </CollapsibleContent>
-    </Collapsible>
-  );
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -126,9 +86,15 @@ const Layout = ({ children }: LayoutProps) => {
                           <span className="text-white">Períodos e Preços</span>
                         </NavLink>
                       </li>
-                      <li>
-                        <MaintenanceSubmenu isMobile={true} />
-                      </li>
+                       <li>
+                         <MaintenanceSubmenu 
+                           isMaintenanceOpen={isMaintenanceOpen}
+                           setIsMaintenanceOpen={setIsMaintenanceOpen}
+                           setIsAreasDialogOpen={setIsAreasDialogOpen}
+                           handleNavigation={handleNavigation}
+                           isMobile={true}
+                         />
+                       </li>
                       <li>
                         <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")} onClick={handleNavigation}>
                           <Settings className="w-5 h-5 mr-2" />
@@ -183,9 +149,14 @@ const Layout = ({ children }: LayoutProps) => {
                     <span>Períodos e Preços</span>
                   </NavLink>
                 </li>
-                <li>
-                  <MaintenanceSubmenu />
-                </li>
+                 <li>
+                   <MaintenanceSubmenu 
+                     isMaintenanceOpen={isMaintenanceOpen}
+                     setIsMaintenanceOpen={setIsMaintenanceOpen}
+                     setIsAreasDialogOpen={setIsAreasDialogOpen}
+                     handleNavigation={handleNavigation}
+                   />
+                 </li>
                 <li>
                   <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")}>
                     <Settings className="w-5 h-5 mr-2" />

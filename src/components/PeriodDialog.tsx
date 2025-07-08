@@ -133,10 +133,25 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
   const onSubmit = async (values: FormValues) => {
     console.log('Submitting period form with values:', values);
     
-    if (values.endDate < values.startDate) {
+    // Validate dates
+    if (!values.startDate || !values.endDate) {
+      toast.error("Datas são obrigatórias");
+      return;
+    }
+    
+    if (values.endDate <= values.startDate) {
       form.setError('endDate', { 
         type: 'manual', 
-        message: 'Data de fim deve ser após a data de início' 
+        message: 'Data de fim deve ser posterior à data de início' 
+      });
+      return;
+    }
+
+    // Validate name
+    if (!values.name || values.name.trim() === '') {
+      form.setError('name', { 
+        type: 'manual', 
+        message: 'Nome é obrigatório' 
       });
       return;
     }
@@ -149,29 +164,41 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
         const id = periodId || currentPeriod?.id || '';
         console.log(`Updating period with id ${id}:`, values);
         
+        if (!id) {
+          throw new Error('ID do período não encontrado para atualização');
+        }
+        
         result = await updatePricePeriod(id, {
-          name: values.name,
+          name: values.name.trim(),
           startDate: values.startDate,
           endDate: values.endDate,
-          minimumStay: values.minimumStay,
-          isHoliday: values.isHoliday
+          minimumStay: values.minimumStay || 1,
+          isHoliday: values.isHoliday || false
         });
         
         console.log('Update result:', result);
-        toast.success("Período atualizado com sucesso");
+        if (result) {
+          toast.success("Período atualizado com sucesso");
+        } else {
+          throw new Error('Erro ao atualizar período');
+        }
       } else {
         console.log("Creating new period:", values);
         
         result = await createPricePeriod({
-          name: values.name,
+          name: values.name.trim(),
           startDate: values.startDate,
           endDate: values.endDate,
-          minimumStay: values.minimumStay,
-          isHoliday: values.isHoliday
+          minimumStay: values.minimumStay || 1,
+          isHoliday: values.isHoliday || false
         });
         
         console.log('Create result:', result);
-        toast.success("Período criado com sucesso");
+        if (result) {
+          toast.success("Período criado com sucesso");
+        } else {
+          throw new Error('Erro ao criar período');
+        }
       }
       
       if (result) {
@@ -181,7 +208,8 @@ const PeriodDialog: React.FC<PeriodDialogProps> = ({
       }
     } catch (error) {
       console.error("Error saving period:", error);
-      toast.error("Erro ao salvar período");
+      const message = error instanceof Error ? error.message : "Erro ao salvar período";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

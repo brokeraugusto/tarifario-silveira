@@ -75,21 +75,27 @@ export const usePeriods = () => {
   };
 
   const confirmDelete = async () => {
+    if (selectedPeriodIds.length === 0) {
+      toast.error("Nenhum período selecionado para exclusão");
+      return;
+    }
+
     setLoading(true);
     setIsUpdatingPeriods(true);
+    
     try {
       console.log('Confirming delete for periods:', selectedPeriodIds);
       
       // Delete each period
       for (const id of selectedPeriodIds) {
         console.log('Deleting period:', id);
-        const success = await deletePricePeriod(id);
-        if (!success) {
-          throw new Error(`Failed to delete period ${id}`);
-        }
+        await deletePricePeriod(id);
       }
       
       toast.success(`${selectedPeriodIds.length} período(s) excluído(s) com sucesso`);
+      
+      // Clear selection immediately
+      setSelectedPeriodIds([]);
       
       // Refresh the periods list
       await fetchPeriods();
@@ -101,7 +107,6 @@ export const usePeriods = () => {
       setLoading(false);
       setIsUpdatingPeriods(false);
       setIsDeleteDialogOpen(false);
-      setSelectedPeriodIds([]);
     }
   };
   
