@@ -318,7 +318,7 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
                   href={accommodation?.albumUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline truncate"
+                  className="text-primary hover:underline truncate"
                 >
                   Ver álbum completo
                 </a>
@@ -348,35 +348,35 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
           {result?.pixPrice && result?.cardPrice ? (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-4">
-                <div className={cn(
-                  "p-3 rounded-lg border cursor-pointer transition-colors",
-                  selectedPriceType === 'pix' 
-                    ? "border-hotel-green bg-green-50" 
-                    : "border-border hover:bg-muted"
-                )}
-                onClick={() => setSelectedPriceType('pix')}
-                >
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-hotel-green">PIX</div>
-                    <div className="text-lg font-bold">R$ {result.pixPrice.toFixed(2)}</div>
-                    <div className="text-xs text-muted-foreground">por noite</div>
-                  </div>
-                </div>
-                
-                <div className={cn(
-                  "p-3 rounded-lg border cursor-pointer transition-colors",
-                  selectedPriceType === 'card' 
-                    ? "border-hotel-navy bg-blue-50" 
-                    : "border-border hover:bg-muted"
-                )}
-                onClick={() => setSelectedPriceType('card')}
-                >
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-hotel-navy">Cartão</div>
-                    <div className="text-lg font-bold">R$ {result.cardPrice.toFixed(2)}</div>
-                    <div className="text-xs text-muted-foreground">por noite</div>
-                  </div>
-                </div>
+                 <div className={cn(
+                   "p-3 rounded-lg border cursor-pointer transition-colors",
+                   selectedPriceType === 'pix' 
+                     ? "border-accent bg-accent/10" 
+                     : "border-border hover:bg-muted"
+                 )}
+                 onClick={() => setSelectedPriceType('pix')}
+                 >
+                   <div className="text-center">
+                     <div className="text-sm font-medium text-accent">PIX</div>
+                     <div className="text-lg font-bold">R$ {result.pixPrice.toFixed(2)}</div>
+                     <div className="text-xs text-muted-foreground">por noite</div>
+                   </div>
+                 </div>
+                 
+                 <div className={cn(
+                   "p-3 rounded-lg border cursor-pointer transition-colors",
+                   selectedPriceType === 'card' 
+                     ? "border-primary bg-primary/10" 
+                     : "border-border hover:bg-muted"
+                 )}
+                 onClick={() => setSelectedPriceType('card')}
+                 >
+                   <div className="text-center">
+                     <div className="text-sm font-medium text-primary">Cartão</div>
+                     <div className="text-lg font-bold">R$ {result.cardPrice.toFixed(2)}</div>
+                     <div className="text-xs text-muted-foreground">por noite</div>
+                   </div>
+                 </div>
               </div>
               
               {nights !== null && nights > 0 && (
@@ -386,36 +386,36 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
                     <span>{nights} {nights === 1 ? 'noite' : 'noites'}</span>
                   </div>
                   
-                  {selectedPriceType === 'pix' && result.pixTotalPrice !== null && (
-                    <div className="flex justify-between text-lg font-semibold text-hotel-green">
-                      <span>Total PIX:</span>
-                      <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
-                    </div>
-                  )}
-                  
-                  {selectedPriceType === 'card' && result.cardTotalPrice !== null && (
-                    <div className="flex justify-between text-lg font-semibold text-hotel-navy">
-                      <span>Total Cartão:</span>
-                      <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
-                    </div>
-                  )}
-                  
-                  {!selectedPriceType && (
-                    <div className="space-y-1">
-                      {result.pixTotalPrice !== null && (
-                        <div className="flex justify-between text-lg font-semibold text-hotel-green">
-                          <span>Total PIX:</span>
-                          <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
-                        </div>
-                      )}
-                      {result.cardTotalPrice !== null && (
-                        <div className="flex justify-between text-lg font-semibold text-hotel-navy">
-                          <span>Total Cartão:</span>
-                          <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                   {selectedPriceType === 'pix' && result.pixTotalPrice !== null && (
+                     <div className="flex justify-between text-lg font-semibold text-accent">
+                       <span>Total PIX:</span>
+                       <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
+                     </div>
+                   )}
+                   
+                   {selectedPriceType === 'card' && result.cardTotalPrice !== null && (
+                     <div className="flex justify-between text-lg font-semibold text-primary">
+                       <span>Total Cartão:</span>
+                       <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
+                     </div>
+                   )}
+                   
+                   {!selectedPriceType && (
+                     <div className="space-y-1">
+                       {result.pixTotalPrice !== null && (
+                         <div className="flex justify-between text-lg font-semibold text-accent">
+                           <span>Total PIX:</span>
+                           <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
+                         </div>
+                       )}
+                       {result.cardTotalPrice !== null && (
+                         <div className="flex justify-between text-lg font-semibold text-primary">
+                           <span>Total Cartão:</span>
+                           <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
+                         </div>
+                       )}
+                     </div>
+                   )}
                 </>
               )}
             </div>

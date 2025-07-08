@@ -23,7 +23,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
       case 'Super Luxo':
         return 'bg-primary text-primary-foreground';
       case 'Master':
-        return 'bg-hotel-green text-white';
+        return 'bg-primary text-primary-foreground';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -84,15 +84,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
               <div className="space-y-2">
                 {result.pixPrice && result.cardPrice && result.pixPrice > 0 && result.cardPrice > 0 ? (
                   <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">PIX:</span>
-                      <span className="font-medium text-hotel-green">R$ {result.pixPrice.toFixed(2)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Cartão:</span>
-                      <span className="font-medium text-hotel-navy">R$ {result.cardPrice.toFixed(2)}</span>
-                    </div>
+                     <div className="flex justify-between items-center">
+                       <span className="text-muted-foreground">PIX:</span>
+                       <span className="font-medium text-accent">R$ {result.pixPrice.toFixed(2)}</span>
+                     </div>
+                     
+                     <div className="flex justify-between items-center">
+                       <span className="text-muted-foreground">Cartão:</span>
+                       <span className="font-medium text-primary">R$ {result.cardPrice.toFixed(2)}</span>
+                     </div>
                   </>
                 ) : result.pricePerNight > 0 ? (
                   <div className="flex justify-between">
@@ -122,14 +122,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
                   <>
                     {result.pixTotalPrice && result.cardTotalPrice ? (
                       <>
-                        <div className="flex justify-between text-lg font-semibold text-hotel-green">
-                          <span>Total PIX:</span>
-                          <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-lg font-semibold text-hotel-navy">
-                          <span>Total Cartão:</span>
-                          <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
-                        </div>
+                         <div className="flex justify-between text-lg font-semibold text-accent">
+                           <span>Total PIX:</span>
+                           <span>R$ {result.pixTotalPrice.toFixed(2)}</span>
+                         </div>
+                         <div className="flex justify-between text-lg font-semibold text-primary">
+                           <span>Total Cartão:</span>
+                           <span>R$ {result.cardTotalPrice.toFixed(2)}</span>
+                         </div>
                       </>
                     ) : (
                       <div className="flex justify-between text-lg font-semibold">

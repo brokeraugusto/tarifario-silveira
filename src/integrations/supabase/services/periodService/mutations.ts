@@ -72,12 +72,24 @@ export const updatePricePeriod = async (id: string, updates: Partial<PricePeriod
     
     console.log('Database updates:', dbUpdates);
     
+    // First check if the record exists
+    const { data: existingData, error: checkError } = await supabase
+      .from('price_periods')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (checkError || !existingData) {
+      console.error('Period not found:', id, checkError);
+      throw new Error('Período não encontrado para atualização');
+    }
+    
     const { data, error } = await supabase
       .from('price_periods')
       .update(dbUpdates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error updating price period:', error);
@@ -114,7 +126,19 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
   try {
     console.log('Deleting price period:', id);
     
-    // First delete all related prices to prevent foreign key constraint issues
+    // First check if the period exists
+    const { data: existingPeriod, error: checkError } = await supabase
+      .from('price_periods')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (checkError || !existingPeriod) {
+      console.error('Period not found for deletion:', id, checkError);
+      throw new Error('Período não encontrado para exclusão');
+    }
+
+    // Delete all related prices to prevent foreign key constraint issues
     const { error: pricesError } = await supabase
       .from('prices_by_people')
       .delete()
@@ -123,6 +147,17 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
     if (pricesError) {
       console.error('Error deleting related prices:', pricesError);
       throw pricesError;
+    }
+
+    // Delete all related category prices
+    const { error: categoryPricesError } = await supabase
+      .from('prices_by_category_and_people')
+      .delete()
+      .eq('period_id', id);
+
+    if (categoryPricesError) {
+      console.error('Error deleting related category prices:', categoryPricesError);
+      throw categoryPricesError;
     }
 
     // Then delete the period
@@ -140,7 +175,7 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Error in deletePricePeriod:', error);
-    throw error;
+    return false;
   }
 };
 

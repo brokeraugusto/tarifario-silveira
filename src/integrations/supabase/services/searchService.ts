@@ -129,6 +129,8 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           const pixPrice = compatiblePrices.find(p => p.paymentMethod === 'pix');
           const cardPrice = compatiblePrices.find(p => p.paymentMethod === 'credit_card');
 
+          console.log(`Found prices for ${accommodation.name}:`, { pixPrice, cardPrice });
+
           if (pixPrice && pixPrice.pricePerNight > 0) {
             // Check minimum stay from the PIX price entry
             if (pixPrice.minNights && nights < pixPrice.minNights) {
@@ -147,14 +149,16 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
             totalCardPrice += Number(cardPrice.pricePerNight);
           }
 
-          // If no specific price found, use the first available
-          if ((!pixPrice || pixPrice.pricePerNight <= 0) && (!cardPrice || cardPrice.pricePerNight <= 0)) {
+          // If no specific payment method prices found, use the first available
+          if ((!pixPrice || pixPrice.pricePerNight <= 0) && (!cardPrice || cardPrice.pricePerNight <= 0) && compatiblePrices.length > 0) {
             const priceToUse = compatiblePrices[0];
+            console.log(`Using fallback price for ${accommodation.name}:`, priceToUse);
             if (priceToUse && priceToUse.pricePerNight > 0) {
               if (priceToUse.minNights && nights < priceToUse.minNights) {
                 isMinStayViolation = true;
                 minimumStay = Math.max(minimumStay, priceToUse.minNights);
               }
+              // Use the same price for both payment methods as fallback
               totalPixPrice += Number(priceToUse.pricePerNight);
               totalCardPrice += Number(priceToUse.pricePerNight);
             }
@@ -166,11 +170,19 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         }
       }
 
-      if (canCalculatePrice) {
-        const pixPricePerNight = totalPixPrice / nights;
-        const cardPricePerNight = totalCardPrice / nights;
+      if (canCalculatePrice && (totalPixPrice > 0 || totalCardPrice > 0)) {
+        const pixPricePerNight = totalPixPrice > 0 ? totalPixPrice / nights : 0;
+        const cardPricePerNight = totalCardPrice > 0 ? totalCardPrice / nights : 0;
         const defaultPricePerNight = pixPricePerNight || cardPricePerNight;
         const defaultTotalPrice = totalPixPrice || totalCardPrice;
+        
+        console.log(`Price calculation for ${accommodation.name}:`, {
+          totalPixPrice,
+          totalCardPrice,
+          pixPricePerNight,
+          cardPricePerNight,
+          nights
+        });
         
         results.push({
           accommodation,
@@ -180,13 +192,14 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           isMinStayViolation,
           minimumStay,
           includesBreakfast,
-          pixPrice: pixPricePerNight || null,
-          cardPrice: cardPricePerNight || null,
-          pixTotalPrice: totalPixPrice || null,
-          cardTotalPrice: totalCardPrice || null
+          pixPrice: pixPricePerNight > 0 ? pixPricePerNight : null,
+          cardPrice: cardPricePerNight > 0 ? cardPricePerNight : null,
+          pixTotalPrice: totalPixPrice > 0 ? totalPixPrice : null,
+          cardTotalPrice: totalCardPrice > 0 ? totalCardPrice : null
         });
       } else {
         // Still include the accommodation but without pricing
+        console.log(`No valid pricing found for ${accommodation.name}, including without prices`);
         results.push({
           accommodation,
           pricePerNight: 0,

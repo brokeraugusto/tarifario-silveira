@@ -87,7 +87,7 @@ const SearchPage = () => {
   return (
     <div className="space-y-6 pb-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-hotel-navy">Buscar Acomodações</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Buscar Acomodações</h1>
         <p className="text-muted-foreground mt-2">Encontre acomodações disponíveis com base na sua data e número de hóspedes.</p>
       </div>
 

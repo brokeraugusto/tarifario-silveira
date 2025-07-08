@@ -86,13 +86,22 @@ export const usePeriods = () => {
     try {
       console.log('Confirming delete for periods:', selectedPeriodIds);
       
-      // Delete each period
+      let deletedCount = 0;
+      
+      // Delete each period and count successful deletions
       for (const id of selectedPeriodIds) {
         console.log('Deleting period:', id);
-        await deletePricePeriod(id);
+        const success = await deletePricePeriod(id);
+        if (success) {
+          deletedCount++;
+        }
       }
       
-      toast.success(`${selectedPeriodIds.length} período(s) excluído(s) com sucesso`);
+      if (deletedCount > 0) {
+        toast.success(`${deletedCount} período(s) excluído(s) com sucesso`);
+      } else {
+        toast.error("Nenhum período foi excluído");
+      }
       
       // Clear selection immediately
       setSelectedPeriodIds([]);
