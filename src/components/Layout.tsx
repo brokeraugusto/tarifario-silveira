@@ -41,7 +41,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen flex flex-col md:flex-row">
       {isMobile ? (
         <>
-          <div className="bg-hotel-navy text-white p-4 flex items-center justify-between sticky top-0 z-50">
+          <div className="bg-sidebar text-sidebar-foreground p-4 flex items-center justify-between sticky top-0 z-50">
             <div className="flex items-center">
               <img src="/lovable-uploads/a6911ab3-1a75-4326-9fc0-372d0ab6d779.png" alt="Silveira Eco Village" className="h-10 w-auto" />
             </div>
@@ -53,7 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
                     <Menu className="w-6 h-6 text-hotel-green" />
                   </button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[250px] p-0 bg-hotel-navy">
+                <SheetContent side="left" className="w-[250px] p-0 bg-sidebar">
                   <div className="p-4 flex items-center border-b border-hotel-green/30">
                     <img src="/lovable-uploads/3123768e-9a96-44e8-af21-306a50a822ac.png" alt="Silveira Logo" className="h-8 w-auto" />
                     <button className="ml-auto text-hotel-green" onClick={() => setIsSidebarOpen(false)}>
@@ -63,27 +63,27 @@ const Layout = ({ children }: LayoutProps) => {
                   <nav className="p-4">
                     <ul className="space-y-2">
                       <li>
-                        <NavLink to="/" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")} end onClick={handleNavigation}>
+                        <NavLink to="/" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} end onClick={handleNavigation}>
                           <Home className="w-5 h-5 mr-2" />
-                          <span className="text-white">Início</span>
+                          <span className="text-sidebar-foreground">Início</span>
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink to="/search" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")} onClick={handleNavigation}>
+                        <NavLink to="/search" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
                           <Search className="w-5 h-5 mr-2" />
-                          <span className="text-white">Buscar Acomodações</span>
+                          <span className="text-sidebar-foreground">Buscar Acomodações</span>
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink to="/accommodations" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")} onClick={handleNavigation}>
+                        <NavLink to="/accommodations" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
                           <Bed className="w-5 h-5 mr-2" />
-                          <span className="font-normal text-white">Gerenciar Acomodações</span>
+                          <span className="font-normal text-sidebar-foreground">Gerenciar Acomodações</span>
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink to="/periods" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")} onClick={handleNavigation}>
+                        <NavLink to="/periods" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
                           <Calendar className="w-5 h-5 mr-2" />
-                          <span className="text-white">Períodos e Preços</span>
+                          <span className="text-sidebar-foreground">Períodos e Preços</span>
                         </NavLink>
                       </li>
                        <li>
@@ -96,9 +96,9 @@ const Layout = ({ children }: LayoutProps) => {
                          />
                        </li>
                       <li>
-                        <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")} onClick={handleNavigation}>
+                        <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
                           <Settings className="w-5 h-5 mr-2" />
-                          <span className="text-white">Configurações</span>
+                          <span className="text-sidebar-foreground">Configurações</span>
                         </NavLink>
                       </li>
                     </ul>
@@ -118,7 +118,7 @@ const Layout = ({ children }: LayoutProps) => {
         </>
       ) : (
         <>
-          <aside className="bg-hotel-navy text-white min-h-screen w-[250px] fixed left-0 top-0 bottom-0 overflow-y-auto">
+          <aside className="bg-sidebar text-sidebar-foreground min-h-screen w-[250px] fixed left-0 top-0 bottom-0 overflow-y-auto">
             <div className="p-4 flex items-center justify-between border-b border-hotel-green/30">
               <img alt="Silveira Eco Village" src="/lovable-uploads/53dac66f-17e6-433a-8bb7-f777bbe4d70c.png" className="h-8 w-auto object-contain" />
               {user && <UserMenu />}
@@ -126,25 +126,25 @@ const Layout = ({ children }: LayoutProps) => {
             <nav className="p-4">
               <ul className="space-y-2">
                 <li>
-                  <NavLink to="/" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")} end>
+                  <NavLink to="/" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} end>
                     <Home className="w-5 h-5 mr-2" />
                     <span>Início</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/search" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")}>
+                  <NavLink to="/search" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
                     <Search className="w-5 h-5 mr-2" />
                     <span>Buscar Acomodações</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/accommodations" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")}>
+                  <NavLink to="/accommodations" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
                     <Bed className="w-5 h-5 mr-2" />
                     <span>Gerenciar Acomodações</span>
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/periods" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")}>
+                  <NavLink to="/periods" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
                     <Calendar className="w-5 h-5 mr-2" />
                     <span>Períodos e Preços</span>
                   </NavLink>
@@ -158,7 +158,7 @@ const Layout = ({ children }: LayoutProps) => {
                    />
                  </li>
                 <li>
-                  <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-hotel-green text-hotel-navy font-medium" : "hover:bg-hotel-gray/20")}>
+                  <NavLink to="/settings" className={({ isActive }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
                     <Settings className="w-5 h-5 mr-2" />
                     <span>Configurações</span>
                   </NavLink>

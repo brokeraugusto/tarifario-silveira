@@ -87,6 +87,7 @@ export const usePeriods = () => {
       console.log('Confirming delete for periods:', selectedPeriodIds);
       
       let deletedCount = 0;
+      let failedCount = 0;
       
       // Delete each period and count successful deletions
       for (const id of selectedPeriodIds) {
@@ -94,20 +95,29 @@ export const usePeriods = () => {
         const success = await deletePricePeriod(id);
         if (success) {
           deletedCount++;
+          console.log(`Period ${id} deleted successfully`);
+        } else {
+          failedCount++;
+          console.error(`Failed to delete period ${id}`);
         }
       }
       
+      console.log(`Deletion summary: ${deletedCount} successful, ${failedCount} failed`);
+      
       if (deletedCount > 0) {
+        console.log('Showing success toast and refreshing...');
         toast.success(`${deletedCount} período(s) excluído(s) com sucesso`);
+        
+        // Clear selection immediately
+        setSelectedPeriodIds([]);
+        
+        // Refresh the periods list
+        console.log('Calling fetchPeriods to refresh...');
+        await fetchPeriods();
+        console.log('Refresh completed');
       } else {
         toast.error("Nenhum período foi excluído");
       }
-      
-      // Clear selection immediately
-      setSelectedPeriodIds([]);
-      
-      // Refresh the periods list
-      await fetchPeriods();
       
     } catch (error) {
       console.error("Error deleting periods:", error);

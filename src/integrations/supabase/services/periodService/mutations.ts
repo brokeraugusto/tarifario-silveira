@@ -182,6 +182,7 @@ export const deletePricePeriod = async (id: string): Promise<boolean> => {
     }
 
     console.log('Successfully deleted period:', id);
+    console.log('Deletion completed successfully');
     return true;
   } catch (error) {
     console.error('Error in deletePricePeriod:', error);
