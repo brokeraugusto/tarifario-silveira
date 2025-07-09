@@ -53,7 +53,7 @@ const HomePage = () => {
           </p>
           
           <div className="mt-4 md:mt-6 px-[220px]">
-            <Button variant="secondary" size={isMobile ? "default" : "lg"} onClick={() => navigate('/search')} className="w-full md:w-auto bg-hotel-gold text-hotel-navy hover:bg-hotel-lightgold font-normal text-base text-justify text-lime-500">
+            <Button variant="secondary" size={isMobile ? "default" : "lg"} onClick={() => navigate('/search')} className="w-full md:w-auto bg-hotel-gold text-hotel-navy hover:bg-hotel-lightgold font-normal text-base text-justify text-slate-50 bg-lime-600 hover:bg-lime-500">
               <Search className="mr-2 h-5 w-5" />
               Iniciar Busca de Acomodações
             </Button>
