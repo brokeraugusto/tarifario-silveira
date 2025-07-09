@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bed, Calendar, ArrowRight, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
-
 const FeatureCard = ({
   icon,
   title,
@@ -38,7 +36,6 @@ const FeatureCard = ({
       </CardContent>
     </Card>;
 };
-
 const HomePage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -48,15 +45,15 @@ const HomePage = () => {
         <p className="text-lg md:text-xl text-muted-foreground mt-2">Sistema de gestão de acomodações e valores</p>
       </div>
       
-      <div className="bg-hotel-navy text-white p-4 md:p-8 rounded-lg shadow-lg">
+      <div className="bg-hotel-navy text-white p-4 md:p-8 rounded-lg shadow-lg bg-neutral-700">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-xl md:text-2xl font-semibold text-hotel-gold text-center text-zinc-500">Bem-vindo ao Painel de Gestão</h2>
-          <p className="mt-2 text-sm md:text-base text-center text-zinc-500">
+          <h2 className="text-xl md:text-2xl font-semibold text-hotel-gold text-center text-slate-50">Bem-vindo ao Painel de Gestão</h2>
+          <p className="mt-2 text-sm md:text-base text-center text-slate-50">
             Use o sistema para buscar valores de acomodações, gerenciar dados e configurar preços por períodos.
           </p>
           
           <div className="mt-4 md:mt-6 px-[220px]">
-            <Button variant="secondary" size={isMobile ? "default" : "lg"} onClick={() => navigate('/search')} className="w-full md:w-auto bg-hotel-gold text-hotel-navy hover:bg-hotel-lightgold text-zinc-800 font-normal text-base text-justify">
+            <Button variant="secondary" size={isMobile ? "default" : "lg"} onClick={() => navigate('/search')} className="w-full md:w-auto bg-hotel-gold text-hotel-navy hover:bg-hotel-lightgold font-normal text-base text-justify text-lime-500">
               <Search className="mr-2 h-5 w-5" />
               Iniciar Busca de Acomodações
             </Button>
@@ -75,5 +72,4 @@ const HomePage = () => {
       </div>
     </div>;
 };
-
 export default HomePage;
