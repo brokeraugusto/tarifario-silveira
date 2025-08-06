@@ -1,4 +1,3 @@
-
 import { supabase } from '../client';
 import { 
   MaintenanceOrder, 
@@ -8,6 +7,7 @@ import {
   MaintenanceStatus,
   AreaType 
 } from '@/types/maintenance';
+import { createMaintenanceHistory } from './maintenanceHistoryService';
 
 // User profile functions
 export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
@@ -216,6 +216,8 @@ export const createMaintenanceOrder = async (orderData: {
   notes?: string;
 }): Promise<MaintenanceOrder | null> => {
   try {
+    console.log('Creating maintenance order with data:', orderData);
+
     // Generate order number
     const orderNumber = `MNT-${Date.now()}`;
 
@@ -242,13 +244,23 @@ export const createMaintenanceOrder = async (orderData: {
 
     if (error) {
       console.error('Error creating maintenance order:', error);
-      return null;
+      throw error;
+    }
+
+    // Create initial history entry
+    if (data) {
+      await createMaintenanceHistory(
+        data.id,
+        'pending',
+        'Ordem criada',
+        orderData.requested_by
+      );
     }
 
     return data;
   } catch (error) {
     console.error('Error in createMaintenanceOrder:', error);
-    return null;
+    throw error;
   }
 };
 
@@ -257,6 +269,8 @@ export const updateMaintenanceOrder = async (
   updates: Partial<MaintenanceOrder>
 ): Promise<MaintenanceOrder | null> => {
   try {
+    console.log('Updating maintenance order:', id, updates);
+
     const { data, error } = await supabase
       .from('maintenance_orders')
       .update({
@@ -283,13 +297,22 @@ export const updateMaintenanceOrder = async (
 
     if (error) {
       console.error('Error updating maintenance order:', error);
-      return null;
+      throw error;
+    }
+
+    // Create history entry if status changed
+    if (updates.status && data) {
+      await createMaintenanceHistory(
+        data.id,
+        updates.status,
+        `Status alterado para ${updates.status}`
+      );
     }
 
     return data;
   } catch (error) {
     console.error('Error in updateMaintenanceOrder:', error);
-    return null;
+    throw error;
   }
 };
 

@@ -68,12 +68,28 @@ const CreateMaintenanceOrderDialog = ({ isOpen, onOpenChange }: CreateMaintenanc
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.area_id || !currentUser?.id) {
-      toast.error('Preencha todos os campos obrigatórios');
+    // Validação apenas dos campos obrigatórios
+    if (!formData.title.trim()) {
+      toast.error('Título é obrigatório');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      toast.error('Descrição é obrigatória');
+      return;
+    }
+    
+    if (!formData.area_id) {
+      toast.error('Área é obrigatória');
+      return;
+    }
+    
+    if (!currentUser?.id) {
+      toast.error('Usuário não autenticado');
       return;
     }
 
-    createOrderMutation.mutate({
+    console.log('Creating maintenance order with data:', {
       title: formData.title,
       description: formData.description,
       area_id: formData.area_id,
@@ -83,6 +99,18 @@ const CreateMaintenanceOrderDialog = ({ isOpen, onOpenChange }: CreateMaintenanc
       scheduled_date: formData.scheduled_date || undefined,
       estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : undefined,
       notes: formData.notes || undefined,
+    });
+
+    createOrderMutation.mutate({
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      area_id: formData.area_id,
+      priority: formData.priority,
+      requested_by: currentUser.id,
+      assigned_to: formData.assigned_to || undefined,
+      scheduled_date: formData.scheduled_date || undefined,
+      estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : undefined,
+      notes: formData.notes.trim() || undefined,
     });
   };
 

@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Wrench, Plus, Filter, Calendar, AlertTriangle, Eye, CheckCircle, X, LayoutGrid, List, MapPin } from 'lucide-react';
+import { Wrench, Plus, Filter, Calendar, AlertTriangle, Eye, CheckCircle, X, LayoutGrid, List, MapPin, History } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +13,7 @@ import { MaintenanceOrder, MaintenancePriority, MaintenanceStatus } from '@/type
 import CreateMaintenanceOrderDialog from '@/components/maintenance/CreateMaintenanceOrderDialog';
 import AreasManagementDialog from '@/components/maintenance/AreasManagementDialog';
 import MaintenanceKanbanBoard from '@/components/maintenance/MaintenanceKanbanBoard';
+import MaintenanceHistoryDialog from '@/components/maintenance/MaintenanceHistoryDialog';
 
 const MaintenancePage = () => {
   const isMobile = useIsMobile();
@@ -24,6 +24,7 @@ const MaintenancePage = () => {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAreasDialogOpen, setIsAreasDialogOpen] = useState(false);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const { data: maintenanceOrders = [], isLoading: loadingOrders, refetch } = useQuery({
@@ -209,6 +210,14 @@ const MaintenancePage = () => {
           
           <Button 
             variant="outline" 
+            onClick={() => setIsHistoryDialogOpen(true)}
+          >
+            <History className="h-4 w-4 mr-2" />
+            Histórico
+          </Button>
+          
+          <Button 
+            variant="outline" 
             onClick={() => setIsAreasDialogOpen(true)}
           >
             <MapPin className="h-4 w-4 mr-2" />
@@ -292,6 +301,12 @@ const MaintenancePage = () => {
       <AreasManagementDialog
         isOpen={isAreasDialogOpen}
         onOpenChange={setIsAreasDialogOpen}
+      />
+
+      {/* Maintenance History Dialog */}
+      <MaintenanceHistoryDialog
+        isOpen={isHistoryDialogOpen}
+        onOpenChange={setIsHistoryDialogOpen}
       />
 
       {/* Order Details Dialog */}
