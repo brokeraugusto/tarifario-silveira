@@ -89,6 +89,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
       let canCalculatePrice = true;
       let isMinStayViolation = false;
       let minimumStay = 1;
+      let nightsWithPrices = 0;
 
       // Get all periods that overlap with our date range
       const overlappingPeriods = allPeriods.filter(period => {
@@ -109,6 +110,8 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         canCalculatePrice = false;
       } else {
         // Calculate price for each night, determining which period it falls in
+        let datesWithoutPrices: string[] = [];
+        
         for (let currentDate = new Date(checkIn); currentDate < checkOut; currentDate = addDays(currentDate, 1)) {
           // Find the period that contains this specific date
           const activePeriod = overlappingPeriods.find(period =>
@@ -117,8 +120,8 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
 
           if (!activePeriod) {
             console.log(`No active period found for date ${currentDate.toISOString().split('T')[0]}`);
-            canCalculatePrice = false;
-            break;
+            datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
+            continue; // Continue instead of breaking to try other dates
           }
 
           // Check minimum stay requirement from the period
@@ -138,8 +141,8 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
 
             if (compatiblePrices.length === 0) {
               console.log(`No compatible prices found for accommodation ${accommodation.name} in period ${activePeriod.name} for date ${currentDate.toISOString().split('T')[0]}`);
-              canCalculatePrice = false;
-              break;
+              datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
+              continue; // Continue instead of breaking to try other dates
             }
 
             // Get both PIX and card prices
@@ -148,6 +151,8 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
 
             console.log(`Found prices for ${accommodation.name} on ${currentDate.toISOString().split('T')[0]}:`, { pixPrice, cardPrice });
 
+            let dateHasPrice = false;
+
             if (pixPrice && pixPrice.pricePerNight > 0) {
               // Check minimum stay from the PIX price entry
               if (pixPrice.minNights && nights < pixPrice.minNights) {
@@ -155,6 +160,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
                 minimumStay = Math.max(minimumStay, pixPrice.minNights);
               }
               totalPixPrice += Number(pixPrice.pricePerNight);
+              dateHasPrice = true;
             }
 
             if (cardPrice && cardPrice.pricePerNight > 0) {
@@ -164,10 +170,11 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
                 minimumStay = Math.max(minimumStay, cardPrice.minNights);
               }
               totalCardPrice += Number(cardPrice.pricePerNight);
+              dateHasPrice = true;
             }
 
             // If no specific payment method prices found, use the first available
-            if ((!pixPrice || pixPrice.pricePerNight <= 0) && (!cardPrice || cardPrice.pricePerNight <= 0) && compatiblePrices.length > 0) {
+            if (!dateHasPrice && compatiblePrices.length > 0) {
               const priceToUse = compatiblePrices[0];
               console.log(`Using fallback price for ${accommodation.name} on ${currentDate.toISOString().split('T')[0]}:`, priceToUse);
               if (priceToUse && priceToUse.pricePerNight > 0) {
@@ -178,21 +185,42 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
                 // Use the same price for both payment methods as fallback
                 totalPixPrice += Number(priceToUse.pricePerNight);
                 totalCardPrice += Number(priceToUse.pricePerNight);
+                dateHasPrice = true;
               }
+            }
+
+            if (dateHasPrice) {
+              nightsWithPrices++;
+            } else {
+              datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
             }
           } catch (error) {
             console.error(`Error getting prices for accommodation ${accommodation.name} on ${currentDate.toISOString().split('T')[0]}:`, error);
-            canCalculatePrice = false;
-            break;
+            datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
+            continue; // Continue instead of breaking to try other dates
           }
         }
+
+        // Update canCalculatePrice based on whether we found prices for any nights
+        canCalculatePrice = nightsWithPrices > 0;
+        
+        if (datesWithoutPrices.length > 0) {
+          console.log(`Accommodation ${accommodation.name} missing prices for dates:`, datesWithoutPrices);
+        }
+
+        console.log(`Price calculation summary for ${accommodation.name}: ${nightsWithPrices}/${nights} nights with prices`);
       }
 
       if (canCalculatePrice && (totalPixPrice > 0 || totalCardPrice > 0)) {
-        const pixPricePerNight = totalPixPrice > 0 ? totalPixPrice / nights : 0;
-        const cardPricePerNight = totalCardPrice > 0 ? totalCardPrice / nights : 0;
+        // Calculate prices based on nights with valid pricing, but show total for all nights requested
+        const pixPricePerNight = totalPixPrice > 0 && nightsWithPrices > 0 ? totalPixPrice / nightsWithPrices : 0;
+        const cardPricePerNight = totalCardPrice > 0 && nightsWithPrices > 0 ? totalCardPrice / nightsWithPrices : 0;
         const defaultPricePerNight = pixPricePerNight || cardPricePerNight;
-        const defaultTotalPrice = totalPixPrice || totalCardPrice;
+        
+        // For total price, if we don't have prices for all nights, extrapolate from available data
+        const pixTotalPriceEstimate = pixPricePerNight > 0 ? pixPricePerNight * nights : 0;
+        const cardTotalPriceEstimate = cardPricePerNight > 0 ? cardPricePerNight * nights : 0;
+        const defaultTotalPrice = pixTotalPriceEstimate || cardTotalPriceEstimate;
         
         console.log(`Final price calculation for ${accommodation.name}:`, {
           totalPixPrice,
@@ -213,8 +241,8 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           includesBreakfast,
           pixPrice: pixPricePerNight > 0 ? pixPricePerNight : null,
           cardPrice: cardPricePerNight > 0 ? cardPricePerNight : null,
-          pixTotalPrice: totalPixPrice > 0 ? totalPixPrice : null,
-          cardTotalPrice: totalCardPrice > 0 ? totalCardPrice : null
+          pixTotalPrice: pixTotalPriceEstimate > 0 ? pixTotalPriceEstimate : null,
+          cardTotalPrice: cardTotalPriceEstimate > 0 ? cardTotalPriceEstimate : null
         });
       } else {
         // Still include the accommodation but without pricing
