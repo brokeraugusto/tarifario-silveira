@@ -211,38 +211,34 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         console.log(`Price calculation summary for ${accommodation.name}: ${nightsWithPrices}/${nights} nights with prices`);
       }
 
-      if (canCalculatePrice && (totalPixPrice > 0 || totalCardPrice > 0)) {
-        // Calculate prices based on nights with valid pricing, but show total for all nights requested
-        const pixPricePerNight = totalPixPrice > 0 && nightsWithPrices > 0 ? totalPixPrice / nightsWithPrices : 0;
-        const cardPricePerNight = totalCardPrice > 0 && nightsWithPrices > 0 ? totalCardPrice / nightsWithPrices : 0;
-        const defaultPricePerNight = pixPricePerNight || cardPricePerNight;
-        
-        // For total price, if we don't have prices for all nights, extrapolate from available data
-        const pixTotalPriceEstimate = pixPricePerNight > 0 ? pixPricePerNight * nights : 0;
-        const cardTotalPriceEstimate = cardPricePerNight > 0 ? cardPricePerNight * nights : 0;
-        const defaultTotalPrice = pixTotalPriceEstimate || cardTotalPriceEstimate;
+      if (canCalculatePrice && nightsWithPrices === nights) {
+        // Only show results if we have prices for ALL nights in the range
+        const pixAveragePrice = totalPixPrice > 0 ? totalPixPrice / nights : 0;
+        const cardAveragePrice = totalCardPrice > 0 ? totalCardPrice / nights : 0;
+        const defaultAveragePrice = pixAveragePrice || cardAveragePrice;
         
         console.log(`Final price calculation for ${accommodation.name}:`, {
           totalPixPrice,
           totalCardPrice,
-          pixPricePerNight,
-          cardPricePerNight,
+          pixAveragePrice,
+          cardAveragePrice,
           nights,
+          nightsWithPrices,
           overlappingPeriodsCount: overlappingPeriods.length
         });
         
         results.push({
           accommodation,
-          pricePerNight: defaultPricePerNight,
-          totalPrice: defaultTotalPrice,
+          pricePerNight: defaultAveragePrice,
+          totalPrice: totalPixPrice || totalCardPrice,
           nights,
           isMinStayViolation,
           minimumStay,
           includesBreakfast,
-          pixPrice: pixPricePerNight > 0 ? pixPricePerNight : null,
-          cardPrice: cardPricePerNight > 0 ? cardPricePerNight : null,
-          pixTotalPrice: pixTotalPriceEstimate > 0 ? pixTotalPriceEstimate : null,
-          cardTotalPrice: cardTotalPriceEstimate > 0 ? cardTotalPriceEstimate : null
+          pixPrice: pixAveragePrice > 0 ? pixAveragePrice : null,
+          cardPrice: cardAveragePrice > 0 ? cardAveragePrice : null,
+          pixTotalPrice: totalPixPrice > 0 ? totalPixPrice : null,
+          cardTotalPrice: totalCardPrice > 0 ? totalCardPrice : null
         });
       } else {
         // Still include the accommodation but without pricing
