@@ -190,29 +190,29 @@ const MaintenanceHistoryDialog = ({ isOpen, onOpenChange }: MaintenanceHistoryDi
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Badge className={getStatusColor(entry.status)}>
-                            {getStatusText(entry.status)}
-                          </Badge>
-                          <span className="font-medium">
-                            {entry.maintenance_order?.title}
-                          </span>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            {entry.maintenance_order?.area?.name}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            {entry.changed_by_profile?.full_name || 'Sistema'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            {new Date(entry.created_at).toLocaleString('pt-BR')}
-                          </div>
-                        </div>
+                         <div className="flex items-center gap-3 mb-2">
+                           <Badge className={getStatusColor(entry.status)}>
+                             {getStatusText(entry.status)}
+                           </Badge>
+                           <span className="font-medium">
+                             ID: {entry.maintenance_order_id}
+                           </span>
+                         </div>
+                         
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                           <div className="flex items-center gap-2">
+                             <MapPin className="h-4 w-4" />
+                             Status: {getStatusText(entry.status)}
+                           </div>
+                           <div className="flex items-center gap-2">
+                             <User className="h-4 w-4" />
+                             Por: {entry.changed_by}
+                           </div>
+                           <div className="flex items-center gap-2">
+                             <Calendar className="h-4 w-4" />
+                             {new Date(entry.created_at).toLocaleString('pt-BR')}
+                           </div>
+                         </div>
                         
                         {entry.notes && (
                           <p className="text-sm mt-2 text-muted-foreground">

@@ -118,3 +118,24 @@ export const deleteAccommodation = async (id: string): Promise<boolean> => {
     throw error;
   }
 };
+
+export const deleteAllAccommodations = async (): Promise<boolean> => {
+  try {
+    console.log('Deleting all accommodations');
+    
+    const { error } = await supabase
+      .from('accommodations')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+
+    if (error) {
+      console.error('Error deleting all accommodations:', error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in deleteAllAccommodations:', error);
+    throw error;
+  }
+};
