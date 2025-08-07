@@ -37,16 +37,22 @@ export const updateAccommodation = async (
       .from('accommodations')
       .update(dbUpdates)
       .eq('id', id)
-      .select()
-      .single();
-
+      .select();
+    
     if (error) {
       console.error('Error updating accommodation:', error);
       throw error;
     }
+    
+    if (!data || data.length === 0) {
+      console.error('No accommodation found with id:', id);
+      throw new Error('Accommodation not found or you do not have permission to update it');
+    }
+    
+    const updatedAccommodation = data[0];
 
-    console.log('Updated accommodation data:', data);
-    return accommodationMapper.fromDatabase(data);
+    console.log('Updated accommodation data:', updatedAccommodation);
+    return accommodationMapper.fromDatabase(updatedAccommodation);
   } catch (error) {
     console.error('Error in updateAccommodation:', error);
     throw error;
