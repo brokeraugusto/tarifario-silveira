@@ -211,49 +211,39 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         console.log(`Price calculation summary for ${accommodation.name}: ${nightsWithPrices}/${nights} nights with prices`);
       }
 
-      // Allow results even if we don't have prices for all nights, but require at least some pricing data
+      // Only include results with pricing if we have at least some valid prices
       if (canCalculatePrice && nightsWithPrices > 0) {
-        // Calculate average price based on nights with prices, but only if we have substantial coverage
-        const pixAveragePrice = totalPixPrice > 0 ? totalPixPrice / nightsWithPrices : 0;
-        const cardAveragePrice = totalCardPrice > 0 ? totalCardPrice / nightsWithPrices : 0;
+        // Calculate average price per night only for display purposes - using REAL totals
+        const pixAveragePrice = totalPixPrice > 0 && nightsWithPrices > 0 ? totalPixPrice / nightsWithPrices : 0;
+        const cardAveragePrice = totalCardPrice > 0 && nightsWithPrices > 0 ? totalCardPrice / nightsWithPrices : 0;
         const defaultAveragePrice = pixAveragePrice || cardAveragePrice;
         
-        // For total price calculation:
-        // If we have complete coverage (all nights), use actual totals
-        // If we have partial coverage, extrapolate but flag it
-        const pixTotalCalculated = pixAveragePrice > 0 ? pixAveragePrice * nights : 0;
-        const cardTotalCalculated = cardAveragePrice > 0 ? cardAveragePrice * nights : 0;
-        const defaultTotalPrice = pixTotalCalculated || cardTotalCalculated;
-        
         console.log(`Final price calculation for ${accommodation.name}:`, {
-          totalPixPrice,
-          totalCardPrice,
-          pixAveragePrice,
-          cardAveragePrice,
-          pixTotalCalculated,
-          cardTotalCalculated,
-          defaultTotalPrice,
+          totalPixPrice, // Real sum of all nights with prices
+          totalCardPrice, // Real sum of all nights with prices
+          pixAveragePrice, // Only for display
+          cardAveragePrice, // Only for display
           nights,
           nightsWithPrices,
-          coveragePercentage: Math.round((nightsWithPrices / nights) * 100),
+          missingNights: nights - nightsWithPrices,
           overlappingPeriodsCount: overlappingPeriods.length
         });
         
         results.push({
           accommodation,
-          pricePerNight: defaultAveragePrice,
-          totalPrice: defaultTotalPrice,
+          pricePerNight: defaultAveragePrice, // Average for display
+          totalPrice: totalPixPrice || totalCardPrice, // REAL total (sum of actual nights)
           nights,
           isMinStayViolation,
           minimumStay,
           includesBreakfast,
           pixPrice: pixAveragePrice > 0 ? pixAveragePrice : null,
           cardPrice: cardAveragePrice > 0 ? cardAveragePrice : null,
-          pixTotalPrice: pixTotalCalculated > 0 ? pixTotalCalculated : null,
-          cardTotalPrice: cardTotalCalculated > 0 ? cardTotalCalculated : null
+          pixTotalPrice: totalPixPrice > 0 ? totalPixPrice : null, // REAL total
+          cardTotalPrice: totalCardPrice > 0 ? totalCardPrice : null // REAL total
         });
       } else {
-        // Still include the accommodation but without pricing
+        // No pricing data available
         console.log(`No valid pricing found for ${accommodation.name} (nights with prices: ${nightsWithPrices}/${nights}), including without prices`);
         results.push({
           accommodation,

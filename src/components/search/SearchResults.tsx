@@ -139,6 +139,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
                     )}
                   </>
                 )}
+                
+                {/* Warning for missing price periods */}
+                {result.pricePerNight === 0 && result.totalPrice === null && (
+                  <div className="flex justify-center">
+                    <span className="text-amber-600 text-sm font-medium">⚠️ Períodos sem preços cadastrados</span>
+                  </div>
+                )}
               </div>
             </CardContent>
             
