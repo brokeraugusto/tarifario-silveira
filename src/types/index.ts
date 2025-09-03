@@ -64,6 +64,8 @@ export interface SearchResult {
   cardPrice?: number;
   pixTotalPrice?: number | null;
   cardTotalPrice?: number | null;
+  hasMultiplePeriods?: boolean;
+  overlappingPeriodsCount?: number;
 }
 
 // Re-export maintenance types for consistency

@@ -135,39 +135,51 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     if (pixPrice > 0 && cardPrice > 0) {
       if (selectedPriceType === 'pix') {
         text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
-              if (nights !== null && nights > 0 && pixTotal !== null) {
-                text += `*Número de diárias:* ${nights}\n`;
-                text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
-              }
-            } else if (selectedPriceType === 'card') {
-              text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
-              if (nights !== null && nights > 0 && cardTotal !== null) {
-                text += `*Número de diárias:* ${nights}\n`;
-                text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
-              }
-            } else {
-              text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
-              text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
-              if (nights !== null && nights > 0) {
-                if (pixTotal !== null) {
-                  text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
-                }
-                if (cardTotal !== null) {
-                  text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
-                }
-              }
-            }
-          } else if (result?.pricePerNight && result.pricePerNight > 0) {
-            text += `*Valor da diária:* R$ ${result.pricePerNight.toFixed(2)}\n`;
-            
-            if (nights !== null && nights > 0) {
-              text += `*Número de diárias:* ${nights}\n`;
-              
-              if (result.totalPrice !== null) {
-                text += `*Valor total:* R$ ${result.totalPrice.toFixed(2)}\n`;
-              }
-            }
+        if (result?.hasMultiplePeriods) {
+          text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
+        }
+        if (nights !== null && nights > 0 && pixTotal !== null) {
+          text += `*Número de diárias:* ${nights}\n`;
+          text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
+        }
+      } else if (selectedPriceType === 'card') {
+        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+        if (result?.hasMultiplePeriods) {
+          text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
+        }
+        if (nights !== null && nights > 0 && cardTotal !== null) {
+          text += `*Número de diárias:* ${nights}\n`;
+          text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
+        }
+      } else {
+        text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
+        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+        if (result?.hasMultiplePeriods) {
+          text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
+        }
+        if (nights !== null && nights > 0) {
+          if (pixTotal !== null) {
+            text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
           }
+          if (cardTotal !== null) {
+            text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
+          }
+        }
+      }
+    } else if (result?.pricePerNight && result.pricePerNight > 0) {
+      text += `*Valor da diária:* R$ ${result.pricePerNight.toFixed(2)}\n`;
+      if (result?.hasMultiplePeriods) {
+        text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
+      }
+      
+      if (nights !== null && nights > 0) {
+        text += `*Número de diárias:* ${nights}\n`;
+        
+        if (result.totalPrice !== null) {
+          text += `*Valor total:* R$ ${result.totalPrice.toFixed(2)}\n`;
+        }
+      }
+    }
     
     navigator.clipboard.writeText(text)
       .then(() => toast.success("Informações copiadas para o clipboard"))
@@ -195,6 +207,9 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
     if (pixPrice > 0 && cardPrice > 0) {
       text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
       text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
+      if (result?.hasMultiplePeriods) {
+        text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
+      }
       
       if (nights !== null && nights > 0) {
         text += `*Número de diárias:* ${nights}\n`;
@@ -207,6 +222,9 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
       }
     } else if (result?.pricePerNight && result.pricePerNight > 0) {
       text += `*Valor da diária:* R$ ${result.pricePerNight.toFixed(2)}\n`;
+      if (result?.hasMultiplePeriods) {
+        text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
+      }
       
       if (nights !== null && nights > 0) {
         text += `*Número de diárias:* ${nights}\n`;
@@ -344,6 +362,20 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
         
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Preços</h3>
+          
+          {result?.hasMultiplePeriods && (
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  Múltiplos períodos tarifários ({result.overlappingPeriodsCount} períodos)
+                </span>
+              </div>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                O valor da diária apresentado representa uma média dos diferentes períodos.
+              </p>
+            </div>
+          )}
           
           {result?.pixPrice && result?.cardPrice ? (
             <div className="space-y-3">

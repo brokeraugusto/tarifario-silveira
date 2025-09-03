@@ -240,7 +240,9 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           pixPrice: pixAveragePrice > 0 ? pixAveragePrice : null,
           cardPrice: cardAveragePrice > 0 ? cardAveragePrice : null,
           pixTotalPrice: totalPixPrice > 0 ? totalPixPrice : null, // REAL total
-          cardTotalPrice: totalCardPrice > 0 ? totalCardPrice : null // REAL total
+          cardTotalPrice: totalCardPrice > 0 ? totalCardPrice : null, // REAL total
+          hasMultiplePeriods: overlappingPeriods.length > 1,
+          overlappingPeriodsCount: overlappingPeriods.length
         });
       } else {
         // No pricing data available
@@ -256,7 +258,9 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           pixPrice: null,
           cardPrice: null,
           pixTotalPrice: null,
-          cardTotalPrice: null
+          cardTotalPrice: null,
+          hasMultiplePeriods: overlappingPeriods.length > 1,
+          overlappingPeriodsCount: overlappingPeriods.length
         });
       }
     }
