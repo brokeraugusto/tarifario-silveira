@@ -114,14 +114,26 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         
         for (let currentDate = new Date(checkIn); currentDate < checkOut; currentDate = addDays(currentDate, 1)) {
           // Find the period that contains this specific date
-          const activePeriod = overlappingPeriods.find(period =>
-            isWithinInterval(currentDate, { start: period.startDate, end: period.endDate })
-          );
+          // For period end dates, we need to check if the date is before the end date (not inclusive)
+          const activePeriod = overlappingPeriods.find(period => {
+            const dayStart = new Date(currentDate);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(currentDate);
+            dayEnd.setHours(23, 59, 59, 999);
+            
+            const periodStart = new Date(period.startDate);
+            periodStart.setHours(0, 0, 0, 0);
+            const periodEnd = new Date(period.endDate);
+            periodEnd.setHours(23, 59, 59, 999);
+            
+            return dayStart >= periodStart && dayStart <= periodEnd;
+          });
 
           if (!activePeriod) {
             console.log(`No active period found for date ${currentDate.toISOString().split('T')[0]}`);
             datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
-            continue; // Continue instead of breaking to try other dates
+            canCalculatePrice = false;
+            break; // Stop processing if we find a gap
           }
 
           // Check minimum stay requirement from the period
