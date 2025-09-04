@@ -114,23 +114,24 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         
         for (let currentDate = new Date(checkIn); currentDate < checkOut; currentDate = addDays(currentDate, 1)) {
           // Find the period that contains this specific date
-          // For period end dates, we need to check if the date is before the end date (not inclusive)
+          // Check if the current date falls within any period (inclusive of start, exclusive of end for transition logic)
           const activePeriod = overlappingPeriods.find(period => {
-            const dayStart = new Date(currentDate);
-            dayStart.setHours(0, 0, 0, 0);
-            const dayEnd = new Date(currentDate);
-            dayEnd.setHours(23, 59, 59, 999);
+            const currentDateOnly = new Date(currentDate);
+            currentDateOnly.setHours(0, 0, 0, 0);
             
             const periodStart = new Date(period.startDate);
             periodStart.setHours(0, 0, 0, 0);
+            
             const periodEnd = new Date(period.endDate);
             periodEnd.setHours(23, 59, 59, 999);
             
-            return dayStart >= periodStart && dayStart <= periodEnd;
+            // Current date should be >= period start and <= period end
+            return currentDateOnly >= periodStart && currentDateOnly <= periodEnd;
           });
 
           if (!activePeriod) {
-            console.log(`No active period found for date ${currentDate.toISOString().split('T')[0]}`);
+            console.log(`No active period found for date ${currentDate.toISOString().split('T')[0]} among periods:`, 
+              overlappingPeriods.map(p => `${p.name}: ${p.startDate.toISOString().split('T')[0]} to ${p.endDate.toISOString().split('T')[0]}`));
             datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
             canCalculatePrice = false;
             break; // Stop processing if we find a gap
