@@ -19,6 +19,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
     const nights = differenceInDays(checkOut, checkIn);
     console.log('Number of nights:', nights);
 
+    console.log('=== SEARCH DEBUG START ===');
     // Get all accommodations that are not blocked and can accommodate the guests
     const { data: accommodationsData, error: accommodationsError } = await supabase
       .from('accommodations')
@@ -127,7 +128,8 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
             continue;
           }
           
-          console.log(`\n--- Period: ${period.name} ---`);
+          console.log(`\n--- DEBUG: Period: ${period.name} ---`);
+          console.log(`Period ID: ${period.id}`);
           console.log(`Period dates: ${period.startDate.toISOString().split('T')[0]} to ${period.endDate.toISOString().split('T')[0]}`);
           console.log(`Segment dates: ${segmentStart.toISOString().split('T')[0]} to ${segmentEnd.toISOString().split('T')[0]}`);
           console.log(`Nights in this segment: ${nightsInSegment}`);
@@ -144,13 +146,17 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
           
           if (periodPricesCache.has(cacheKey)) {
             categoryPrices = periodPricesCache.get(cacheKey);
+            console.log(`Using cached prices for ${cacheKey}: ${categoryPrices.length} items`);
           } else {
             try {
+              console.log(`Fetching prices for period ${period.id} (${period.name})`);
               const allPricesForPeriod = await getCategoryPricesByPeriod(period.id);
+              console.log(`Got ${allPricesForPeriod.length} total prices for period ${period.name}`);
               categoryPrices = allPricesForPeriod.filter(p => 
                 p.category === accommodation.category && 
                 p.numberOfPeople === guests
               );
+              console.log(`Filtered to ${categoryPrices.length} prices for category ${accommodation.category}, ${guests} people`);
               periodPricesCache.set(cacheKey, categoryPrices);
             } catch (error) {
               console.error(`Error getting prices for period ${period.name}:`, error);
@@ -255,6 +261,7 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
       });
     }
 
+    console.log('=== SEARCH DEBUG END ===');
     console.log(`Returning ${results.length} search results`);
     return results.sort((a, b) => (a.pricePerNight || 0) - (b.pricePerNight || 0));
   } catch (error) {
