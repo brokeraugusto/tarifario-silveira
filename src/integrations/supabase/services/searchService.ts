@@ -2,7 +2,7 @@
 import { supabase } from '../client';
 import { SearchParams, SearchResult, Accommodation, PricePeriod } from '@/types';
 import { accommodationMapper } from './accommodations/mapper';
-import { getCompatiblePrices } from './categoryPriceService';
+import { getCategoryPricesByPeriod } from './categoryPriceService';
 import { isWithinInterval, addDays, differenceInDays } from 'date-fns';
 
 export const searchAvailableAccommodations = async (params: SearchParams): Promise<SearchResult[]> => {
@@ -86,10 +86,14 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
 
       let totalPixPrice = 0;
       let totalCardPrice = 0;
+      let pixNights = 0;
+      let cardNights = 0;
       let canCalculatePrice = true;
       let isMinStayViolation = false;
       let minimumStay = 1;
-      let nightsWithPrices = 0;
+      
+      // Cache for period prices to avoid repeated queries
+      const periodPricesCache = new Map<string, any[]>();
 
       // Get all periods that overlap with our date range
       const overlappingPeriods = allPeriods.filter(period => {
@@ -102,180 +106,153 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         );
       }).sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-      console.log(`Found ${overlappingPeriods.length} overlapping periods for ${accommodation.name}:`, 
+      console.log(`\n=== Processing ${accommodation.name} (${accommodation.category}) ===`);
+      console.log(`Search period: ${checkIn.toISOString().split('T')[0]} to ${checkOut.toISOString().split('T')[0]} (${nights} nights)`);
+      console.log(`Found ${overlappingPeriods.length} overlapping periods:`, 
         overlappingPeriods.map(p => `${p.name} (${p.startDate.toISOString().split('T')[0]} to ${p.endDate.toISOString().split('T')[0]})`));
 
       if (overlappingPeriods.length === 0) {
         console.log(`No overlapping periods found for accommodation ${accommodation.name}`);
         canCalculatePrice = false;
       } else {
-        // Calculate price for each night, determining which period it falls in
-        let datesWithoutPrices: string[] = [];
-        
-        for (let currentDate = new Date(checkIn); currentDate < checkOut; currentDate = addDays(currentDate, 1)) {
-          // Find the period that contains this specific date
-          // Check if the current date falls within any period (inclusive of start, exclusive of end for transition logic)
-          const activePeriod = overlappingPeriods.find(period => {
-            const currentDateOnly = new Date(currentDate);
-            currentDateOnly.setHours(0, 0, 0, 0);
-            
-            const periodStart = new Date(period.startDate);
-            periodStart.setHours(0, 0, 0, 0);
-            
-            const periodEnd = new Date(period.endDate);
-            periodEnd.setHours(23, 59, 59, 999);
-            
-            // Current date should be >= period start and <= period end
-            return currentDateOnly >= periodStart && currentDateOnly <= periodEnd;
-          });
-
-          if (!activePeriod) {
-            console.log(`No active period found for date ${currentDate.toISOString().split('T')[0]} among periods:`, 
-              overlappingPeriods.map(p => `${p.name}: ${p.startDate.toISOString().split('T')[0]} to ${p.endDate.toISOString().split('T')[0]}`));
-            datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
-            canCalculatePrice = false;
-            break; // Stop processing if we find a gap
+        // NEW SEGMENTED APPROACH: Calculate by tariff periods instead of day-by-day
+        for (const period of overlappingPeriods) {
+          // Calculate the intersection of search dates with this period
+          const segmentStart = new Date(Math.max(checkIn.getTime(), period.startDate.getTime()));
+          const segmentEnd = new Date(Math.min(checkOut.getTime(), addDays(period.endDate, 1).getTime()));
+          const nightsInSegment = Math.max(0, differenceInDays(segmentEnd, segmentStart));
+          
+          if (nightsInSegment <= 0) {
+            console.log(`Period ${period.name} has no nights in search range`);
+            continue;
           }
+          
+          console.log(`\n--- Period: ${period.name} ---`);
+          console.log(`Period dates: ${period.startDate.toISOString().split('T')[0]} to ${period.endDate.toISOString().split('T')[0]}`);
+          console.log(`Segment dates: ${segmentStart.toISOString().split('T')[0]} to ${segmentEnd.toISOString().split('T')[0]}`);
+          console.log(`Nights in this segment: ${nightsInSegment}`);
 
           // Check minimum stay requirement from the period
-          if (activePeriod.minimumStay && nights < activePeriod.minimumStay) {
+          if (period.minimumStay && nights < period.minimumStay) {
             isMinStayViolation = true;
-            minimumStay = Math.max(minimumStay, activePeriod.minimumStay);
+            minimumStay = Math.max(minimumStay, period.minimumStay);
           }
 
-          // Get compatible prices for this accommodation's category
-          try {
-            const compatiblePrices = await getCompatiblePrices(
-              accommodation.category,
-              accommodation.capacity,
-              activePeriod.id,
-              guests
-            );
-
-            if (compatiblePrices.length === 0) {
-              console.log(`No compatible prices found for accommodation ${accommodation.name} in period ${activePeriod.name} for date ${currentDate.toISOString().split('T')[0]}`);
-              datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
-              continue; // Continue instead of breaking to try other dates
+          // Get prices for this period (use cache)
+          const cacheKey = `${period.id}-${accommodation.category}-${guests}`;
+          let categoryPrices;
+          
+          if (periodPricesCache.has(cacheKey)) {
+            categoryPrices = periodPricesCache.get(cacheKey);
+          } else {
+            try {
+              const allPricesForPeriod = await getCategoryPricesByPeriod(period.id);
+              categoryPrices = allPricesForPeriod.filter(p => 
+                p.category === accommodation.category && 
+                p.numberOfPeople === guests
+              );
+              periodPricesCache.set(cacheKey, categoryPrices);
+            } catch (error) {
+              console.error(`Error getting prices for period ${period.name}:`, error);
+              categoryPrices = [];
             }
+          }
 
-            // Get both PIX and card prices
-            const pixPrice = compatiblePrices.find(p => p.paymentMethod === 'pix');
-            const cardPrice = compatiblePrices.find(p => p.paymentMethod === 'credit_card');
+          if (categoryPrices.length === 0) {
+            console.log(`No prices found for category ${accommodation.category}, ${guests} people in period ${period.name}`);
+            continue;
+          }
 
-            console.log(`Found prices for ${accommodation.name} on ${currentDate.toISOString().split('T')[0]}:`, { pixPrice, cardPrice });
+          // Find PIX and Card prices
+          const pixPrice = categoryPrices.find(p => p.paymentMethod === 'pix');
+          const cardPrice = categoryPrices.find(p => p.paymentMethod === 'credit_card');
 
-            let dateHasPrice = false;
+          console.log(`Available prices:`, {
+            pixPrice: pixPrice ? `R$ ${pixPrice.pricePerNight}` : 'Not found',
+            cardPrice: cardPrice ? `R$ ${cardPrice.pricePerNight}` : 'Not found'
+          });
 
-            if (pixPrice && pixPrice.pricePerNight > 0) {
-              // Check minimum stay from the PIX price entry
-              if (pixPrice.minNights && nights < pixPrice.minNights) {
-                isMinStayViolation = true;
-                minimumStay = Math.max(minimumStay, pixPrice.minNights);
-              }
-              totalPixPrice += Number(pixPrice.pricePerNight);
-              dateHasPrice = true;
+          // Calculate subtotals for this segment
+          if (pixPrice && pixPrice.pricePerNight > 0) {
+            const segmentPixTotal = Number(pixPrice.pricePerNight) * nightsInSegment;
+            totalPixPrice += segmentPixTotal;
+            pixNights += nightsInSegment;
+            
+            // Check minimum stay from price entry
+            if (pixPrice.minNights && nights < pixPrice.minNights) {
+              isMinStayViolation = true;
+              minimumStay = Math.max(minimumStay, pixPrice.minNights);
             }
+            
+            console.log(`PIX: ${nightsInSegment} nights × R$ ${pixPrice.pricePerNight} = R$ ${segmentPixTotal}`);
+          } else {
+            console.log(`PIX: No valid price found for this segment`);
+          }
 
-            if (cardPrice && cardPrice.pricePerNight > 0) {
-              // Check minimum stay from the card price entry
-              if (cardPrice.minNights && nights < cardPrice.minNights) {
-                isMinStayViolation = true;
-                minimumStay = Math.max(minimumStay, cardPrice.minNights);
-              }
-              totalCardPrice += Number(cardPrice.pricePerNight);
-              dateHasPrice = true;
+          if (cardPrice && cardPrice.pricePerNight > 0) {
+            const segmentCardTotal = Number(cardPrice.pricePerNight) * nightsInSegment;
+            totalCardPrice += segmentCardTotal;
+            cardNights += nightsInSegment;
+            
+            // Check minimum stay from price entry
+            if (cardPrice.minNights && nights < cardPrice.minNights) {
+              isMinStayViolation = true;
+              minimumStay = Math.max(minimumStay, cardPrice.minNights);
             }
-
-            // If no specific payment method prices found, use the first available
-            if (!dateHasPrice && compatiblePrices.length > 0) {
-              const priceToUse = compatiblePrices[0];
-              console.log(`Using fallback price for ${accommodation.name} on ${currentDate.toISOString().split('T')[0]}:`, priceToUse);
-              if (priceToUse && priceToUse.pricePerNight > 0) {
-                if (priceToUse.minNights && nights < priceToUse.minNights) {
-                  isMinStayViolation = true;
-                  minimumStay = Math.max(minimumStay, priceToUse.minNights);
-                }
-                // Use the same price for both payment methods as fallback
-                totalPixPrice += Number(priceToUse.pricePerNight);
-                totalCardPrice += Number(priceToUse.pricePerNight);
-                dateHasPrice = true;
-              }
-            }
-
-            if (dateHasPrice) {
-              nightsWithPrices++;
-            } else {
-              datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
-            }
-          } catch (error) {
-            console.error(`Error getting prices for accommodation ${accommodation.name} on ${currentDate.toISOString().split('T')[0]}:`, error);
-            datesWithoutPrices.push(currentDate.toISOString().split('T')[0]);
-            continue; // Continue instead of breaking to try other dates
+            
+            console.log(`Card: ${nightsInSegment} nights × R$ ${cardPrice.pricePerNight} = R$ ${segmentCardTotal}`);
+          } else {
+            console.log(`Card: No valid price found for this segment`);
           }
         }
 
-        // Update canCalculatePrice based on whether we found prices for any nights
-        canCalculatePrice = nightsWithPrices > 0;
+        console.log(`\n--- Final Calculation Summary ---`);
+        console.log(`PIX: ${pixNights}/${nights} nights covered, Total: R$ ${totalPixPrice}`);
+        console.log(`Card: ${cardNights}/${nights} nights covered, Total: R$ ${totalCardPrice}`);
         
-        if (datesWithoutPrices.length > 0) {
-          console.log(`Accommodation ${accommodation.name} missing prices for dates:`, datesWithoutPrices);
+        // Only consider prices complete if ALL nights are covered
+        const hasCompletePixPricing = pixNights === nights;
+        const hasCompleteCardPricing = cardNights === nights;
+        
+        if (!hasCompletePixPricing && !hasCompleteCardPricing) {
+          console.log(`Incomplete pricing: PIX missing ${nights - pixNights} nights, Card missing ${nights - cardNights} nights`);
+          canCalculatePrice = false;
+        } else {
+          canCalculatePrice = true;
+          console.log(`Complete pricing available: PIX=${hasCompletePixPricing}, Card=${hasCompleteCardPricing}`);
         }
-
-        console.log(`Price calculation summary for ${accommodation.name}: ${nightsWithPrices}/${nights} nights with prices`);
       }
 
-      // Only include results with pricing if we have at least some valid prices
-      if (canCalculatePrice && nightsWithPrices > 0) {
-        // Calculate average price per night only for display purposes - using REAL totals
-        const pixAveragePrice = totalPixPrice > 0 && nightsWithPrices > 0 ? totalPixPrice / nightsWithPrices : 0;
-        const cardAveragePrice = totalCardPrice > 0 && nightsWithPrices > 0 ? totalCardPrice / nightsWithPrices : 0;
-        const defaultAveragePrice = pixAveragePrice || cardAveragePrice;
-        
-        console.log(`Final price calculation for ${accommodation.name}:`, {
-          totalPixPrice, // Real sum of all nights with prices
-          totalCardPrice, // Real sum of all nights with prices
-          pixAveragePrice, // Only for display
-          cardAveragePrice, // Only for display
-          nights,
-          nightsWithPrices,
-          missingNights: nights - nightsWithPrices,
-          overlappingPeriodsCount: overlappingPeriods.length
-        });
-        
-        results.push({
-          accommodation,
-          pricePerNight: defaultAveragePrice, // Average for display
-          totalPrice: totalPixPrice || totalCardPrice, // REAL total (sum of actual nights)
-          nights,
-          isMinStayViolation,
-          minimumStay,
-          includesBreakfast,
-          pixPrice: pixAveragePrice > 0 ? pixAveragePrice : null,
-          cardPrice: cardAveragePrice > 0 ? cardAveragePrice : null,
-          pixTotalPrice: totalPixPrice > 0 ? totalPixPrice : null, // REAL total
-          cardTotalPrice: totalCardPrice > 0 ? totalCardPrice : null, // REAL total
-          hasMultiplePeriods: overlappingPeriods.length > 1,
-          overlappingPeriodsCount: overlappingPeriods.length
-        });
-      } else {
-        // No pricing data available
-        console.log(`No valid pricing found for ${accommodation.name} (nights with prices: ${nightsWithPrices}/${nights}), including without prices`);
-        results.push({
-          accommodation,
-          pricePerNight: 0,
-          totalPrice: null,
-          nights,
-          isMinStayViolation,
-          minimumStay,
-          includesBreakfast,
-          pixPrice: null,
-          cardPrice: null,
-          pixTotalPrice: null,
-          cardTotalPrice: null,
-          hasMultiplePeriods: overlappingPeriods.length > 1,
-          overlappingPeriodsCount: overlappingPeriods.length
-        });
-      }
+      // Determine final prices based on completeness
+      const hasCompletePixPricing = pixNights === nights && totalPixPrice > 0;
+      const hasCompleteCardPricing = cardNights === nights && totalCardPrice > 0;
+      
+      // Calculate averages only for complete pricing
+      const pixAveragePrice = hasCompletePixPricing ? totalPixPrice / nights : 0;
+      const cardAveragePrice = hasCompleteCardPricing ? totalCardPrice / nights : 0;
+      const defaultAveragePrice = pixAveragePrice || cardAveragePrice;
+      
+      console.log(`\n=== FINAL RESULT for ${accommodation.name} ===`);
+      console.log(`PIX: ${hasCompletePixPricing ? `R$ ${totalPixPrice} total, R$ ${pixAveragePrice.toFixed(2)} average` : 'Incomplete pricing'}`);
+      console.log(`Card: ${hasCompleteCardPricing ? `R$ ${totalCardPrice} total, R$ ${cardAveragePrice.toFixed(2)} average` : 'Incomplete pricing'}`);
+      console.log(`Can calculate price: ${canCalculatePrice}`);
+      console.log(`Min stay violation: ${isMinStayViolation}`);
+      
+      results.push({
+        accommodation,
+        pricePerNight: defaultAveragePrice,
+        totalPrice: hasCompletePixPricing ? totalPixPrice : (hasCompleteCardPricing ? totalCardPrice : null),
+        nights,
+        isMinStayViolation,
+        minimumStay,
+        includesBreakfast,
+        pixPrice: hasCompletePixPricing ? pixAveragePrice : null,
+        cardPrice: hasCompleteCardPricing ? cardAveragePrice : null,
+        pixTotalPrice: hasCompletePixPricing ? totalPixPrice : null,
+        cardTotalPrice: hasCompleteCardPricing ? totalCardPrice : null,
+        hasMultiplePeriods: overlappingPeriods.length > 1,
+        overlappingPeriodsCount: overlappingPeriods.length
+      });
     }
 
     console.log(`Returning ${results.length} search results`);
