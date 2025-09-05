@@ -3,7 +3,7 @@ import { supabase } from '../client';
 import { SearchParams, SearchResult, Accommodation, PricePeriod } from '@/types';
 import { accommodationMapper } from './accommodations/mapper';
 import { getCategoryPricesByPeriod } from './categoryPriceService';
-import { isWithinInterval, addDays, differenceInDays } from 'date-fns';
+import { isWithinInterval, addDays, differenceInCalendarDays, startOfDay } from 'date-fns';
 
 export const searchAvailableAccommodations = async (params: SearchParams): Promise<SearchResult[]> => {
   try {
@@ -16,8 +16,14 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
       return [];
     }
 
-    const nights = differenceInDays(checkOut, checkIn);
+    // Normalize dates to local midnight to avoid timezone issues
+    const normalizedCheckIn = startOfDay(checkIn);
+    const normalizedCheckOut = startOfDay(checkOut);
+    
+    const nights = differenceInCalendarDays(normalizedCheckOut, normalizedCheckIn);
     console.log('Number of nights:', nights);
+    console.log('Check-in (normalized):', normalizedCheckIn.toISOString().split('T')[0]);
+    console.log('Check-out (normalized):', normalizedCheckOut.toISOString().split('T')[0]);
 
     console.log('=== SEARCH DEBUG START ===');
     // Get all accommodations that are not blocked and can accommodate the guests
@@ -103,12 +109,12 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         
         // Check if periods overlap with our search range
         return (
-          (checkIn <= periodEnd && checkOut >= periodStart)
+          (normalizedCheckIn <= periodEnd && normalizedCheckOut >= periodStart)
         );
       }).sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
       console.log(`\n=== Processing ${accommodation.name} (${accommodation.category}) ===`);
-      console.log(`Search period: ${checkIn.toISOString().split('T')[0]} to ${checkOut.toISOString().split('T')[0]} (${nights} nights)`);
+      console.log(`Search period: ${normalizedCheckIn.toISOString().split('T')[0]} to ${normalizedCheckOut.toISOString().split('T')[0]} (${nights} nights)`);
       console.log(`Found ${overlappingPeriods.length} overlapping periods:`, 
         overlappingPeriods.map(p => `${p.name} (${p.startDate.toISOString().split('T')[0]} to ${p.endDate.toISOString().split('T')[0]})`));
 
@@ -119,9 +125,9 @@ export const searchAvailableAccommodations = async (params: SearchParams): Promi
         // NEW SEGMENTED APPROACH: Calculate by tariff periods instead of day-by-day
         for (const period of overlappingPeriods) {
           // Calculate the intersection of search dates with this period
-          const segmentStart = new Date(Math.max(checkIn.getTime(), period.startDate.getTime()));
-          const segmentEnd = new Date(Math.min(checkOut.getTime(), addDays(period.endDate, 1).getTime()));
-          const nightsInSegment = Math.max(0, differenceInDays(segmentEnd, segmentStart));
+          const segmentStart = new Date(Math.max(normalizedCheckIn.getTime(), period.startDate.getTime()));
+          const segmentEnd = new Date(Math.min(normalizedCheckOut.getTime(), addDays(period.endDate, 1).getTime()));
+          const nightsInSegment = Math.max(0, differenceInCalendarDays(segmentEnd, segmentStart));
           
           if (nightsInSegment <= 0) {
             console.log(`Period ${period.name} has no nights in search range`);

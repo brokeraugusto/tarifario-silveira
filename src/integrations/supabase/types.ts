@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -456,44 +456,44 @@ export type Database = {
       get_all_user_profiles: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
+          created_at: string
+          created_by: string
           email: string
           full_name: string
-          role: Database["public"]["Enums"]["user_role"]
+          id: string
           is_active: boolean
-          created_at: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
-          created_by: string
         }[]
       }
       get_compatible_prices: {
         Args: {
-          p_category: string
           p_capacity: number
-          p_period_id: string
+          p_category: string
           p_guests: number
+          p_period_id: string
         }
         Returns: {
-          id: string
           category: string
+          id: string
+          min_nights: number
           number_of_people: number
           payment_method: Database["public"]["Enums"]["payment_method"]
           period_id: string
           price_per_night: number
-          min_nights: number
         }[]
       }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
+          created_at: string
+          created_by: string
           email: string
           full_name: string
-          role: Database["public"]["Enums"]["user_role"]
+          id: string
           is_active: boolean
-          created_at: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
-          created_by: string
         }[]
       }
       get_current_user_role_safe: {
