@@ -130,3 +130,6 @@ export interface MaintenanceOrder {
   updated_at: string;
   area?: Area;
 }
+
+// Re-export copy configuration types
+export * from './copyConfig';

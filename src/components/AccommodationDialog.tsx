@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, Coffee, Trash2, ExternalLink, Copy } from 'lucide-react';
+import { X, Calendar, User, Coffee, Trash2, ExternalLink, Copy, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import {
@@ -33,6 +33,9 @@ import { SearchResult } from '@/types';
 import WhatsAppFormatter from './WhatsAppFormatter';
 import { toast } from 'sonner';
 import { deleteAccommodation } from '@/integrations/supabase';
+import { useCopyConfig } from '@/contexts/CopyConfigContext';
+import { formatAccommodationText } from '@/utils/copyFormatter';
+import CopyConfigDialog from '@/components/settings/CopyConfigDialog';
 
 interface AccommodationDialogProps {
   result?: SearchResult;
@@ -47,12 +50,14 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   onClose,
   onReload
 }) => {
+  const { config } = useCopyConfig();
   const [activeTab, setActiveTab] = useState<string>('info');
   const [isMinStayDialogOpen, setIsMinStayDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [proceedWithBooking, setProceedWithBooking] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [selectedPriceType, setSelectedPriceType] = useState<'pix' | 'card' | null>(null);
+  const [isCopyConfigOpen, setIsCopyConfigOpen] = useState<boolean>(false);
   
   useEffect(() => {
     if (!isOpen) {
@@ -115,71 +120,9 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   };
 
   const handleCopyToClipboard = () => {
-    if (!accommodation) return;
+    if (!result) return;
     
-    let text = `*${accommodation.name}*\n\n`;
-    text += `*Categoria:* ${accommodation.category}\n`;
-    text += `*Capacidade:* ${accommodation.capacity} pessoas\n\n`;
-    text += `${accommodation.description}\n\n`;
-    
-    if (accommodation.albumUrl && accommodation.albumUrl.trim() !== '') {
-      text += `*Álbum de fotos:* ${accommodation.albumUrl}\n\n`;
-    }
-    
-    // Add price information based on selected type
-    const pixPrice = result?.pixPrice || 0;
-    const cardPrice = result?.cardPrice || 0;
-    const pixTotal = result?.pixTotalPrice;
-    const cardTotal = result?.cardTotalPrice;
-    
-    if (pixPrice > 0 && cardPrice > 0) {
-      if (selectedPriceType === 'pix') {
-        text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
-        if (result?.hasMultiplePeriods) {
-          text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
-        }
-        if (nights !== null && nights > 0 && pixTotal !== null) {
-          text += `*Número de diárias:* ${nights}\n`;
-          text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
-        }
-      } else if (selectedPriceType === 'card') {
-        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
-        if (result?.hasMultiplePeriods) {
-          text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
-        }
-        if (nights !== null && nights > 0 && cardTotal !== null) {
-          text += `*Número de diárias:* ${nights}\n`;
-          text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
-        }
-      } else {
-        text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
-        text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
-        if (result?.hasMultiplePeriods) {
-          text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
-        }
-        if (nights !== null && nights > 0) {
-          if (pixTotal !== null) {
-            text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
-          }
-          if (cardTotal !== null) {
-            text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
-          }
-        }
-      }
-    } else if (result?.pricePerNight && result.pricePerNight > 0) {
-      text += `*Valor da diária:* R$ ${result.pricePerNight.toFixed(2)}\n`;
-      if (result?.hasMultiplePeriods) {
-        text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
-      }
-      
-      if (nights !== null && nights > 0) {
-        text += `*Número de diárias:* ${nights}\n`;
-        
-        if (result.totalPrice !== null) {
-          text += `*Valor total:* R$ ${result.totalPrice.toFixed(2)}\n`;
-        }
-      }
-    }
+    const text = formatAccommodationText(result, config);
     
     navigator.clipboard.writeText(text)
       .then(() => toast.success("Informações copiadas para o clipboard"))
@@ -187,53 +130,9 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
   };
 
   const handleShareWhatsApp = () => {
-    if (!accommodation) return;
+    if (!result) return;
     
-    let text = `*${accommodation.name}*\n\n`;
-    text += `*Categoria:* ${accommodation.category}\n`;
-    text += `*Capacidade:* ${accommodation.capacity} pessoas\n\n`;
-    text += `${accommodation.description}\n\n`;
-    
-    if (accommodation.albumUrl && accommodation.albumUrl.trim() !== '') {
-      text += `*Álbum de fotos:* ${accommodation.albumUrl}\n\n`;
-    }
-    
-    // Add price information based on available data
-    const pixPrice = result?.pixPrice || 0;
-    const cardPrice = result?.cardPrice || 0;
-    const pixTotal = result?.pixTotalPrice;
-    const cardTotal = result?.cardTotalPrice;
-    
-    if (pixPrice > 0 && cardPrice > 0) {
-      text += `*Valor da diária (PIX):* R$ ${pixPrice.toFixed(2)}\n`;
-      text += `*Valor da diária (Cartão):* R$ ${cardPrice.toFixed(2)}\n`;
-      if (result?.hasMultiplePeriods) {
-        text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
-      }
-      
-      if (nights !== null && nights > 0) {
-        text += `*Número de diárias:* ${nights}\n`;
-        if (pixTotal !== null) {
-          text += `*Valor total (PIX):* R$ ${pixTotal.toFixed(2)}\n`;
-        }
-        if (cardTotal !== null) {
-          text += `*Valor total (Cartão):* R$ ${cardTotal.toFixed(2)}\n`;
-        }
-      }
-    } else if (result?.pricePerNight && result.pricePerNight > 0) {
-      text += `*Valor da diária:* R$ ${result.pricePerNight.toFixed(2)}\n`;
-      if (result?.hasMultiplePeriods) {
-        text += `*Observação:* O período solicitado compreende ${result.overlappingPeriodsCount || 2} períodos tarifários diferentes. O valor da diária apresentado representa uma média.\n`;
-      }
-      
-      if (nights !== null && nights > 0) {
-        text += `*Número de diárias:* ${nights}\n`;
-        
-        if (result.totalPrice !== null) {
-          text += `*Valor total:* R$ ${result.totalPrice.toFixed(2)}\n`;
-        }
-      }
-    }
+    const text = formatAccommodationText(result, config);
     
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -262,41 +161,54 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
           )}
         </div>
         
-        <div className="flex justify-end space-x-2">
-          {hasResult && accommodation && (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleCopyToClipboard}
-                title="Copiar informações"
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                Copiar
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleShareWhatsApp}
-                title="Compartilhar via WhatsApp"
-              >
-                Compartilhar
-              </Button>
-              
-              {hasAlbumUrl && (
+        <div className="flex justify-between items-center">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setIsCopyConfigOpen(true)}
+            title="Configurar formato de cópia"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Settings className="h-4 w-4 mr-1" />
+            Config. Cópia
+          </Button>
+          
+          <div className="flex space-x-2">
+            {hasResult && accommodation && (
+              <>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => window.open(accommodation.albumUrl, '_blank')}
-                  title="Ver álbum completo"
+                  onClick={handleCopyToClipboard}
+                  title="Copiar informações"
                 >
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  Álbum
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copiar
                 </Button>
-              )}
-            </>
-          )}
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleShareWhatsApp}
+                  title="Compartilhar via WhatsApp"
+                >
+                  Compartilhar
+                </Button>
+                
+                {hasAlbumUrl && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.open(accommodation.albumUrl, '_blank')}
+                    title="Ver álbum completo"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Álbum
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
         
         <div className="space-y-2">
@@ -590,6 +502,11 @@ const AccommodationDialog: React.FC<AccommodationDialogProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CopyConfigDialog 
+        isOpen={isCopyConfigOpen} 
+        onOpenChange={setIsCopyConfigOpen} 
+      />
     </>
   );
 };

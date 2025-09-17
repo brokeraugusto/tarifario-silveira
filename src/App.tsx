@@ -10,54 +10,57 @@ import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import RequireAuth from "./components/RequireAuth";
+import { CopyConfigProvider } from "./contexts/CopyConfigContext";
 
 const App = () => (
-  <Routes>
-    <Route path="/auth" element={<AuthPage />} />
-    <Route path="/" element={
-      <RequireAuth>
-        <Layout>
-          <HomePage />
-        </Layout>
-      </RequireAuth>
-    } />
-    <Route path="/search" element={
-      <RequireAuth>
-        <Layout>
-          <SearchPage />
-        </Layout>
-      </RequireAuth>
-    } />
-    <Route path="/accommodations" element={
-      <RequireAuth>
-        <Layout>
-          <AccommodationsPage />
-        </Layout>
-      </RequireAuth>
-    } />
-    <Route path="/periods" element={
-      <RequireAuth>
-        <Layout>
-          <PeriodsPage />
-        </Layout>
-      </RequireAuth>
-    } />
-    <Route path="/maintenance" element={
-      <RequireAuth>
-        <Layout>
-          <MaintenancePage />
-        </Layout>
-      </RequireAuth>
-    } />
-    <Route path="/settings" element={
-      <RequireAuth>
-        <Layout>
-          <SettingsPage />
-        </Layout>
-      </RequireAuth>
-    } />
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+  <CopyConfigProvider>
+    <Routes>
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/" element={
+        <RequireAuth>
+          <Layout>
+            <HomePage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/search" element={
+        <RequireAuth>
+          <Layout>
+            <SearchPage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/accommodations" element={
+        <RequireAuth>
+          <Layout>
+            <AccommodationsPage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/periods" element={
+        <RequireAuth>
+          <Layout>
+            <PeriodsPage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/maintenance" element={
+        <RequireAuth>
+          <Layout>
+            <MaintenancePage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/settings" element={
+        <RequireAuth>
+          <Layout>
+            <SettingsPage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </CopyConfigProvider>
 );
 
 export default App;
