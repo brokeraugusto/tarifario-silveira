@@ -379,6 +379,81 @@ export type Database = {
           },
         ]
       }
+      reservations: {
+        Row: {
+          accommodation_id: string
+          check_in_date: string
+          check_out_date: string
+          created_at: string
+          created_by: string
+          google_event_id: string | null
+          guest_email: string
+          guest_name: string
+          guest_phone: string | null
+          id: string
+          includes_breakfast: boolean
+          notes: string | null
+          number_of_guests: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          status: Database["public"]["Enums"]["reservation_status"]
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          accommodation_id: string
+          check_in_date: string
+          check_out_date: string
+          created_at?: string
+          created_by: string
+          google_event_id?: string | null
+          guest_email: string
+          guest_name: string
+          guest_phone?: string | null
+          id?: string
+          includes_breakfast?: boolean
+          notes?: string | null
+          number_of_guests: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          status?: Database["public"]["Enums"]["reservation_status"]
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          accommodation_id?: string
+          check_in_date?: string
+          check_out_date?: string
+          created_at?: string
+          created_by?: string
+          google_event_id?: string | null
+          guest_email?: string
+          guest_name?: string
+          guest_phone?: string | null
+          id?: string
+          includes_breakfast?: boolean
+          notes?: string | null
+          number_of_guests?: number
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          status?: Database["public"]["Enums"]["reservation_status"]
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_reservations_accommodation"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reservations_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_module_permissions: {
         Row: {
           can_create: boolean | null
@@ -453,6 +528,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_reservation_availability: {
+        Args: {
+          p_accommodation_id: string
+          p_check_in: string
+          p_check_out: string
+          p_exclude_reservation_id?: string
+        }
+        Returns: boolean
+      }
       get_all_user_profiles: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -527,6 +611,7 @@ export type Database = {
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "pending" | "in_progress" | "completed" | "cancelled"
       payment_method: "pix" | "credit_card"
+      reservation_status: "pending" | "confirmed" | "cancelled" | "completed"
       user_role: "master" | "reception" | "maintenance" | "cleaning" | "admin"
     }
     CompositeTypes: {
@@ -665,6 +750,7 @@ export const Constants = {
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["pending", "in_progress", "completed", "cancelled"],
       payment_method: ["pix", "credit_card"],
+      reservation_status: ["pending", "confirmed", "cancelled", "completed"],
       user_role: ["master", "reception", "maintenance", "cleaning", "admin"],
     },
   },
