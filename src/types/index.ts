@@ -131,5 +131,62 @@ export interface MaintenanceOrder {
   area?: Area;
 }
 
+// Reservation types
+export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled' | 'checked_in' | 'checked_out';
+export type PaymentMethod = 'pix' | 'credit_card' | 'debit_card' | 'cash' | 'transfer';
+
+export interface Reservation {
+  id: string;
+  accommodation_id: string;
+  guest_name: string;
+  guest_email: string;
+  guest_phone?: string;
+  check_in_date: string;
+  check_out_date: string;
+  number_of_guests: number;
+  status: ReservationStatus;
+  payment_method: PaymentMethod;
+  total_price: number;
+  includes_breakfast: boolean;
+  notes?: string;
+  google_event_id?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  accommodation?: Accommodation;
+}
+
+export interface CreateReservationData {
+  accommodation_id: string;
+  guest_name: string;
+  guest_email: string;
+  guest_phone?: string;
+  check_in_date: string;
+  check_out_date: string;
+  number_of_guests: number;
+  payment_method: PaymentMethod;
+  total_price: number;
+  includes_breakfast: boolean;
+  notes?: string;
+}
+
+export interface GoogleCalendarEvent {
+  id?: string;
+  summary: string;
+  description?: string;
+  start: {
+    date: string;
+  };
+  end: {
+    date: string;
+  };
+  extendedProperties?: {
+    private?: {
+      reservation_id?: string;
+      accommodation_id?: string;
+    };
+  };
+}
+
 // Re-export copy configuration types
 export * from './copyConfig';
