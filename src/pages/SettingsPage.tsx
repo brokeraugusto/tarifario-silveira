@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Info, AlertTriangle, Database, Users, Copy } from 'lucide-react';
+import { Settings, Info, AlertTriangle, Database, Users, Copy, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -9,11 +9,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import DatabaseCleanupDialog from '@/components/DatabaseCleanupDialog';
 import UserManagementDialog from '@/components/settings/UserManagementDialog';
 import CopyConfigDialog from '@/components/settings/CopyConfigDialog';
+import GoogleCalendarConfigDialog from '@/components/settings/GoogleCalendarConfigDialog';
 const SettingsPage = () => {
   const isMobile = useIsMobile();
   const [isCleanupDialogOpen, setIsCleanupDialogOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [isCopyConfigOpen, setIsCopyConfigOpen] = useState(false);
+  const [isGoogleCalendarConfigOpen, setIsGoogleCalendarConfigOpen] = useState(false);
   return <div className="space-y-4 md:space-y-6 pb-6 md:pb-10">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-hotel-navy">Configurações</h1>
@@ -105,6 +107,30 @@ const SettingsPage = () => {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader className={isMobile ? "p-4" : ""}>
+          <CardTitle className="flex items-center">
+            <Calendar className="mr-2 h-5 w-5" />
+            Google Calendar
+          </CardTitle>
+          <CardDescription>
+            Configure a integração com Google Calendar para sincronização automática de reservas
+          </CardDescription>
+        </CardHeader>
+        <CardContent className={`space-y-4 ${isMobile ? "p-4 pt-0" : ""}`}>
+          <div>
+            <Label className="text-base font-medium">API do Google Calendar</Label>
+            <p className="text-sm text-muted-foreground mt-1 mb-3">
+              Configure as credenciais da API para sincronizar reservas automaticamente com o Google Calendar.
+            </p>
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsGoogleCalendarConfigOpen(true)}>
+              <Calendar className="h-4 w-4" />
+              Configurar API
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-red-200">
         <CardHeader className={`${isMobile ? "p-4" : ""} border-b border-red-200 bg-red-50`}>
           <CardTitle className="flex items-center text-red-700">
@@ -174,6 +200,8 @@ const SettingsPage = () => {
       <UserManagementDialog isOpen={isUserManagementOpen} onOpenChange={setIsUserManagementOpen} />
       
       <CopyConfigDialog isOpen={isCopyConfigOpen} onOpenChange={setIsCopyConfigOpen} />
+      
+      <GoogleCalendarConfigDialog isOpen={isGoogleCalendarConfigOpen} onOpenChange={setIsGoogleCalendarConfigOpen} />
     </div>;
 };
 export default SettingsPage;
