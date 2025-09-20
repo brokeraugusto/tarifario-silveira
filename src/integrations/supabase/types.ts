@@ -113,7 +113,89 @@ export type Database = {
             referencedRelation: "accommodations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "areas_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "occupancy_map_view"
+            referencedColumns: ["accommodation_id"]
+          },
         ]
+      }
+      guests: {
+        Row: {
+          address_city: string | null
+          address_country: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip_code: string | null
+          created_at: string
+          created_by: string
+          date_of_birth: string | null
+          document_number: string | null
+          document_type: string | null
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          first_name: string
+          id: string
+          is_active: boolean
+          last_name: string
+          nationality: string | null
+          notes: string | null
+          phone: string | null
+          preferences: Json | null
+          updated_at: string
+        }
+        Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
+          created_at?: string
+          created_by: string
+          date_of_birth?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name: string
+          id?: string
+          is_active?: boolean
+          last_name: string
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferences?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
+          created_at?: string
+          created_by?: string
+          date_of_birth?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string
+          id?: string
+          is_active?: boolean
+          last_name?: string
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferences?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       maintenance_history: {
         Row: {
@@ -371,6 +453,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "prices_by_people_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "occupancy_map_view"
+            referencedColumns: ["accommodation_id"]
+          },
+          {
             foreignKeyName: "prices_by_people_period_id_fkey"
             columns: ["period_id"]
             isOneToOne: false
@@ -388,6 +477,7 @@ export type Database = {
           created_by: string
           google_event_id: string | null
           guest_email: string
+          guest_id: string | null
           guest_name: string
           guest_phone: string | null
           id: string
@@ -407,6 +497,7 @@ export type Database = {
           created_by: string
           google_event_id?: string | null
           guest_email: string
+          guest_id?: string | null
           guest_name: string
           guest_phone?: string | null
           id?: string
@@ -426,6 +517,7 @@ export type Database = {
           created_by?: string
           google_event_id?: string | null
           guest_email?: string
+          guest_id?: string | null
           guest_name?: string
           guest_phone?: string | null
           id?: string
@@ -446,10 +538,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_reservations_accommodation"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "occupancy_map_view"
+            referencedColumns: ["accommodation_id"]
+          },
+          {
             foreignKeyName: "fk_reservations_created_by"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
             referencedColumns: ["id"]
           },
         ]
@@ -525,7 +631,31 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      occupancy_map_view: {
+        Row: {
+          accommodation_id: string | null
+          accommodation_name: string | null
+          block_note: string | null
+          block_reason: string | null
+          capacity: number | null
+          category: string | null
+          check_in_date: string | null
+          check_out_date: string | null
+          guest_email: string | null
+          guest_first_name: string | null
+          guest_last_name: string | null
+          guest_name: string | null
+          guest_phone: string | null
+          is_blocked: boolean | null
+          number_of_guests: number | null
+          reservation_id: string | null
+          reservation_status:
+            | Database["public"]["Enums"]["reservation_status"]
+            | null
+          room_number: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_reservation_availability: {
@@ -583,6 +713,25 @@ export type Database = {
       get_current_user_role_safe: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_occupancy_data: {
+        Args: { end_date?: string; start_date?: string }
+        Returns: {
+          accommodation_id: string
+          accommodation_name: string
+          block_reason: string
+          capacity: number
+          category: string
+          date_value: string
+          guest_first_name: string
+          guest_last_name: string
+          guest_name: string
+          is_blocked: boolean
+          number_of_guests: number
+          reservation_id: string
+          reservation_status: Database["public"]["Enums"]["reservation_status"]
+          room_number: string
+        }[]
       }
       has_role: {
         Args: { required_role: Database["public"]["Enums"]["user_role"] }
