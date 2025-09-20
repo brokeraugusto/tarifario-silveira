@@ -16,7 +16,7 @@ export const getAllReservations = async (): Promise<Reservation[]> => {
       return [];
     }
 
-    return data || [];
+    return (data || []) as unknown as Reservation[];
   } catch (error) {
     console.error('Unexpected error in getAllReservations:', error);
     return [];
@@ -39,7 +39,7 @@ export const getReservationById = async (id: string): Promise<Reservation | null
       return null;
     }
 
-    return data;
+    return data as unknown as Reservation;
   } catch (error) {
     console.error('Unexpected error in getReservationById:', error);
     return null;
@@ -62,7 +62,7 @@ export const getReservationsByDate = async (startDate: string, endDate: string):
       return [];
     }
 
-    return data || [];
+    return (data || []) as unknown as Reservation[];
   } catch (error) {
     console.error('Unexpected error in getReservationsByDate:', error);
     return [];
@@ -110,11 +110,11 @@ export const createReservation = async (reservation: CreateReservationData): Pro
 
     const { data, error } = await supabase
       .from('reservations')
-      .insert([{
+      .insert({
         ...reservation,
         created_by: (await supabase.auth.getUser()).data.user?.id,
-        status: 'pending' as ReservationStatus
-      }])
+        status: 'pending' as const
+      })
       .select(`
         *,
         accommodation:accommodations(*)
@@ -126,7 +126,7 @@ export const createReservation = async (reservation: CreateReservationData): Pro
       throw error;
     }
 
-    return data;
+    return data as unknown as Reservation;
   } catch (error) {
     console.error('Unexpected error in createReservation:', error);
     throw error;
@@ -172,7 +172,7 @@ export const updateReservation = async (
       throw error;
     }
 
-    return data;
+    return data as unknown as Reservation;
   } catch (error) {
     console.error('Unexpected error in updateReservation:', error);
     throw error;
@@ -203,7 +203,7 @@ export const updateReservationStatus = async (id: string, status: ReservationSta
     const { error } = await supabase
       .from('reservations')
       .update({ 
-        status,
+        status: status as any,
         ...(status === 'checked_in' && { started_at: new Date().toISOString() }),
         ...(status === 'checked_out' && { completed_at: new Date().toISOString() })
       })

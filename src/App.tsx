@@ -6,6 +6,7 @@ import SearchPage from "./pages/SearchPage";
 import AccommodationsPage from "./pages/AccommodationsPage";
 import PeriodsPage from "./pages/PeriodsPage";
 import MaintenancePage from "./pages/MaintenancePage";
+import ReservationsPage from "./pages/ReservationsPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
@@ -41,6 +42,13 @@ const App = () => (
         <RequireAuth>
           <Layout>
             <PeriodsPage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/reservations" element={
+        <RequireAuth>
+          <Layout>
+            <ReservationsPage />
           </Layout>
         </RequireAuth>
       } />

@@ -39,7 +39,7 @@ export const getCategoryPricesByPeriod = async (periodId: string): Promise<Categ
       id: item.id,
       category: item.category as CategoryType,
       numberOfPeople: item.number_of_people,
-      paymentMethod: item.payment_method,
+      paymentMethod: item.payment_method as any,
       periodId: item.period_id,
       pricePerNight: Number(item.price_per_night),
       minNights: item.min_nights || 1
@@ -108,7 +108,7 @@ export const createCategoryPrice = async (data: CategoryPriceCreate): Promise<Ca
       id: result.id,
       category: result.category as CategoryType,
       numberOfPeople: result.number_of_people,
-      paymentMethod: result.payment_method,
+      paymentMethod: result.payment_method as any,
       periodId: result.period_id,
       pricePerNight: Number(result.price_per_night),
       minNights: result.min_nights || 1
@@ -145,7 +145,7 @@ export const updateCategoryPrice = async (id: string, data: Partial<CategoryPric
       id: result.id,
       category: result.category as CategoryType,
       numberOfPeople: result.number_of_people,
-      paymentMethod: result.payment_method,
+      paymentMethod: result.payment_method as any,
       periodId: result.period_id,
       pricePerNight: Number(result.price_per_night),
       minNights: result.min_nights || 1

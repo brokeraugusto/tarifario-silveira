@@ -610,8 +610,14 @@ export type Database = {
         | "recreation"
       maintenance_priority: "low" | "medium" | "high" | "urgent"
       maintenance_status: "pending" | "in_progress" | "completed" | "cancelled"
-      payment_method: "pix" | "credit_card"
-      reservation_status: "pending" | "confirmed" | "cancelled" | "completed"
+      payment_method: "pix" | "credit_card" | "debit_card" | "cash" | "transfer"
+      reservation_status:
+        | "pending"
+        | "confirmed"
+        | "cancelled"
+        | "completed"
+        | "checked_in"
+        | "checked_out"
       user_role: "master" | "reception" | "maintenance" | "cleaning" | "admin"
     }
     CompositeTypes: {
@@ -749,8 +755,15 @@ export const Constants = {
       ],
       maintenance_priority: ["low", "medium", "high", "urgent"],
       maintenance_status: ["pending", "in_progress", "completed", "cancelled"],
-      payment_method: ["pix", "credit_card"],
-      reservation_status: ["pending", "confirmed", "cancelled", "completed"],
+      payment_method: ["pix", "credit_card", "debit_card", "cash", "transfer"],
+      reservation_status: [
+        "pending",
+        "confirmed",
+        "cancelled",
+        "completed",
+        "checked_in",
+        "checked_out",
+      ],
       user_role: ["master", "reception", "maintenance", "cleaning", "admin"],
     },
   },

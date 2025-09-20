@@ -90,6 +90,14 @@ const Layout = ({
                           <span className="text-sidebar-foreground">Períodos e Preços</span>
                         </NavLink>
                       </li>
+                      <li>
+                        <NavLink to="/reservations" className={({
+                      isActive
+                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
+                          <Calendar className="w-5 h-5 mr-2" />
+                          <span className="text-sidebar-foreground">Reservas</span>
+                        </NavLink>
+                      </li>
                        <li>
                          <MaintenanceSubmenu isMaintenanceOpen={isMaintenanceOpen} setIsMaintenanceOpen={setIsMaintenanceOpen} setIsAreasDialogOpen={setIsAreasDialogOpen} handleNavigation={handleNavigation} isMobile={true} />
                        </li>
