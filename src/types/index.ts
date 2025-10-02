@@ -190,3 +190,4 @@ export interface GoogleCalendarEvent {
 
 // Re-export copy configuration types
 export * from './copyConfig';
+export * from './guest';

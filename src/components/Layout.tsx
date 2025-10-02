@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Bed, Calendar, Settings, Search, Menu, X } from 'lucide-react';
+import { Home, Bed, Calendar, Settings, Search, Menu, X, Users, BookOpen, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -94,8 +94,24 @@ const Layout = ({
                         <NavLink to="/reservations" className={({
                       isActive
                     }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
-                          <Calendar className="w-5 h-5 mr-2" />
+                          <BookOpen className="w-5 h-5 mr-2" />
                           <span className="text-sidebar-foreground">Reservas</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink to="/guests" className={({
+                      isActive
+                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
+                          <Users className="w-5 h-5 mr-2" />
+                          <span className="text-sidebar-foreground">Hóspedes</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink to="/occupancy" className={({
+                      isActive
+                    }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")} onClick={handleNavigation}>
+                          <LayoutGrid className="w-5 h-5 mr-2" />
+                          <span className="text-sidebar-foreground">Ocupação</span>
                         </NavLink>
                       </li>
                        <li>
@@ -161,6 +177,30 @@ const Layout = ({
               }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
                     <Calendar className="w-5 h-5 mr-2" />
                     <span>Períodos e Preços</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/reservations" className={({
+                isActive
+              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
+                    <BookOpen className="w-5 h-5 mr-2" />
+                    <span>Reservas</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/guests" className={({
+                isActive
+              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
+                    <Users className="w-5 h-5 mr-2" />
+                    <span>Hóspedes</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/occupancy" className={({
+                isActive
+              }) => cn("flex items-center p-2 rounded-md transition-colors", isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "hover:bg-sidebar-accent/20")}>
+                    <LayoutGrid className="w-5 h-5 mr-2" />
+                    <span>Mapa de Ocupação</span>
                   </NavLink>
                 </li>
                  <li>

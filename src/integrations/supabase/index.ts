@@ -1,4 +1,3 @@
-
 export * from './services/accommodations';
 export * from './services/periodService';
 export * from './services/priceService';
@@ -7,3 +6,5 @@ export * from './services/maintenanceService';
 export * from './services/maintenanceHistoryService';
 export * from './services/categoryPriceService';
 export * from './services/reservationService';
+export * from './services/guestService';
+export * from './services/occupancyService';

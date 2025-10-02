@@ -7,13 +7,19 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { SearchResult } from '@/types';
+import { MakeReservationButton } from './MakeReservationButton';
 
 interface SearchResultsProps {
   results: SearchResult[];
   onAccommodationClick: (result: SearchResult) => void;
+  searchParams?: {
+    checkIn: Date;
+    checkOut: Date | null;
+    guests: number;
+  };
 }
 
-const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationClick }) => {
+const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationClick, searchParams }) => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Standard':
@@ -149,7 +155,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
               </div>
             </CardContent>
             
-            {result.isMinStayViolation && (
+            {result.isMinStayViolation ? (
               <CardFooter className="pt-0">
                 <Alert className="w-full bg-amber-50 border-amber-200">
                   <AlertCircle className="h-4 w-4" />
@@ -157,6 +163,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results, onAccommodationC
                     Requer estadia mínima de {result.minimumStay} {result.minimumStay === 1 ? 'diária' : 'diárias'}.
                   </AlertDescription>
                 </Alert>
+              </CardFooter>
+            ) : searchParams?.checkIn && searchParams?.checkOut && (
+              <CardFooter className="pt-0">
+                <MakeReservationButton
+                  accommodation={result}
+                  checkIn={searchParams.checkIn}
+                  checkOut={searchParams.checkOut}
+                  guests={searchParams.guests}
+                />
               </CardFooter>
             )}
           </Card>

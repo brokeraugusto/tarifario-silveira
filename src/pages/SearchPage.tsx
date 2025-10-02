@@ -123,7 +123,12 @@ const SearchPage = () => {
           ) : (
             <SearchResults 
               results={results} 
-              onAccommodationClick={handleAccommodationClick} 
+              onAccommodationClick={handleAccommodationClick}
+              searchParams={{
+                checkIn: dateRange?.from || new Date(),
+                checkOut: dateRange?.to || null,
+                guests: guests,
+              }}
             />
           )}
         </div>

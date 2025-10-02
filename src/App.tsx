@@ -7,6 +7,8 @@ import AccommodationsPage from "./pages/AccommodationsPage";
 import PeriodsPage from "./pages/PeriodsPage";
 import MaintenancePage from "./pages/MaintenancePage";
 import ReservationsPage from "./pages/ReservationsPage";
+import GuestsPage from "./pages/GuestsPage";
+import OccupancyPage from "./pages/OccupancyPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
@@ -49,6 +51,20 @@ const App = () => (
         <RequireAuth>
           <Layout>
             <ReservationsPage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/guests" element={
+        <RequireAuth>
+          <Layout>
+            <GuestsPage />
+          </Layout>
+        </RequireAuth>
+      } />
+      <Route path="/occupancy" element={
+        <RequireAuth>
+          <Layout>
+            <OccupancyPage />
           </Layout>
         </RequireAuth>
       } />
