@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, addDays, startOfDay, differenceInDays } from "date-fns";
+import { format, addDays, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,12 @@ import { occupancyService } from "@/integrations/supabase/services/occupancyServ
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ReservationDetailsDialog } from "./ReservationDetailsDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 export const OccupancyMapView = () => {
+  const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const { toast } = useToast();
   const [startDate, setStartDate] = useState(startOfDay(new Date()));
   const [occupancyData, setOccupancyData] = useState<OccupancyData[]>([]);
@@ -77,6 +81,54 @@ export const OccupancyMapView = () => {
     );
   };
 
+  const handleCellClick = async (cellData: OccupancyData | undefined) => {
+    if (cellData?.reservation_id) {
+      try {
+        // Buscar informações completas da reserva
+        const { data, error } = await supabase
+          .from("reservations")
+          .select(`
+            *,
+            accommodations:accommodation_id (
+              id,
+              name,
+              room_number
+            )
+          `)
+          .eq("id", cellData.reservation_id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setSelectedReservation({
+            id: data.id,
+            accommodation_id: data.accommodation_id,
+            accommodation_name: data.accommodations?.name || cellData.accommodation_name,
+            room_number: data.accommodations?.room_number || cellData.room_number,
+            check_in_date: data.check_in_date,
+            check_out_date: data.check_out_date,
+            guest_id: data.guest_id,
+            guest_name: data.guest_name,
+            guest_first_name: cellData.guest_first_name,
+            guest_last_name: cellData.guest_last_name,
+            number_of_guests: data.number_of_guests,
+            status: data.status,
+            total_price: data.total_price,
+          });
+          setIsDetailsDialogOpen(true);
+        }
+      } catch (error) {
+        console.error("Error fetching reservation:", error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar detalhes da reserva",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const getCellStyle = (cellData: OccupancyData | undefined) => {
     if (!cellData) return "bg-background";
     
@@ -115,9 +167,9 @@ export const OccupancyMapView = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
+    <>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -136,7 +188,7 @@ export const OccupancyMapView = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 overflow-auto">
           <div className="flex gap-4 mb-4 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded" />
@@ -198,14 +250,16 @@ export const OccupancyMapView = () => {
                       <div
                         key={`${accommodation.id}-${date.toISOString()}`}
                         className={cn(
-                          "w-24 flex-shrink-0 p-1 border-l cursor-pointer transition-colors",
-                          getCellStyle(cellData)
+                          "w-24 flex-shrink-0 p-1 border-l transition-colors",
+                          getCellStyle(cellData),
+                          cellData?.reservation_id && "cursor-pointer hover:opacity-80"
                         )}
                         title={
                           cellData?.guest_first_name
                             ? `${cellData.guest_first_name} ${cellData.guest_last_name || ""}`
                             : cellData?.guest_name || ""
                         }
+                        onClick={() => handleCellClick(cellData)}
                       >
                         {cellData?.guest_first_name && (
                           <div className="text-xs truncate">
@@ -226,6 +280,13 @@ export const OccupancyMapView = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+
+      <ReservationDetailsDialog
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+        reservation={selectedReservation}
+        onRefresh={loadOccupancyData}
+      />
+    </>
   );
 };

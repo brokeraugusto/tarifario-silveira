@@ -5,6 +5,7 @@ import * as z from "zod";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -142,6 +143,9 @@ export const GuestFormDialog = ({
           <DialogTitle>
             {guest ? "Editar Hóspede" : "Novo Hóspede"}
           </DialogTitle>
+          <DialogDescription>
+            {guest ? "Atualize as informações do hóspede" : "Preencha os dados do novo hóspede"}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
