@@ -74,82 +74,75 @@ export const OccupancyMapView = () => {
   };
 
   const getCellData = (accommodationId: string, date: Date) => {
-    return occupancyData.find(
+    const dateStr = format(date, "yyyy-MM-dd");
+    return occupancyData.filter(
       (item) =>
         item.accommodation_id === accommodationId &&
-        item.date_value === format(date, "yyyy-MM-dd")
+        item.date_value === dateStr
     );
   };
 
-  const handleCellClick = async (cellData: OccupancyData | undefined) => {
-    if (cellData?.reservation_id) {
-      try {
-        // Buscar informações completas da reserva
-        const { data, error } = await supabase
-          .from("reservations")
-          .select(`
-            *,
-            accommodations:accommodation_id (
-              id,
-              name,
-              room_number
-            )
-          `)
-          .eq("id", cellData.reservation_id)
-          .single();
+  const handleCellClick = async (reservationId: string, cellDataArray: OccupancyData[]) => {
+    if (!reservationId) return;
+    
+    try {
+      const cellData = cellDataArray.find(c => c.reservation_id === reservationId);
+      if (!cellData) return;
 
-        if (error) throw error;
+      const { data, error } = await supabase
+        .from("reservations")
+        .select(`
+          *,
+          accommodations:accommodation_id (
+            id,
+            name,
+            room_number
+          )
+        `)
+        .eq("id", reservationId)
+        .single();
 
-        if (data) {
-          setSelectedReservation({
-            id: data.id,
-            accommodation_id: data.accommodation_id,
-            accommodation_name: data.accommodations?.name || cellData.accommodation_name,
-            room_number: data.accommodations?.room_number || cellData.room_number,
-            check_in_date: data.check_in_date,
-            check_out_date: data.check_out_date,
-            guest_id: data.guest_id,
-            guest_name: data.guest_name,
-            guest_first_name: cellData.guest_first_name,
-            guest_last_name: cellData.guest_last_name,
-            number_of_guests: data.number_of_guests,
-            status: data.status,
-            total_price: data.total_price,
-          });
-          setIsDetailsDialogOpen(true);
-        }
-      } catch (error) {
-        console.error("Error fetching reservation:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar detalhes da reserva",
-          variant: "destructive",
+      if (error) throw error;
+
+      if (data) {
+        setSelectedReservation({
+          id: data.id,
+          accommodation_id: data.accommodation_id,
+          accommodation_name: data.accommodations?.name || cellData.accommodation_name,
+          room_number: data.accommodations?.room_number || cellData.room_number,
+          check_in_date: data.check_in_date,
+          check_out_date: data.check_out_date,
+          guest_id: data.guest_id,
+          guest_name: data.guest_name,
+          guest_first_name: cellData.guest_first_name,
+          guest_last_name: cellData.guest_last_name,
+          number_of_guests: data.number_of_guests,
+          status: data.status,
+          total_price: data.total_price,
         });
+        setIsDetailsDialogOpen(true);
       }
+    } catch (error) {
+      console.error("Error fetching reservation:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar detalhes da reserva",
+        variant: "destructive",
+      });
     }
   };
 
-  const getCellStyle = (cellData: OccupancyData | undefined) => {
-    if (!cellData) return "bg-background";
-    
-    if (cellData.reservation_id) {
-      switch (cellData.reservation_status) {
-        case "confirmed":
-          return "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700";
-        case "pending":
-          return "bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700";
-        case "checked_in":
-          return "bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700";
-        default:
-          return "bg-gray-100 dark:bg-gray-800";
-      }
+  const getReservationStyle = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700";
+      case "pending":
+        return "bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700";
+      case "checked_in":
+        return "bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700";
+      default:
+        return "bg-gray-100 dark:bg-gray-800";
     }
-    
-    if (cellData.is_blocked) {
-      return "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700";
-    }
-    
-    return "bg-background hover:bg-muted/50";
   };
 
   const accommodations = getAccommodations();
@@ -188,7 +181,7 @@ export const OccupancyMapView = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-auto">
+        <CardContent className="flex-1 min-h-0 overflow-auto p-6">
           <div className="flex gap-4 mb-4 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded" />
@@ -245,32 +238,52 @@ export const OccupancyMapView = () => {
                     </Badge>
                   </div>
                   {dates.map((date) => {
-                    const cellData = getCellData(accommodation.id, date);
+                    const cellDataArray = getCellData(accommodation.id, date);
+                    const hasReservation = cellDataArray.some(c => c.reservation_id);
+                    const isBlocked = cellDataArray.some(c => c.is_blocked && !c.reservation_id);
+                    
                     return (
                       <div
                         key={`${accommodation.id}-${date.toISOString()}`}
                         className={cn(
-                          "w-24 flex-shrink-0 p-1 border-l transition-colors",
-                          getCellStyle(cellData),
-                          cellData?.reservation_id && "cursor-pointer hover:opacity-80"
+                          "w-24 flex-shrink-0 border-l transition-colors min-h-[60px]",
+                          !hasReservation && !isBlocked && "bg-background hover:bg-muted/50",
+                          isBlocked && "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700"
                         )}
-                        title={
-                          cellData?.guest_first_name
-                            ? `${cellData.guest_first_name} ${cellData.guest_last_name || ""}`
-                            : cellData?.guest_name || ""
-                        }
-                        onClick={() => handleCellClick(cellData)}
                       >
-                        {cellData?.guest_first_name && (
-                          <div className="text-xs truncate">
-                            {cellData.guest_first_name}
-                          </div>
-                        )}
-                        {cellData?.number_of_guests && (
-                          <div className="text-xs text-muted-foreground">
-                            {cellData.number_of_guests} pax
-                          </div>
-                        )}
+                        <div className="flex flex-col h-full">
+                          {cellDataArray.map((cellData, idx) => {
+                            if (!cellData.reservation_id) return null;
+                            
+                            return (
+                              <div
+                                key={`${cellData.reservation_id}-${idx}`}
+                                className={cn(
+                                  "flex-1 p-1 cursor-pointer hover:opacity-80 transition-opacity",
+                                  getReservationStyle(cellData.reservation_status || ''),
+                                  idx > 0 && "border-t border-border/50"
+                                )}
+                                title={
+                                  cellData.guest_first_name
+                                    ? `${cellData.guest_first_name} ${cellData.guest_last_name || ""}`
+                                    : cellData.guest_name || ""
+                                }
+                                onClick={() => handleCellClick(cellData.reservation_id!, cellDataArray)}
+                              >
+                                {cellData.guest_first_name && (
+                                  <div className="text-xs truncate font-medium">
+                                    {cellData.guest_first_name}
+                                  </div>
+                                )}
+                                {cellData.number_of_guests && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {cellData.number_of_guests} pax
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}

@@ -84,21 +84,23 @@ const GuestsPage = () => {
 
   return (
     <Layout>
-      <div className="p-6">
-        <div className="mb-6">
+      <div className="h-[calc(100vh-4rem)] flex flex-col">
+        <div className="flex-shrink-0 p-6 pb-4">
           <h1 className="text-3xl font-bold">Hóspedes</h1>
           <p className="text-muted-foreground">
             Gerencie o cadastro de hóspedes
           </p>
         </div>
 
-        <GuestsList
-          guests={guests}
-          onEdit={handleEditGuest}
-          onDelete={handleDeleteGuest}
-          onNewGuest={handleNewGuest}
-          loading={loading}
-        />
+        <div className="flex-1 min-h-0 px-6 pb-6 overflow-auto">
+          <GuestsList
+            guests={guests}
+            onEdit={handleEditGuest}
+            onDelete={handleDeleteGuest}
+            onNewGuest={handleNewGuest}
+            loading={loading}
+          />
+        </div>
 
         <GuestFormDialog
           open={isFormOpen}
