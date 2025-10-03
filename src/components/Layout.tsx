@@ -236,8 +236,8 @@ const Layout = ({
             </nav>
           </aside>
           <main className={cn(
-            "w-full p-6 transition-all duration-300",
-            isSidebarCollapsed ? "md:ml-16" : "md:ml-[250px]"
+            "flex-1 transition-all duration-300",
+            isSidebarCollapsed ? "ml-16" : "ml-[250px]"
           )}>
             {children}
           </main>
