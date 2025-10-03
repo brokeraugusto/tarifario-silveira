@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
+import PageContainer from "@/components/common/PageContainer";
 import { GuestsList } from "@/components/guests/GuestsList";
 import { GuestFormDialog } from "@/components/guests/GuestFormDialog";
 import { Guest } from "@/types/guest";
@@ -84,55 +85,49 @@ const GuestsPage = () => {
 
   return (
     <Layout>
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
-        <div className="flex-shrink-0 p-6 pb-4">
-          <h1 className="text-3xl font-bold">Hóspedes</h1>
-          <p className="text-muted-foreground">
-            Gerencie o cadastro de hóspedes
-          </p>
-        </div>
-
-        <div className="flex-1 min-h-0 px-6 pb-6 overflow-auto">
-          <GuestsList
-            guests={guests}
-            onEdit={handleEditGuest}
-            onDelete={handleDeleteGuest}
-            onNewGuest={handleNewGuest}
-            loading={loading}
-          />
-        </div>
-
-        <GuestFormDialog
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          guest={selectedGuest}
-          onSuccess={loadGuests}
+      <PageContainer
+        title="Hóspedes"
+        description="Gerencie o cadastro de hóspedes"
+      >
+        <GuestsList
+          guests={guests}
+          onEdit={handleEditGuest}
+          onDelete={handleDeleteGuest}
+          onNewGuest={handleNewGuest}
+          loading={loading}
         />
+      </PageContainer>
 
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Hóspede</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o hóspede{" "}
-                <strong>
-                  {guestToDelete?.first_name} {guestToDelete?.last_name}
-                </strong>
-                ? Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Excluir
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <GuestFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        guest={selectedGuest}
+        onSuccess={loadGuests}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Hóspede</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o hóspede{" "}
+              <strong>
+                {guestToDelete?.first_name} {guestToDelete?.last_name}
+              </strong>
+              ? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };

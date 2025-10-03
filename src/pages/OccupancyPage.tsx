@@ -1,21 +1,17 @@
 import Layout from "@/components/Layout";
+import PageContainer from "@/components/common/PageContainer";
 import { OccupancyMapView } from "@/components/occupancy/OccupancyMapView";
 
 const OccupancyPage = () => {
   return (
     <Layout>
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
-        <div className="flex-shrink-0 p-6 pb-4">
-          <h1 className="text-3xl font-bold">Mapa de Ocupação</h1>
-          <p className="text-muted-foreground">
-            Visualize a ocupação de todas as acomodações
-          </p>
-        </div>
-
-        <div className="flex-1 min-h-0 px-6 pb-6">
-          <OccupancyMapView />
-        </div>
-      </div>
+      <PageContainer
+        title="Mapa de Ocupação"
+        description="Visualize a ocupação de todas as acomodações"
+        contentClassName="p-0"
+      >
+        <OccupancyMapView />
+      </PageContainer>
     </Layout>
   );
 };

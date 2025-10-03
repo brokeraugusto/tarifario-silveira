@@ -36,7 +36,7 @@ const Layout = ({
   const handleCleanupComplete = () => {
     toast.success("Todos os dados foram removidos com sucesso");
   };
-  return <div className="min-h-screen flex flex-col md:flex-row">
+  return <div className="min-h-screen w-full flex flex-col md:flex-row">
       {isMobile ? <>
           <div className="bg-sidebar text-sidebar-foreground p-4 flex items-center justify-between sticky top-0 z-50">
             <div className="flex items-center">
@@ -137,12 +137,12 @@ const Layout = ({
               </Sheet>
             </div>
           </div>
-          <main className="flex-1 p-4 overflow-x-hidden">
+          <main className="flex-1 min-h-0 overflow-hidden">
             {children}
           </main>
         </> : <>
           <aside className={cn(
-            "text-sidebar-foreground min-h-screen fixed left-0 top-0 bottom-0 overflow-y-auto bg-neutral-700 transition-all duration-300",
+            "text-sidebar-foreground h-screen fixed left-0 top-0 bottom-0 overflow-y-auto bg-neutral-700 transition-all duration-300 z-40",
             isSidebarCollapsed ? "w-16" : "w-[250px]"
           )}>
             <div className="p-4 flex items-center justify-between border-b border-hotel-green/30">
@@ -236,7 +236,7 @@ const Layout = ({
             </nav>
           </aside>
           <main className={cn(
-            "flex-1 transition-all duration-300",
+            "flex-1 h-screen overflow-hidden transition-all duration-300",
             isSidebarCollapsed ? "ml-16" : "ml-[250px]"
           )}>
             {children}
