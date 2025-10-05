@@ -8,9 +8,11 @@ import { OccupancyData } from "@/types/guest";
 import { occupancyService } from "@/integrations/supabase/services/occupancyService";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { ReservationDetailsDialog } from "./ReservationDetailsDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { OccupancyCell } from "./OccupancyCell";
+import { OccupancyLegend } from "./OccupancyLegend";
+import { OccupancyMapSkeleton } from "./OccupancyMapSkeleton";
 
 export const OccupancyMapView = () => {
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
@@ -75,11 +77,35 @@ export const OccupancyMapView = () => {
 
   const getCellData = (accommodationId: string, date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    return occupancyData.filter(
+    
+    // Get all data for this accommodation and date
+    const cellData = occupancyData.filter(
       (item) =>
         item.accommodation_id === accommodationId &&
         item.date_value === dateStr
     );
+    
+    // Also check for checkout on this date (where check_out_date matches)
+    const checkoutData = occupancyData.filter(
+      (item) =>
+        item.accommodation_id === accommodationId &&
+        item.check_out_date === dateStr
+    );
+    
+    // Also check for checkin on this date (where check_in_date matches)
+    const checkinData = occupancyData.filter(
+      (item) =>
+        item.accommodation_id === accommodationId &&
+        item.check_in_date === dateStr
+    );
+    
+    // Combine and deduplicate
+    const combined = [...cellData, ...checkoutData, ...checkinData];
+    const unique = Array.from(
+      new Map(combined.map(item => [item.reservation_id || item.accommodation_id, item])).values()
+    );
+    
+    return unique;
   };
 
   const handleCellClick = async (reservationId: string, cellDataArray: OccupancyData[]) => {
@@ -132,31 +158,10 @@ export const OccupancyMapView = () => {
     }
   };
 
-  const getReservationStyle = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700";
-      case "pending":
-        return "bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700";
-      case "checked_in":
-        return "bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700";
-      default:
-        return "bg-gray-100 dark:bg-gray-800";
-    }
-  };
-
   const accommodations = getAccommodations();
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-muted-foreground text-center">
-            Carregando mapa de ocupação...
-          </p>
-        </CardContent>
-      </Card>
-    );
+    return <OccupancyMapSkeleton />;
   }
 
   return (
@@ -182,39 +187,21 @@ export const OccupancyMapView = () => {
           </div>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 overflow-auto p-6">
-          <div className="flex gap-4 mb-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded" />
-              <span className="text-sm">Confirmada</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded" />
-              <span className="text-sm">Pendente</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded" />
-              <span className="text-sm">Check-in</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded" />
-              <span className="text-sm">Bloqueada</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-background border rounded" />
-              <span className="text-sm">Disponível</span>
-            </div>
+          <div className="mb-4">
+            <OccupancyLegend />
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto snap-x snap-mandatory scrollbar-thin">
             <div className="min-w-max">
-              <div className="flex border-b">
-                <div className="w-40 flex-shrink-0 p-2 font-semibold">
+              {/* Sticky header */}
+              <div className="flex border-b sticky top-0 bg-card z-10">
+                <div className="w-40 flex-shrink-0 p-2 font-semibold bg-card">
                   Acomodação
                 </div>
                 {dates.map((date) => (
                   <div
                     key={date.toISOString()}
-                    className="w-24 flex-shrink-0 p-2 text-center border-l"
+                    className="w-32 flex-shrink-0 p-2 text-center border-l bg-card snap-start"
                   >
                     <div className="text-xs font-medium">
                       {format(date, "EEE", { locale: ptBR })}
@@ -224,13 +211,14 @@ export const OccupancyMapView = () => {
                 ))}
               </div>
 
+              {/* Accommodation rows */}
               {accommodations.map((accommodation) => (
                 <div key={accommodation.id} className="flex border-b">
-                  <div className="w-40 flex-shrink-0 p-2 border-r">
+                  <div className="w-40 flex-shrink-0 p-2 border-r bg-card sticky left-0 z-10">
                     <div className="font-medium text-sm">
                       {accommodation.room_number}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground truncate">
                       {accommodation.name}
                     </div>
                     <Badge variant="outline" className="text-xs mt-1">
@@ -239,52 +227,15 @@ export const OccupancyMapView = () => {
                   </div>
                   {dates.map((date) => {
                     const cellDataArray = getCellData(accommodation.id, date);
-                    const hasReservation = cellDataArray.some(c => c.reservation_id);
-                    const isBlocked = cellDataArray.some(c => c.is_blocked && !c.reservation_id);
                     
                     return (
-                      <div
+                      <OccupancyCell
                         key={`${accommodation.id}-${date.toISOString()}`}
-                        className={cn(
-                          "w-24 flex-shrink-0 border-l transition-colors min-h-[60px]",
-                          !hasReservation && !isBlocked && "bg-background hover:bg-muted/50",
-                          isBlocked && "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700"
-                        )}
-                      >
-                        <div className="flex flex-col h-full">
-                          {cellDataArray.map((cellData, idx) => {
-                            if (!cellData.reservation_id) return null;
-                            
-                            return (
-                              <div
-                                key={`${cellData.reservation_id}-${idx}`}
-                                className={cn(
-                                  "flex-1 p-1 cursor-pointer hover:opacity-80 transition-opacity",
-                                  getReservationStyle(cellData.reservation_status || ''),
-                                  idx > 0 && "border-t border-border/50"
-                                )}
-                                title={
-                                  cellData.guest_first_name
-                                    ? `${cellData.guest_first_name} ${cellData.guest_last_name || ""}`
-                                    : cellData.guest_name || ""
-                                }
-                                onClick={() => handleCellClick(cellData.reservation_id!, cellDataArray)}
-                              >
-                                {cellData.guest_first_name && (
-                                  <div className="text-xs truncate font-medium">
-                                    {cellData.guest_first_name}
-                                  </div>
-                                )}
-                                {cellData.number_of_guests && (
-                                  <div className="text-xs text-muted-foreground">
-                                    {cellData.number_of_guests} pax
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
+                        cellDataArray={cellDataArray}
+                        date={date}
+                        accommodationId={accommodation.id}
+                        onCellClick={handleCellClick}
+                      />
                     );
                   })}
                 </div>

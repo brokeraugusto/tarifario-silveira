@@ -58,6 +58,8 @@ export interface OccupancyData {
   guest_first_name?: string;
   guest_last_name?: string;
   number_of_guests?: number;
+  check_in_date?: string;
+  check_out_date?: string;
 }
 
 export interface ExternalBookingConfig {
