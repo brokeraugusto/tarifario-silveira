@@ -8,7 +8,7 @@ const OccupancyPage = () => {
       <PageContainer
         title="Mapa de Ocupação"
         description="Visualize a ocupação de todas as acomodações"
-        contentClassName="p-0"
+        contentClassName="p-0 h-full"
       >
         <OccupancyMapView />
       </PageContainer>
