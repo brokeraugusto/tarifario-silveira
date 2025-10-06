@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import PageContainer from "@/components/common/PageContainer";
 import { GuestsList } from "@/components/guests/GuestsList";
 import { GuestFormDialog } from "@/components/guests/GuestFormDialog";
 import { Guest } from "@/types/guest";
@@ -85,10 +84,12 @@ const GuestsPage = () => {
 
   return (
     <Layout>
-      <PageContainer
-        title="Hóspedes"
-        description="Gerencie o cadastro de hóspedes"
-      >
+      <div className="container mx-auto p-6 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Hóspedes</h1>
+          <p className="text-muted-foreground">Gerencie o cadastro de hóspedes</p>
+        </div>
+        
         <GuestsList
           guests={guests}
           onEdit={handleEditGuest}
@@ -96,7 +97,7 @@ const GuestsPage = () => {
           onNewGuest={handleNewGuest}
           loading={loading}
         />
-      </PageContainer>
+      </div>
 
       <GuestFormDialog
         open={isFormOpen}

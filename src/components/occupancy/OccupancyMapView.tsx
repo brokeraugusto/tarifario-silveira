@@ -166,8 +166,8 @@ export const OccupancyMapView = () => {
 
   return (
     <>
-      <Card className="h-full w-full flex flex-col border-0 shadow-none">
-        <CardHeader className="flex-shrink-0 pb-3">
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -186,7 +186,7 @@ export const OccupancyMapView = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 min-h-0 overflow-auto p-0">
+        <CardContent className="flex-1 min-h-0 overflow-auto p-6">
           <div className="mb-4">
             <OccupancyLegend />
           </div>
