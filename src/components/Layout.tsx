@@ -236,7 +236,7 @@ const Layout = ({
             </nav>
           </aside>
           <main className={cn(
-            "flex-1 h-screen overflow-hidden transition-all duration-300",
+            "flex-1 h-screen overflow-auto transition-all duration-300",
             isSidebarCollapsed ? "ml-16" : "ml-[250px]"
           )}>
             {children}
