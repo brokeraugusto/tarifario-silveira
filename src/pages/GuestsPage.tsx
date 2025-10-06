@@ -67,7 +67,7 @@ const GuestsPage = () => {
     }
   };
   return <Layout>
-      <div className="container mx-auto p-6 space-y-6 py-0 px-0">
+      <div className="container mx-auto p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Hóspedes</h1>
           <p className="text-muted-foreground">Gerencie o cadastro de hóspedes</p>
