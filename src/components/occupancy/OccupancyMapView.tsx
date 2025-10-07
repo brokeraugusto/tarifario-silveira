@@ -186,7 +186,7 @@ export const OccupancyMapView = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 min-h-0 overflow-auto p-6">
+        <CardContent className="flex-1 min-h-0 overflow-auto p-4">
           <div className="mb-4">
             <OccupancyLegend />
           </div>
