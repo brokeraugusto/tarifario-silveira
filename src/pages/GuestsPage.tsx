@@ -67,13 +67,13 @@ const GuestsPage = () => {
     }
   };
   return <Layout>
-      <div className="w-full h-full flex flex-col space-y-4">
-        <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+      <div className="w-full h-full flex flex-col">
+        <div className="px-6 pt-6">
           <h1 className="text-3xl font-bold text-foreground">Hóspedes</h1>
           <p className="text-muted-foreground">Gerencie o cadastro de hóspedes</p>
         </div>
         
-        <div className="flex-1 min-h-0 px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="flex-1 min-h-0 p-6">
           <GuestsList guests={guests} onEdit={handleEditGuest} onDelete={handleDeleteGuest} onNewGuest={handleNewGuest} loading={loading} />
         </div>
       </div>
